@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Image Tools needs access to your photos to allow you to resize, compress, crop, and convert your images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Image Tools needs permission to save processed images directly to your photo library.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Image Tools needs camera access to capture documents or photos for resizing and compression.</string>
 </dict>
 </plist>
