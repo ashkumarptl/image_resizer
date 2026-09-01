@@ -9,6 +9,7 @@ import '../../core/constants/preset_constants.dart';
 import '../../data/models/history_item.dart';
 import '../../data/models/image_preset.dart';
 import '../../data/models/process_result.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/history_repository.dart';
 import '../batch/batch_screen.dart';
 import '../compressor/compressor_screen.dart';
@@ -19,6 +20,7 @@ import '../resizer/resizer_screen.dart';
 import '../result/result_screen.dart';
 import '../settings/settings_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
+import '../widgets/account_section.dart';
 import 'widgets/preset_carousel.dart';
 import 'widgets/recent_files_section.dart';
 import 'widgets/tool_card.dart';
@@ -248,6 +250,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
         actions: [
+          Consumer(
+            builder: (context, ref, child) {
+              final authState = ref.watch(authStateProvider);
+              return authState.when(
+                data: (user) {
+                  if (user != null) {
+                    final photoUrl = user.photoURL;
+                    final displayName = user.displayName ?? 'User';
+                    return IconButton(
+                      tooltip: 'Account (${user.displayName ?? 'Signed in'})',
+                      onPressed: () => showAccountBottomSheet(context),
+                      icon: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: AppColors.primaryContainerLight,
+                        backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                        child: photoUrl == null
+                            ? Text(
+                                displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryDark,
+                                ),
+                              )
+                            : null,
+                      ),
+                    );
+                  } else {
+                    return IconButton(
+                      icon: const Icon(Icons.account_circle_outlined),
+                      tooltip: 'Sign In / Account',
+                      onPressed: () => showAccountBottomSheet(context),
+                    );
+                  }
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                error: (err, stack) => IconButton(
+                  icon: const Icon(Icons.account_circle_outlined),
+                  tooltip: 'Sign In / Account',
+                  onPressed: () => showAccountBottomSheet(context),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Settings & Theme',

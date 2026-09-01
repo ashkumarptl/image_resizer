@@ -6,6 +6,7 @@ import '../../core/theme/theme_provider.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../services/storage_service.dart';
 import '../home/home_screen.dart';
+import '../widgets/account_section.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -72,7 +73,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // 1. Appearance Section
+            // 1. Account Section
+            _SectionHeader(title: 'ACCOUNT', isDark: isDark),
+            const SizedBox(height: 10),
+            const AccountSection(),
+            const SizedBox(height: 24),
+
+            // 2. Appearance Section
             _SectionHeader(title: 'APPEARANCE', isDark: isDark),
             const SizedBox(height: 10),
             Container(

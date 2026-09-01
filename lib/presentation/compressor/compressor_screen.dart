@@ -5,6 +5,8 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/extensions/file_size_extension.dart';
 import '../../data/models/process_options.dart';
+import '../../services/analytics_service.dart';
+import '../../services/crashlytics_service.dart';
 import '../../services/image_service/image_processor.dart';
 import '../result/result_screen.dart';
 import '../widgets/gradient_button.dart';
@@ -57,6 +59,14 @@ class _CompressorScreenState extends State<CompressorScreen> {
 
     setState(() => _isProcessing = true);
 
+    await CrashlyticsService.setProcessingContext(
+      operation: 'compress',
+      inputWidth: 0,
+      inputHeight: 0,
+      inputSizeKb: (_fileSizeBytes / 1024).round(),
+      outputFormat: _outputFormat,
+    );
+
     try {
       final options = ProcessOptions(
         sourcePath: widget.initialImage.path,
@@ -66,6 +76,14 @@ class _CompressorScreenState extends State<CompressorScreen> {
 
       final result = await ImageProcessor.processImage(options);
 
+      AnalyticsService.logCompressionUsed(
+        targetQuality: result.finalQuality,
+        originalSizeKb: (_fileSizeBytes / 1024).round(),
+        compressedSizeKb: (result.outputSizeBytes / 1024).round(),
+      );
+
+      await CrashlyticsService.clearProcessingContext();
+
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
@@ -74,7 +92,9 @@ class _CompressorScreenState extends State<CompressorScreen> {
           builder: (_) => ResultScreen(result: result),
         ),
       );
-    } catch (e) {
+    } catch (e, stack) {
+      CrashlyticsService.recordNonFatalError(e, stack, reason: 'Image compression error');
+
       if (!mounted) return;
       setState(() => _isProcessing = false);
       ScaffoldMessenger.of(context).showSnackBar(

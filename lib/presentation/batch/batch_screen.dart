@@ -5,13 +5,17 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/extensions/file_size_extension.dart';
 import '../../data/models/process_options.dart';
+import '../../services/analytics_service.dart';
+import '../../services/crashlytics_service.dart';
 import '../../services/image_service/batch_processor.dart';
 import '../../services/share_service.dart';
 import '../../services/storage_service.dart';
 import '../widgets/gradient_button.dart';
 
 class BatchScreen extends StatefulWidget {
-  const BatchScreen({super.key});
+  final List<File>? initialImages;
+
+  const BatchScreen({super.key, this.initialImages});
 
   @override
   State<BatchScreen> createState() => _BatchScreenState();
@@ -26,6 +30,14 @@ class _BatchScreenState extends State<BatchScreen> {
 
   int _selectedTargetSizeKB = 100;
   String _outputFormat = 'jpg';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialImages != null && widget.initialImages!.isNotEmpty) {
+      _selectedFiles = List.from(widget.initialImages!);
+    }
+  }
 
   Future<void> _handlePickImages() async {
     final pickedList = await _picker.pickMultiImage();
@@ -45,6 +57,16 @@ class _BatchScreenState extends State<BatchScreen> {
       _batchResult = null;
     });
 
+    final totalCount = _selectedFiles.length;
+    await AnalyticsService.logBatchResizeStarted(count: totalCount);
+    await CrashlyticsService.setProcessingContext(
+      operation: 'batch_resize',
+      inputWidth: 0,
+      inputHeight: 0,
+      inputSizeKb: 0,
+      outputFormat: _outputFormat,
+    );
+
     final baseOptions = ProcessOptions(
       sourcePath: '',
       targetSizeKB: _selectedTargetSizeKB,
@@ -63,6 +85,14 @@ class _BatchScreenState extends State<BatchScreen> {
         },
       );
 
+      AnalyticsService.logBatchResizeCompleted(
+        totalImages: totalCount,
+        successCount: result.results.length,
+        failedCount: totalCount - result.results.length,
+        durationMs: result.totalDuration.inMilliseconds,
+      );
+      await CrashlyticsService.clearProcessingContext();
+
       setState(() {
         _isProcessing = false;
         _batchResult = result;
@@ -75,7 +105,8 @@ class _BatchScreenState extends State<BatchScreen> {
           backgroundColor: AppColors.success,
         ),
       );
-    } catch (e) {
+    } catch (e, stack) {
+      CrashlyticsService.recordNonFatalError(e, stack, reason: 'Batch processing failure');
       setState(() => _isProcessing = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../data/models/history_item.dart';
 import '../../data/models/process_result.dart';
 import '../../data/repositories/history_repository.dart';
+import '../../services/analytics_service.dart';
 import '../../services/share_service.dart';
 import '../../services/storage_service.dart';
 import '../widgets/gradient_button.dart';
@@ -56,6 +57,14 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
       _isSaved = success;
     });
 
+    if (success) {
+      AnalyticsService.logImageSaved(
+        outputFormat: widget.result.outputFormat,
+        sizeKb: (widget.result.outputSizeBytes / 1024).round(),
+        destination: 'gallery',
+      );
+    }
+
     if (!mounted) return;
 
     if (success) {
@@ -76,6 +85,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
   }
 
   void _handleShare() {
+    AnalyticsService.logImageShared(
+      outputFormat: widget.result.outputFormat,
+      sizeKb: (widget.result.outputSizeBytes / 1024).round(),
+    );
     ShareService.shareImage(
       widget.result.outputPath,
       text: 'Resized with Image Tools',

@@ -2,10 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as p;
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/extensions/file_size_extension.dart';
 import '../../data/models/process_options.dart';
+import '../../services/analytics_service.dart';
+import '../../services/crashlytics_service.dart';
 import '../../services/image_service/image_processor.dart';
 import '../result/result_screen.dart';
 import '../widgets/gradient_button.dart';
@@ -57,8 +60,17 @@ class _ResizerScreenState extends State<ResizerScreen> {
           _heightController.text = (_originalHeight * 0.5).round().toString();
           _isLoadingInfo = false;
         });
+
+        final ext = p.extension(widget.initialImage.path).replaceAll('.', '');
+        AnalyticsService.logImageSelected(
+          fileType: ext.isEmpty ? 'unknown' : ext,
+          width: _originalWidth,
+          height: _originalHeight,
+          sizeKb: (_fileSizeBytes / 1024).round(),
+        );
       }
-    } catch (_) {
+    } catch (e, stack) {
+      CrashlyticsService.recordNonFatalError(e, stack, reason: 'Failed to read image metadata in ResizerScreen');
       setState(() => _isLoadingInfo = false);
     }
   }
@@ -91,6 +103,16 @@ class _ResizerScreenState extends State<ResizerScreen> {
   Future<void> _handleResize() async {
     setState(() => _isProcessing = true);
 
+    final ext = p.extension(widget.initialImage.path).replaceAll('.', '');
+    final fileType = ext.isEmpty ? 'jpg' : ext;
+
+    await CrashlyticsService.setProcessingContext(
+      operation: 'resize',
+      inputWidth: _originalWidth,
+      inputHeight: _originalHeight,
+      inputSizeKb: (_fileSizeBytes / 1024).round(),
+    );
+
     try {
       ProcessOptions options;
 
@@ -99,6 +121,13 @@ class _ResizerScreenState extends State<ResizerScreen> {
           sourcePath: widget.initialImage.path,
           resizeMode: ResizeMode.percentage,
           resizePercentage: _selectedPercentage,
+        );
+
+        AnalyticsService.logResizeStarted(
+          outputFormat: fileType,
+          targetWidth: (_originalWidth * (_selectedPercentage / 100)).round(),
+          targetHeight: (_originalHeight * (_selectedPercentage / 100)).round(),
+          resizeMode: 'percentage',
         );
       } else {
         final targetW = int.tryParse(_widthController.text.trim());
@@ -111,9 +140,26 @@ class _ResizerScreenState extends State<ResizerScreen> {
           targetHeight: targetH,
           keepAspectRatio: _keepAspectRatio,
         );
+
+        AnalyticsService.logResizeStarted(
+          outputFormat: fileType,
+          targetWidth: targetW ?? _originalWidth,
+          targetHeight: targetH ?? _originalHeight,
+          resizeMode: 'exact_pixels',
+        );
       }
 
       final result = await ImageProcessor.processImage(options);
+
+      AnalyticsService.logResizeCompleted(
+        outputFormat: result.outputFormat,
+        outputWidth: result.outputWidth,
+        outputHeight: result.outputHeight,
+        outputSizeKb: (result.outputSizeBytes / 1024).round(),
+        durationMs: result.processingTime.inMilliseconds,
+      );
+
+      await CrashlyticsService.clearProcessingContext();
 
       if (!mounted) return;
       setState(() => _isProcessing = false);
@@ -123,7 +169,15 @@ class _ResizerScreenState extends State<ResizerScreen> {
           builder: (_) => ResultScreen(result: result),
         ),
       );
-    } catch (e) {
+    } catch (e, stack) {
+      AnalyticsService.logResizeFailed(
+        reason: e.toString(),
+        fileType: fileType,
+        inputWidth: _originalWidth,
+        inputHeight: _originalHeight,
+      );
+      CrashlyticsService.recordNonFatalError(e, stack, reason: 'Image resize execution error');
+
       if (!mounted) return;
       setState(() => _isProcessing = false);
       ScaffoldMessenger.of(context).showSnackBar(

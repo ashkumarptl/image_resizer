@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "739988890096",
+    "project_id": "imageresizer-86c33",
+    "storage_bucket": "imageresizer-86c33.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739988890096:android:e56b6e6549734cb5333d35",
+        "android_client_info": {
+          "package_name": "com.example.image_resizer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKu7T5D83e3L1J5hGT0dY1f5dEw8Dqg-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

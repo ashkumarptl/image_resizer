@@ -47,6 +47,12 @@ dependencies:
   gap: ^3.0.1
   path: ^1.9.1
   archive: ^4.2.0
+  firebase_core: ^3.12.1
+  firebase_auth: ^5.5.1
+  firebase_crashlytics: ^4.3.4
+  firebase_analytics: ^11.4.4
+  google_sign_in: ^6.2.2
+  package_info_plus: ^10.2.1
 
 dev_dependencies:
   flutter_test:
