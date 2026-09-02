@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:739988890096:android:e56b6e6549734cb5333d35",
+        "mobilesdk_app_id": "1:739988890096:android:69ba6e3eb872b442333d35",
         "android_client_info": {
-          "package_name": "com.example.image_resizer"
+          "package_name": "com.ashspark.image_resizer"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "739988890096-5ufkdp2lec91avsfsb7sjvq94onvralt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDKu7T5D83e3L1J5hGT0dY1f5dEw8Dqg-k"
@@ -20,7 +25,63 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "739988890096-5ufkdp2lec91avsfsb7sjvq94onvralt.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "739988890096-4eo0tgauf0cghupvrgpf6s4ifch93ecf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.imageResizer"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739988890096:android:e56b6e6549734cb5333d35",
+        "android_client_info": {
+          "package_name": "com.example.image_resizer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "739988890096-plk94nmc8phcd4p4eeinphrndjgv8b9e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.image_resizer",
+            "certificate_hash": "7f619942247ad8565c6a09bbb81d6c93753cf367"
+          }
+        },
+        {
+          "client_id": "739988890096-5ufkdp2lec91avsfsb7sjvq94onvralt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKu7T5D83e3L1J5hGT0dY1f5dEw8Dqg-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "739988890096-5ufkdp2lec91avsfsb7sjvq94onvralt.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "739988890096-4eo0tgauf0cghupvrgpf6s4ifch93ecf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.imageResizer"
+              }
+            }
+          ]
         }
       }
     }

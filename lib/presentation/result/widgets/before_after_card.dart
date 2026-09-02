@@ -126,14 +126,15 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                 Expanded(
                   child: SizeBadge(
                     sizeBytes: result.outputSizeBytes,
-                    label: 'Optimized',
+                    label: result.isSizeReduced ? 'Optimized' : 'Output Size',
                     isOriginal: false,
+                    isIncreased: !result.isSizeReduced && result.outputSizeBytes > result.originalSizeBytes,
                   ),
                 ),
               ],
             ),
           ),
-          // Savings banner
+          // Savings or Size Notice Banner
           if (result.isSizeReduced)
             Container(
               margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -157,6 +158,37 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: isDark ? AppColors.secondaryLight : AppColors.success,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (result.outputSizeBytes > result.originalSizeBytes)
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.amber,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Size increased by ${(result.outputSizeBytes - result.originalSizeBytes).toReadableFileSize()}. ${result.outputFormat.toLowerCase() == 'png' ? 'PNG is lossless and retains uncompressed pixel clarity. Use JPG or WebP for smaller file size.' : 'Original image was already heavily compressed.'}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                       ),
                     ),
                   ),

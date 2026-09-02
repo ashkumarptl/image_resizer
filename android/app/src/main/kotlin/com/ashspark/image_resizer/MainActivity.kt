@@ -1,4 +1,4 @@
-package com.example.image_resizer
+package com.ashspark.image_resizer
 
 import io.flutter.embedding.android.FlutterActivity
 

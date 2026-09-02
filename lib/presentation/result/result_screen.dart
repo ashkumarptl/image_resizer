@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/models/history_item.dart';
 import '../../data/models/process_result.dart';
+import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/history_repository.dart';
+import '../../data/repositories/usage_limit_repository.dart';
 import '../../services/analytics_service.dart';
 import '../../services/share_service.dart';
 import '../../services/storage_service.dart';
@@ -45,6 +47,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
       processedAt: DateTime.now(),
     );
     await ref.read(historyRepositoryProvider).addHistoryItem(historyItem);
+
+    // Increment guest usage count if user is not authenticated
+    final user = ref.read(currentUserProvider);
+    if (user == null) {
+      await ref.read(guestUsageCountProvider.notifier).increment();
+    }
   }
 
   Future<void> _handleSaveToGallery() async {
@@ -113,7 +121,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            32 + MediaQuery.paddingOf(context).bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -186,6 +199,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Process Another Image'),
                 ),
+              ),
+              const SizedBox(height: 16),
+              const SafeArea(
+                top: false,
+                child: SizedBox.shrink(),
               ),
             ],
           ),

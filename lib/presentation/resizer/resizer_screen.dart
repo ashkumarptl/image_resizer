@@ -201,7 +201,12 @@ class _ResizerScreenState extends State<ResizerScreen> {
         child: _isLoadingInfo
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  20,
+                  20,
+                  32 + MediaQuery.paddingOf(context).bottom,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -351,7 +356,14 @@ class _ResizerScreenState extends State<ResizerScreen> {
                           return ChoiceChip(
                             label: Text('$pct%'),
                             selected: isSelected,
-                            selectedColor: AppColors.primaryContainerLight,
+                            selectedColor: AppColors.primary,
+                            checkmarkColor: Colors.white,
+                            labelStyle: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                            ),
                             onSelected: (selected) {
                               if (selected) setState(() => _selectedPercentage = pct);
                             },
@@ -366,6 +378,11 @@ class _ResizerScreenState extends State<ResizerScreen> {
                       text: '⚡ Resize Now',
                       isLoading: _isProcessing,
                       onPressed: _isProcessing ? null : _handleResize,
+                    ),
+                    const SizedBox(height: 16),
+                    const SafeArea(
+                      top: false,
+                      child: SizedBox.shrink(),
                     ),
                   ],
                 ),

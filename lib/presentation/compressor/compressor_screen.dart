@@ -116,7 +116,12 @@ class _CompressorScreenState extends State<CompressorScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            32 + MediaQuery.paddingOf(context).bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -221,7 +226,14 @@ class _CompressorScreenState extends State<CompressorScreen> {
                   return ChoiceChip(
                     label: Text('$sizeKB KB'),
                     selected: isSelected,
-                    selectedColor: AppColors.primaryContainerLight,
+                    selectedColor: AppColors.primary,
+                    checkmarkColor: Colors.white,
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    ),
                     onSelected: (selected) {
                       if (selected) {
                         setState(() {
@@ -252,13 +264,72 @@ class _CompressorScreenState extends State<CompressorScreen> {
                   return ChoiceChip(
                     label: Text(fmt.toUpperCase()),
                     selected: isSelected,
-                    selectedColor: AppColors.primaryContainerLight,
+                    selectedColor: AppColors.primary,
+                    checkmarkColor: Colors.white,
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    ),
                     onSelected: (selected) {
                       if (selected) setState(() => _outputFormat = fmt);
                     },
                   );
                 }).toList(),
               ),
+              if (_outputFormat == 'png') ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: Colors.amber, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PNG is a lossless format (best for logos & graphics). For camera photos and documents, PNG may result in larger file sizes.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.4,
+                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () => setState(() => _outputFormat = 'jpg'),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Switch to JPG (Recommended)',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(Icons.arrow_forward, size: 14, color: AppColors.primary),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 36),
 
               // Action Button
@@ -266,6 +337,11 @@ class _CompressorScreenState extends State<CompressorScreen> {
                 text: '⚡ Optimize to ${_targetSizeController.text.isEmpty ? "Target" : "${_targetSizeController.text} KB"}',
                 isLoading: _isProcessing,
                 onPressed: _isProcessing ? null : _handleCompress,
+              ),
+              const SizedBox(height: 16),
+              const SafeArea(
+                top: false,
+                child: SizedBox.shrink(),
               ),
             ],
           ),

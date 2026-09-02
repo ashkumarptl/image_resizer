@@ -84,7 +84,12 @@ class _ConverterScreenState extends State<ConverterScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            32 + MediaQuery.paddingOf(context).bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -159,13 +164,48 @@ class _ConverterScreenState extends State<ConverterScreen> {
                   return ChoiceChip(
                     label: Text(fmt.toUpperCase()),
                     selected: isSelected,
-                    selectedColor: AppColors.primaryContainerLight,
+                    selectedColor: AppColors.primary,
+                    checkmarkColor: Colors.white,
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    ),
                     onSelected: (selected) {
                       if (selected) setState(() => _targetFormat = fmt);
                     },
                   );
                 }).toList(),
               ),
+              if (_targetFormat == 'png') ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: Colors.amber, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Converting photos/documents to PNG usually increases file size because PNG uses lossless compression. Use WebP or JPG to save space.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            height: 1.4,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 28),
 
               // Quality Slider (for JPG and WebP)
@@ -215,6 +255,11 @@ class _ConverterScreenState extends State<ConverterScreen> {
                 text: '🔄 Convert to ${_targetFormat.toUpperCase()}',
                 isLoading: _isProcessing,
                 onPressed: _isProcessing ? null : _handleConvert,
+              ),
+              const SizedBox(height: 16),
+              const SafeArea(
+                top: false,
+                child: SizedBox.shrink(),
               ),
             ],
           ),

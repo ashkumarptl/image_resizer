@@ -3,6 +3,8 @@ class AppConstants {
 
   static const String appName = 'Image Tools';
   static const String appTagline = 'Fast, Offline & Privacy-First Optimizer';
+  static const String privacyPolicyUrl =
+      'https://boom-libra-784.notion.site/Privacy-Policy-Image-Tools-3cf9d8fc428880c2bfa2e0fb1f6ba023?source=copy_link';
 
   // Quality Defaults
   static const int defaultQuality = 85;
@@ -40,4 +42,7 @@ class AppConstants {
 
   // Max history items
   static const int maxHistoryItems = 30;
+
+  // Guest Free Usage Limits
+  static const int maxFreeGuestUses = 3;
 }

@@ -1,15 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/preset_constants.dart';
 import '../../data/models/image_preset.dart';
 import '../compressor/compressor_screen.dart';
+import '../widgets/login_gate_dialog.dart';
 
-class PresetsHubScreen extends StatelessWidget {
+class PresetsHubScreen extends ConsumerWidget {
   const PresetsHubScreen({super.key});
 
-  Future<void> _handleSelectPreset(BuildContext context, ImagePreset preset) async {
+  Future<void> _handleSelectPreset(BuildContext context, WidgetRef ref, ImagePreset preset) async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !context.mounted) return;
+
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked == null) return;
@@ -28,7 +33,7 @@ class PresetsHubScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -46,7 +51,7 @@ class PresetsHubScreen extends StatelessWidget {
             return Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => _handleSelectPreset(context, preset),
+                onTap: () => _handleSelectPreset(context, ref, preset),
                 borderRadius: BorderRadius.circular(16),
                 child: Ink(
                   padding: const EdgeInsets.all(16),

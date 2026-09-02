@@ -74,7 +74,12 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            32 + MediaQuery.paddingOf(context).bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -209,7 +214,14 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                   return ChoiceChip(
                     label: Text(size == 19 ? '< 20 KB (SSC/Vyapam)' : '< $size KB'),
                     selected: isSelected,
-                    selectedColor: AppColors.primaryContainerLight,
+                    selectedColor: AppColors.primary,
+                    checkmarkColor: Colors.white,
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    ),
                     onSelected: (sel) {
                       if (sel) setState(() => _targetSizeKB = size);
                     },
@@ -223,6 +235,11 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                 text: '✍️ Clean & Compress Signature',
                 isLoading: _isProcessing,
                 onPressed: _isProcessing ? null : _handleEnhance,
+              ),
+              const SizedBox(height: 16),
+              const SafeArea(
+                top: false,
+                child: SizedBox.shrink(),
               ),
             ],
           ),

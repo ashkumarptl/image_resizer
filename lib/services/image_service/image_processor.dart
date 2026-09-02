@@ -138,66 +138,91 @@ class ImageProcessor {
     img.Image currentImage = originalImage;
     int bestQuality = 80;
     Uint8List? bestBytes;
+    final isLosslessPng = format.toLowerCase() == 'png';
 
-    // Step A: Binary search on quality (15% to 95%)
-    int low = 15;
-    int high = 95;
-    
-    while (low <= high) {
-      final midQuality = (low + high) ~/ 2;
-      final encoded = _encodeImage(currentImage, format: format, quality: midQuality);
+    if (!isLosslessPng) {
+      // Step A: Binary search on quality (10% to 95%) for lossy formats (JPG, WebP)
+      int low = 10;
+      int high = 95;
 
-      if (encoded.length <= targetMaxBytes) {
-        bestBytes = encoded;
-        bestQuality = midQuality;
-        // Try higher quality if possible
-        low = midQuality + 1;
-      } else {
-        // Size is too big, lower quality
-        high = midQuality - 1;
+      while (low <= high) {
+        final midQuality = (low + high) ~/ 2;
+        final encoded = _encodeImage(currentImage, format: format, quality: midQuality);
+
+        if (encoded.length <= targetMaxBytes) {
+          bestBytes = encoded;
+          bestQuality = midQuality;
+          // Try higher quality if possible
+          low = midQuality + 1;
+        } else {
+          // Size is too big, lower quality
+          high = midQuality - 1;
+        }
+      }
+    } else {
+      // For PNG: Test original resolution first
+      final originalEncoded = _encodeImage(currentImage, format: format, quality: 100);
+      if (originalEncoded.length <= targetMaxBytes) {
+        return _OptimizedOutput(
+          bytes: originalEncoded,
+          quality: 100,
+          image: currentImage,
+        );
       }
     }
 
-    // Step B: If even quality=15 is too big, scale down dimensions iteratively
+    // Step B: If quality adjustment alone isn't enough (or for PNG), scale down dimensions iteratively
     if (bestBytes == null || bestBytes.length > targetMaxBytes) {
-      double scale = 0.85;
-      while (scale >= 0.1) {
-        final newW = (currentImage.width * scale).round();
-        final newH = (currentImage.height * scale).round();
-        if (newW <= 10 || newH <= 10) break;
+      double scale = 0.90;
+      final int stepQuality = isLosslessPng ? 100 : 75;
+
+      while (scale >= 0.05) {
+        final newW = (originalImage.width * scale).round();
+        final newH = (originalImage.height * scale).round();
+        if (newW <= 5 || newH <= 5) break;
 
         final scaledImage = img.copyResize(
-          currentImage,
+          originalImage,
           width: newW,
           height: newH,
           interpolation: img.Interpolation.linear,
         );
 
-        // Test with moderate quality 70%
-        final encoded = _encodeImage(scaledImage, format: format, quality: 70);
-        if (encoded.length <= targetMaxBytes) {
-          currentImage = scaledImage;
-          bestBytes = encoded;
-          bestQuality = 70;
-          break;
+        if (isLosslessPng) {
+          final encoded = _encodeImage(scaledImage, format: format, quality: 100);
+          if (encoded.length <= targetMaxBytes) {
+            currentImage = scaledImage;
+            bestBytes = encoded;
+            bestQuality = 100;
+            break;
+          }
+        } else {
+          // Test with moderate quality
+          final encoded = _encodeImage(scaledImage, format: format, quality: stepQuality);
+          if (encoded.length <= targetMaxBytes) {
+            currentImage = scaledImage;
+            bestBytes = encoded;
+            bestQuality = stepQuality;
+            break;
+          }
+
+          // Try lower quality 40% on scaled image
+          final lowQualityEncoded = _encodeImage(scaledImage, format: format, quality: 40);
+          if (lowQualityEncoded.length <= targetMaxBytes) {
+            currentImage = scaledImage;
+            bestBytes = lowQualityEncoded;
+            bestQuality = 40;
+            break;
+          }
         }
 
-        // Try low quality 35% on scaled image
-        final lowQualityEncoded = _encodeImage(scaledImage, format: format, quality: 35);
-        if (lowQualityEncoded.length <= targetMaxBytes) {
-          currentImage = scaledImage;
-          bestBytes = lowQualityEncoded;
-          bestQuality = 35;
-          break;
-        }
-
-        scale -= 0.15;
+        scale -= 0.10;
       }
     }
 
     // Fallback if still null
     if (bestBytes == null) {
-      bestQuality = 20;
+      bestQuality = isLosslessPng ? 100 : 20;
       bestBytes = _encodeImage(currentImage, format: format, quality: bestQuality);
     }
 
@@ -216,8 +241,7 @@ class ImageProcessor {
   }) {
     switch (format.toLowerCase()) {
       case 'png':
-        final level = ((100 - quality) / 10).round().clamp(0, 9);
-        return Uint8List.fromList(img.encodePng(image, level: level));
+        return Uint8List.fromList(img.encodePng(image, level: 6));
       case 'webp':
         return Uint8List.fromList(img.encodeWebP(image));
       case 'jpg':

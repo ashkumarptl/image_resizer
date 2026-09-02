@@ -87,6 +87,9 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceVariantLight,
+        selectedColor: AppColors.primary,
+        secondarySelectedColor: AppColors.primary,
+        checkmarkColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: const BorderSide(color: AppColors.borderLight),
@@ -95,6 +98,11 @@ class AppTheme {
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimaryLight,
+        ),
+        secondaryLabelStyle: GoogleFonts.outfit(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
     );
@@ -182,6 +190,9 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceVariantDark,
+        selectedColor: AppColors.primary,
+        secondarySelectedColor: AppColors.primary,
+        checkmarkColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: const BorderSide(color: AppColors.borderDark),
@@ -190,6 +201,11 @@ class AppTheme {
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimaryDark,
+        ),
+        secondaryLabelStyle: GoogleFonts.outfit(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
     );

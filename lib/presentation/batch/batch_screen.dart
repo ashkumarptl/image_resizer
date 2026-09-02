@@ -1,27 +1,31 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/extensions/file_size_extension.dart';
 import '../../data/models/process_options.dart';
+import '../../data/repositories/auth_repository.dart';
+import '../../data/repositories/usage_limit_repository.dart';
 import '../../services/analytics_service.dart';
 import '../../services/crashlytics_service.dart';
 import '../../services/image_service/batch_processor.dart';
 import '../../services/share_service.dart';
 import '../../services/storage_service.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/login_gate_dialog.dart';
 
-class BatchScreen extends StatefulWidget {
+class BatchScreen extends ConsumerStatefulWidget {
   final List<File>? initialImages;
 
   const BatchScreen({super.key, this.initialImages});
 
   @override
-  State<BatchScreen> createState() => _BatchScreenState();
+  ConsumerState<BatchScreen> createState() => _BatchScreenState();
 }
 
-class _BatchScreenState extends State<BatchScreen> {
+class _BatchScreenState extends ConsumerState<BatchScreen> {
   final ImagePicker _picker = ImagePicker();
   List<File> _selectedFiles = [];
   bool _isProcessing = false;
@@ -40,6 +44,9 @@ class _BatchScreenState extends State<BatchScreen> {
   }
 
   Future<void> _handlePickImages() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
     final pickedList = await _picker.pickMultiImage();
     if (pickedList.isNotEmpty) {
       setState(() {
@@ -51,6 +58,9 @@ class _BatchScreenState extends State<BatchScreen> {
 
   Future<void> _handleStartBatch() async {
     if (_selectedFiles.isEmpty) return;
+
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
 
     setState(() {
       _isProcessing = true;
@@ -92,6 +102,12 @@ class _BatchScreenState extends State<BatchScreen> {
         durationMs: result.totalDuration.inMilliseconds,
       );
       await CrashlyticsService.clearProcessingContext();
+
+      // Increment guest usage count if user is not authenticated
+      final user = ref.read(currentUserProvider);
+      if (user == null) {
+        await ref.read(guestUsageCountProvider.notifier).increment();
+      }
 
       setState(() {
         _isProcessing = false;
@@ -155,7 +171,12 @@ class _BatchScreenState extends State<BatchScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            32 + MediaQuery.paddingOf(context).bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -228,7 +249,14 @@ class _BatchScreenState extends State<BatchScreen> {
                     return ChoiceChip(
                       label: Text('$sizeKB KB'),
                       selected: isSelected,
-                      selectedColor: AppColors.primaryContainerLight,
+                      selectedColor: AppColors.primary,
+                      checkmarkColor: Colors.white,
+                      labelStyle: TextStyle(
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      ),
                       onSelected: (sel) {
                         if (sel) setState(() => _selectedTargetSizeKB = sizeKB);
                       },
@@ -254,7 +282,14 @@ class _BatchScreenState extends State<BatchScreen> {
                     return ChoiceChip(
                       label: Text(fmt.toUpperCase()),
                       selected: isSelected,
-                      selectedColor: AppColors.primaryContainerLight,
+                      selectedColor: AppColors.primary,
+                      checkmarkColor: Colors.white,
+                      labelStyle: TextStyle(
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      ),
                       onSelected: (sel) {
                         if (sel) setState(() => _outputFormat = fmt);
                       },
@@ -413,6 +448,11 @@ class _BatchScreenState extends State<BatchScreen> {
                     ),
                   ),
               ],
+              const SizedBox(height: 16),
+              const SafeArea(
+                top: false,
+                child: SizedBox.shrink(),
+              ),
             ],
           ),
         ),

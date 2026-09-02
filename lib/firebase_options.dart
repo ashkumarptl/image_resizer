@@ -42,7 +42,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDKu7T5D83e3L1J5hGT0dY1f5dEw8Dqg-k',
-    appId: '1:739988890096:android:e56b6e6549734cb5333d35',
+    appId: '1:739988890096:android:69ba6e3eb872b442333d35',
     messagingSenderId: '739988890096',
     projectId: 'imageresizer-86c33',
     storageBucket: 'imageresizer-86c33.firebasestorage.app',
@@ -72,9 +72,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '739988890096',
     projectId: 'imageresizer-86c33',
     storageBucket: 'imageresizer-86c33.firebasestorage.app',
+    androidClientId: '739988890096-plk94nmc8phcd4p4eeinphrndjgv8b9e.apps.googleusercontent.com',
+    iosClientId: '739988890096-4eo0tgauf0cghupvrgpf6s4ifch93ecf.apps.googleusercontent.com',
     iosBundleId: 'com.example.imageResizer',
   );
-
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyA4KB1NVxCPzGtKL7mIR6L5mh7ArSE-Kuo',
     appId: '1:739988890096:web:cd625c8af3ae5361333d35',

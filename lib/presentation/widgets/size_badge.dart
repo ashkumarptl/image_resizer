@@ -6,25 +6,33 @@ class SizeBadge extends StatelessWidget {
   final int sizeBytes;
   final String label;
   final bool isOriginal;
+  final bool isIncreased;
 
   const SizeBadge({
     super.key,
     required this.sizeBytes,
     required this.label,
     this.isOriginal = false,
+    this.isIncreased = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bgColor = isOriginal
-        ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight)
-        : (isDark ? AppColors.secondaryContainerDark : AppColors.successContainer);
+    final Color bgColor;
+    final Color textColor;
 
-    final textColor = isOriginal
-        ? (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)
-        : (isDark ? AppColors.secondaryLight : AppColors.success);
+    if (isOriginal) {
+      bgColor = isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight;
+      textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    } else if (isIncreased) {
+      bgColor = isDark ? Colors.amber.withValues(alpha: 0.15) : Colors.amber.shade100;
+      textColor = isDark ? Colors.amber.shade300 : Colors.amber.shade900;
+    } else {
+      bgColor = isDark ? AppColors.secondaryContainerDark : AppColors.successContainer;
+      textColor = isDark ? AppColors.secondaryLight : AppColors.success;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

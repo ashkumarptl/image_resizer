@@ -11,6 +11,7 @@ import '../../data/models/image_preset.dart';
 import '../../data/models/process_result.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/history_repository.dart';
+import '../../data/repositories/usage_limit_repository.dart';
 import '../batch/batch_screen.dart';
 import '../compressor/compressor_screen.dart';
 import '../converter/converter_screen.dart';
@@ -21,6 +22,7 @@ import '../result/result_screen.dart';
 import '../settings/settings_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
 import '../widgets/account_section.dart';
+import '../widgets/login_gate_dialog.dart';
 import 'widgets/preset_carousel.dart';
 import 'widgets/recent_files_section.dart';
 import 'widgets/tool_card.dart';
@@ -51,6 +53,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _handleCompressTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
@@ -62,6 +67,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _handleResizeTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
@@ -73,6 +81,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _handleConvertTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
@@ -84,6 +95,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _handleCropTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
@@ -130,6 +144,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _handleBatchTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const BatchScreen(),
@@ -138,6 +155,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _handleSignatureTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
@@ -149,6 +169,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _handlePhotoStampTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
@@ -160,6 +183,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _handlePresetSelected(ImagePreset preset) async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
@@ -325,6 +351,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Guest Usage Trial Banner
+                _buildGuestUsageBanner(context, isDark),
+
                 // 1. Indian Govt & Exam Presets Carousel
                 PresetCarousel(
                   presets: PresetConstants.indianGovtPresets,
@@ -446,4 +475,127 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+
+  Widget _buildGuestUsageBanner(BuildContext context, bool isDark) {
+    final user = ref.watch(currentUserProvider);
+    if (user != null) {
+      // Authenticated user has unlimited access
+      return const SizedBox.shrink();
+    }
+
+    final usageCount = ref.watch(guestUsageCountProvider);
+    final remaining = (AppConstants.maxFreeGuestUses - usageCount).clamp(0, AppConstants.maxFreeGuestUses);
+    final isLimitReached = usageCount >= AppConstants.maxFreeGuestUses;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            if (isLimitReached) {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (ctx) => const LoginGateBottomSheet(),
+              );
+            } else {
+              showAccountBottomSheet(context);
+            }
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isLimitReached
+                    ? [
+                        AppColors.error.withValues(alpha: isDark ? 0.25 : 0.12),
+                        AppColors.warning.withValues(alpha: isDark ? 0.2 : 0.08),
+                      ]
+                    : [
+                        AppColors.primary.withValues(alpha: isDark ? 0.22 : 0.1),
+                        AppColors.primaryDark.withValues(alpha: isDark ? 0.15 : 0.05),
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isLimitReached
+                    ? AppColors.error.withValues(alpha: 0.5)
+                    : AppColors.primary.withValues(alpha: 0.35),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isLimitReached
+                        ? AppColors.error.withValues(alpha: 0.15)
+                        : AppColors.primary.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isLimitReached ? Icons.lock_outline_rounded : Icons.bolt_rounded,
+                    size: 20,
+                    color: isLimitReached ? AppColors.error : AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isLimitReached
+                            ? 'Free Limit Reached (${AppConstants.maxFreeGuestUses}/${AppConstants.maxFreeGuestUses} used)'
+                            : 'Free Trial: $remaining of ${AppConstants.maxFreeGuestUses} uses remaining',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isLimitReached
+                              ? (isDark ? Colors.red.shade300 : AppColors.error)
+                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isLimitReached
+                            ? 'Sign in with Google for unlimited access'
+                            : 'Sign in to unlock unlimited usage & presets',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isLimitReached ? AppColors.error : AppColors.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    isLimitReached ? 'Sign In' : 'Unlock',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/theme_provider.dart';
@@ -7,6 +9,17 @@ import '../../data/repositories/history_repository.dart';
 import '../../services/storage_service.dart';
 import '../home/home_screen.dart';
 import '../widgets/account_section.dart';
+
+/// Provider to fetch app version and build number dynamically from platform metadata
+final appVersionProvider = FutureProvider<String>((ref) async {
+  try {
+    final info = await PackageInfo.fromPlatform();
+    return '${info.version}+${info.buildNumber}';
+  } catch (e) {
+    return '1.0.0+1';
+  }
+});
+
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -55,6 +68,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const SnackBar(
           content: Text('History cleared successfully!'),
           backgroundColor: AppColors.success,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleOpenPrivacyPolicy() async {
+    final Uri uri = Uri.parse(AppConstants.privacyPolicyUrl);
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open Privacy Policy link'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening link: $e'),
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -143,11 +179,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             // 2. Storage & Cache Section
             _SectionHeader(title: 'STORAGE & PRIVACY', isDark: isDark),
             const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+            Material(
+              color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
+                side: BorderSide(
                   color: isDark ? AppColors.borderDark : AppColors.borderLight,
                 ),
               ),
@@ -167,6 +204,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     subtitle: const Text('Clear history list on home screen', style: TextStyle(fontSize: 12)),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: _handleClearHistory,
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primary),
+                    title: const Text('Privacy Policy', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                    subtitle: const Text('Read our data practices & policies', style: TextStyle(fontSize: 12)),
+                    trailing: const Icon(Icons.open_in_new_rounded, size: 18),
+                    onTap: _handleOpenPrivacyPolicy,
                   ),
                   const Divider(height: 1),
                   Padding(
@@ -215,11 +260,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ],
                   ),
                   const Divider(height: 20),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Version', style: TextStyle(fontSize: 14)),
-                      Text('1.0.0+1', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const Text('Version', style: TextStyle(fontSize: 14)),
+                      ref.watch(appVersionProvider).when(
+                            data: (version) => Text(
+                              version,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            loading: () => const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            error: (_, _) => const Text(
+                              '1.0.0+1',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                          ),
                     ],
                   ),
                 ],

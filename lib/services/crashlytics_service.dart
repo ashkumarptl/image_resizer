@@ -10,14 +10,9 @@ class CrashlyticsService {
 
   /// Initialize Crashlytics handlers for Flutter and Async errors
   static Future<void> initialize() async {
-    // 1. Configure collection: In debug mode we can keep it off or on, in release mode it is always enabled
-    if (kDebugMode) {
-      await _crashlytics.setCrashlyticsCollectionEnabled(false);
-      debugPrint('[Crashlytics] Collection disabled in debug mode.');
-    } else {
-      await _crashlytics.setCrashlyticsCollectionEnabled(true);
-      debugPrint('[Crashlytics] Collection enabled in release mode.');
-    }
+    // 1. Configure collection: Always enable so crashes & test events are sent to Firebase Console
+    await _crashlytics.setCrashlyticsCollectionEnabled(true);
+    debugPrint('[Crashlytics] Collection enabled (kDebugMode: $kDebugMode).');
 
     // 2. Flutter framework errors (UI / Widget build exceptions)
     FlutterError.onError = (FlutterErrorDetails details) {

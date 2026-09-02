@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_constants.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../data/repositories/usage_limit_repository.dart';
 
 /// Interactive Account Section displaying user profile when signed in,
 /// or Google Sign-In button when signed out.
@@ -98,6 +100,73 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
       }
     }
   }
+
+  Future<void> _handleDeleteAccount() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
+            SizedBox(width: 8),
+            Text('Delete Account?'),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to delete your account? This action is permanent and cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete Permanently'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isLoading = true);
+      try {
+        await ref.read(authServiceProvider).deleteAccount();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account deleted successfully.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      } on FirebaseAuthException catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete account: ${e.message ?? e.code}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete account: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +284,6 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           const Divider(height: 1),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -239,22 +307,39 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                   ],
                 ),
               ),
+              const Spacer(),
+              // Sign Out Button
               OutlinedButton.icon(
                 onPressed: _isLoading ? null : _handleSignOut,
                 style: OutlinedButton.styleFrom(
+                  foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  side: BorderSide(
+                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.logout_rounded, size: 14),
+                label: const Text('Sign Out', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              ),
+              const SizedBox(width: 8),
+              // Delete Account Button
+              OutlinedButton.icon(
+                onPressed: _isLoading ? null : _handleDeleteAccount,
+                style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.error,
                   side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 icon: _isLoading
                     ? const SizedBox(
-                        width: 14,
-                        height: 14,
+                        width: 12,
+                        height: 12,
                         child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.error),
                       )
-                    : const Icon(Icons.logout_rounded, size: 16),
-                label: const Text('Sign Out', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    : const Icon(Icons.delete_forever_rounded, size: 14),
+                label: const Text('Delete', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -264,6 +349,10 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
   }
 
   Widget _buildSignedOutCard(BuildContext context, bool isDark) {
+    final usageCount = ref.watch(guestUsageCountProvider);
+    final remaining = (AppConstants.maxFreeGuestUses - usageCount).clamp(0, AppConstants.maxFreeGuestUses);
+    final isLimitReached = usageCount >= AppConstants.maxFreeGuestUses;
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -301,10 +390,15 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Sign in to sync your presets & preferences.',
+                      isLimitReached
+                          ? 'Trial completed (${AppConstants.maxFreeGuestUses}/${AppConstants.maxFreeGuestUses} used). Sign in for unlimited.'
+                          : '$remaining of ${AppConstants.maxFreeGuestUses} free trials remaining. Sign in for unlimited.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isLimitReached
+                            ? (isDark ? Colors.red.shade300 : AppColors.error)
+                            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                        fontWeight: isLimitReached ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
                   ],
@@ -314,6 +408,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           ),
           const SizedBox(height: 16),
           GoogleSignInButton(
+            text: isLimitReached ? 'Sign In to Unlock Unlimited' : 'Sign In with Google',
             isLoading: _isLoading,
             onPressed: _handleGoogleSignIn,
           ),
