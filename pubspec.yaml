@@ -1,5 +1,5 @@
 name: image_resizer
-description: "A new Flutter project."
+description: "Image Tools - Fast, offline & privacy-first image optimizer, resizer and converter."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -69,12 +69,9 @@ dev_dependencies:
 
 flutter_launcher_icons:
   android: "launcher_icon"
-  ios: true
-  image_path: "assets/images/imageresizeicon.png"
+  ios: false
+  image_path: "assets/images/image_tools_icon.png"
   min_sdk_android: 21
-  web:
-    generate: true
-    image_path: "assets/images/imageresizeicon.png"
 
 
 # For information on the generic Dart part of this file, see the
