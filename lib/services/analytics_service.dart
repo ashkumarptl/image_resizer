@@ -226,4 +226,28 @@ class AnalyticsService {
       debugPrint('[Analytics] Error: $e');
     }
   }
+
+  static Future<void> logSendToPcStarted({required int fileCount}) async {
+    try {
+      await _analytics.logEvent(
+        name: 'send_to_pc_started',
+        parameters: {'file_count': fileCount},
+      );
+      debugPrint('[Analytics] Event: send_to_pc_started ($fileCount files)');
+    } catch (e) {
+      debugPrint('[Analytics] Error: $e');
+    }
+  }
+
+  static Future<void> logSendToPcDownloaded({required int fileCount}) async {
+    try {
+      await _analytics.logEvent(
+        name: 'send_to_pc_downloaded',
+        parameters: {'file_count': fileCount},
+      );
+      debugPrint('[Analytics] Event: send_to_pc_downloaded ($fileCount files)');
+    } catch (e) {
+      debugPrint('[Analytics] Error: $e');
+    }
+  }
 }

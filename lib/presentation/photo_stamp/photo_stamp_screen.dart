@@ -28,7 +28,7 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: 'YOUR NAME');
+    _nameController = TextEditingController();
     _dateController = TextEditingController(
       text: DateFormat('dd/MM/yyyy').format(_selectedDate),
     );

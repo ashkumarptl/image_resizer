@@ -10,6 +10,7 @@ import '../../services/analytics_service.dart';
 import '../../services/share_service.dart';
 import '../../services/storage_service.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/send_to_pc_sheet.dart';
 import 'widgets/before_after_card.dart';
 
 class ResultScreen extends ConsumerStatefulWidget {
@@ -103,6 +104,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     );
   }
 
+  void _handleSendToPc() {
+    SendToPcSheet.show(
+      context,
+      filePaths: [widget.result.outputPath],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -112,6 +120,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
       appBar: AppBar(
         title: const Text('Optimization Result'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.laptop_chromebook_rounded),
+            tooltip: 'Send to PC',
+            onPressed: _handleSendToPc,
+          ),
           IconButton(
             icon: const Icon(Icons.share_rounded),
             tooltip: 'Share',
@@ -179,19 +192,42 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                 onPressed: _isSaved ? null : _handleSaveToGallery,
               ),
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: OutlinedButton.icon(
-                  onPressed: _handleShare,
-                  icon: const Icon(Icons.share_outlined),
-                  label: const Text('Share Image'),
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: OutlinedButton.icon(
+                        onPressed: _handleShare,
+                        icon: const Icon(Icons.share_outlined),
+                        label: const Text('Share'),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: OutlinedButton.icon(
+                        onPressed: _handleSendToPc,
+                        icon: const Icon(Icons.laptop_chromebook_rounded),
+                        label: const Text('Send to PC'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               Center(

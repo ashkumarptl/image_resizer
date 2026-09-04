@@ -15,6 +15,7 @@ import '../../services/share_service.dart';
 import '../../services/storage_service.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/login_gate_dialog.dart';
+import '../widgets/send_to_pc_sheet.dart';
 
 class BatchScreen extends ConsumerStatefulWidget {
   final List<File>? initialImages;
@@ -159,6 +160,15 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
         text: 'Batch images compressed with Image Tools',
       );
     }
+  }
+
+  void _handleSendAllToPc() {
+    if (_batchResult == null || _batchResult!.results.isEmpty) return;
+    final filePaths = _batchResult!.results.map((r) => r.outputPath).toList();
+    SendToPcSheet.show(
+      context,
+      filePaths: filePaths,
+    );
   }
 
   @override
@@ -432,7 +442,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                if (_batchResult?.zipFilePath != null)
+                if (_batchResult?.zipFilePath != null) ...[
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -447,6 +457,25 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                ],
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: _handleSendAllToPc,
+                    icon: const Icon(Icons.laptop_chromebook_rounded),
+                    label: const Text('Send All to PC (Wi-Fi Share)'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
               ],
               const SizedBox(height: 16),
               const SafeArea(
