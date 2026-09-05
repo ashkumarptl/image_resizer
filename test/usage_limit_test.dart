@@ -95,5 +95,37 @@ void main() {
       expect(container.read(remainingFreeUsesProvider), 0);
       expect(container.read(isUsageLimitReachedProvider), isTrue);
     });
+
+    test('Developer mode bypasses usage limits and provides unlimited access', () async {
+      final container = ProviderContainer(
+        overrides: [
+          authServiceProvider.overrideWithValue(MockAuthService()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // Increment 3 times to exhaust free limit
+      final notifier = container.read(guestUsageCountProvider.notifier);
+      await notifier.increment();
+      await notifier.increment();
+      await notifier.increment();
+      expect(container.read(guestUsageCountProvider), 3);
+
+      // For standard guest, limit is reached
+      expect(container.read(isUsageLimitReachedProvider), isTrue);
+
+      // Enable Developer Mode
+      await container.read(developerModeProvider.notifier).setDeveloperMode(true);
+      expect(container.read(isDeveloperProvider), isTrue);
+
+      // With developer mode active, limit is NOT reached and uses are unlimited (-1)
+      expect(container.read(isUsageLimitReachedProvider), isFalse);
+      expect(container.read(remainingFreeUsesProvider), -1);
+
+      // canUseFeature returns true for developer even when limit count is reached
+      final repo = container.read(usageLimitRepositoryProvider);
+      final canUse = await repo.canUseFeature(isAuthenticated: false, isDeveloper: true);
+      expect(canUse, isTrue);
+    });
   });
 }

@@ -49,9 +49,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     );
     await ref.read(historyRepositoryProvider).addHistoryItem(historyItem);
 
-    // Increment guest usage count if user is not authenticated
+    // Increment guest usage count if user is not authenticated and not developer
+    final isDeveloper = ref.read(isDeveloperProvider);
     final user = ref.read(currentUserProvider);
-    if (user == null) {
+    if (user == null && !isDeveloper) {
       await ref.read(guestUsageCountProvider.notifier).increment();
     }
   }

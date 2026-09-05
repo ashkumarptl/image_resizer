@@ -349,9 +349,10 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
   }
 
   Widget _buildSignedOutCard(BuildContext context, bool isDark) {
+    final isDeveloper = ref.watch(isDeveloperProvider);
     final usageCount = ref.watch(guestUsageCountProvider);
     final remaining = (AppConstants.maxFreeGuestUses - usageCount).clamp(0, AppConstants.maxFreeGuestUses);
-    final isLimitReached = usageCount >= AppConstants.maxFreeGuestUses;
+    final isLimitReached = !isDeveloper && usageCount >= AppConstants.maxFreeGuestUses;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -390,9 +391,11 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isLimitReached
-                          ? 'Trial completed (${AppConstants.maxFreeGuestUses}/${AppConstants.maxFreeGuestUses} used). Sign in for unlimited.'
-                          : '$remaining of ${AppConstants.maxFreeGuestUses} free trials remaining. Sign in for unlimited.',
+                      isDeveloper
+                          ? 'Developer Mode: Unlimited access active.'
+                          : (isLimitReached
+                              ? 'Trial completed (${AppConstants.maxFreeGuestUses}/${AppConstants.maxFreeGuestUses} used). Sign in for unlimited.'
+                              : '$remaining of ${AppConstants.maxFreeGuestUses} free trials remaining. Sign in for unlimited.'),
                       style: TextStyle(
                         fontSize: 12,
                         color: isLimitReached
@@ -408,7 +411,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           ),
           const SizedBox(height: 16),
           GoogleSignInButton(
-            text: isLimitReached ? 'Sign In to Unlock Unlimited' : 'Sign In with Google',
+            text: isLimitReached && !isDeveloper ? 'Sign In to Unlock Unlimited' : 'Sign In with Google',
             isLoading: _isLoading,
             onPressed: _handleGoogleSignIn,
           ),

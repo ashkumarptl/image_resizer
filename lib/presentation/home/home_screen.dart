@@ -480,6 +480,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildGuestUsageBanner(BuildContext context, bool isDark) {
+    final isDeveloper = ref.watch(isDeveloperProvider);
+    if (isDeveloper) {
+      // Developer has unlimited access and should not see limit banner
+      return const SizedBox.shrink();
+    }
+
     final user = ref.watch(currentUserProvider);
     if (user != null) {
       // Authenticated user has unlimited access

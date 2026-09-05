@@ -9,6 +9,7 @@ import '../../data/repositories/history_repository.dart';
 import '../../services/storage_service.dart';
 import '../home/home_screen.dart';
 import '../widgets/account_section.dart';
+import '../../data/repositories/usage_limit_repository.dart';
 
 /// Provider to fetch app version and build number dynamically from platform metadata
 final appVersionProvider = FutureProvider<String>((ref) async {
@@ -29,6 +30,39 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  int _versionTapCount = 0;
+
+  Future<void> _handleVersionTap() async {
+    _versionTapCount++;
+    if (_versionTapCount >= 7) {
+      _versionTapCount = 0;
+      await ref.read(developerModeProvider.notifier).toggle();
+      final isDev = ref.read(developerModeProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isDev
+                ? '🛠️ Developer mode enabled: Limits bypassed!'
+                : 'Developer mode disabled: Standard limits active.',
+          ),
+          backgroundColor: isDev ? AppColors.primary : AppColors.warning,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else if (_versionTapCount >= 3) {
+      final remaining = 7 - _versionTapCount;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('You are $remaining tap${remaining == 1 ? '' : 's'} away from toggling Developer Mode.'),
+          duration: const Duration(milliseconds: 700),
+        ),
+      );
+    }
+  }
+
   Future<void> _handleClearCache() async {
     await StorageService.cleanOldCacheFiles(maxAge: Duration.zero);
     if (!mounted) return;
@@ -260,27 +294,74 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ],
                   ),
                   const Divider(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Version', style: TextStyle(fontSize: 14)),
-                      ref.watch(appVersionProvider).when(
-                            data: (version) => Text(
-                              version,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _handleVersionTap,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Version', style: TextStyle(fontSize: 14)),
+                            ref.watch(appVersionProvider).when(
+                                  data: (version) => Text(
+                                    version,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  ),
+                                  loading: () => const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                  error: (_, _) => const Text(
+                                    '1.0.0+1',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  ),
+                                ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (ref.watch(isDeveloperProvider)) ...[
+                    const Divider(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.terminal_rounded, size: 18, color: AppColors.primary),
+                            SizedBox(width: 8),
+                            Text(
+                              'Developer Mode',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
                             ),
-                            loading: () => const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            error: (_, _) => const Text(
-                              '1.0.0+1',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'Active (Limits Bypassed)',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
                             ),
                           ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

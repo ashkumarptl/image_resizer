@@ -104,9 +104,10 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       );
       await CrashlyticsService.clearProcessingContext();
 
-      // Increment guest usage count if user is not authenticated
+      // Increment guest usage count if user is not authenticated and not developer
+      final isDeveloper = ref.read(isDeveloperProvider);
       final user = ref.read(currentUserProvider);
-      if (user == null) {
+      if (user == null && !isDeveloper) {
         await ref.read(guestUsageCountProvider.notifier).increment();
       }
 

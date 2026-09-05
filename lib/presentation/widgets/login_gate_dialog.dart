@@ -12,6 +12,11 @@ import 'account_section.dart';
 /// If free limit is exhausted, displays the Login Gate bottom sheet and returns
 /// `true` only if the user logs in.
 Future<bool> checkFeatureAccess(BuildContext context, WidgetRef ref) async {
+  final isDeveloper = ref.read(isDeveloperProvider);
+  if (isDeveloper) {
+    return true;
+  }
+
   final user = ref.read(currentUserProvider);
   if (user != null) {
     return true;
