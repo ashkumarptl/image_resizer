@@ -95,6 +95,7 @@ class ImageProcessor {
         workingImage,
         targetMaxBytes: targetMaxBytes,
         format: format,
+        strictDimensions: options.strictDimensions,
       );
       encodedBytes = optResult.bytes;
       finalQuality = optResult.quality;
@@ -134,6 +135,7 @@ class ImageProcessor {
     img.Image originalImage, {
     required int targetMaxBytes,
     required String format,
+    bool strictDimensions = false,
   }) {
     img.Image currentImage = originalImage;
     int bestQuality = 80;
@@ -141,8 +143,8 @@ class ImageProcessor {
     final isLosslessPng = format.toLowerCase() == 'png';
 
     if (!isLosslessPng) {
-      // Step A: Binary search on quality (10% to 95%) for lossy formats (JPG, WebP)
-      int low = 10;
+      // Step A: Binary search on quality (5% to 95%) for lossy formats (JPG, WebP)
+      int low = 5;
       int high = 95;
 
       while (low <= high) {
@@ -171,8 +173,9 @@ class ImageProcessor {
       }
     }
 
-    // Step B: If quality adjustment alone isn't enough (or for PNG), scale down dimensions iteratively
-    if (bestBytes == null || bestBytes.length > targetMaxBytes) {
+    // Step B: If quality adjustment alone isn't enough (or for PNG), scale down dimensions iteratively.
+    // If strictDimensions is requested (e.g. for exam portal requirements), do not resize dimensions.
+    if (!strictDimensions && (bestBytes == null || bestBytes.length > targetMaxBytes)) {
       double scale = 0.90;
       final int stepQuality = isLosslessPng ? 100 : 75;
 

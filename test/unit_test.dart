@@ -90,12 +90,18 @@ void main() {
   group('ProcessOptions Tests', () {
     test('ProcessOptions copyWith works', () {
       const opts = ProcessOptions(sourcePath: '/test.jpg', quality: 85);
-      final updated = opts.copyWith(targetSizeKB: 50, outputFormat: 'webp');
+      final updated = opts.copyWith(
+        targetSizeKB: 50,
+        outputFormat: 'webp',
+        strictDimensions: true,
+      );
 
       expect(updated.sourcePath, '/test.jpg');
       expect(updated.quality, 85);
       expect(updated.targetSizeKB, 50);
       expect(updated.outputFormat, 'webp');
+      expect(opts.strictDimensions, false);
+      expect(updated.strictDimensions, true);
     });
   });
 

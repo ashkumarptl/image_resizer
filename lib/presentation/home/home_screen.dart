@@ -5,6 +5,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/layout/adaptive_layout.dart';
 import '../../core/constants/preset_constants.dart';
 import '../../data/models/history_item.dart';
 import '../../data/models/image_preset.dart';
@@ -13,14 +14,13 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../data/repositories/usage_limit_repository.dart';
 import '../batch/batch_screen.dart';
-import '../compressor/compressor_screen.dart';
-import '../converter/converter_screen.dart';
 import '../photo_stamp/photo_stamp_screen.dart';
+import '../presets/preset_apply_screen.dart';
 import '../presets/presets_hub_screen.dart';
-import '../resizer/resizer_screen.dart';
 import '../result/result_screen.dart';
 import '../settings/settings_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
+import '../studio/image_studio_screen.dart';
 import '../widgets/account_section.dart';
 import '../widgets/login_gate_dialog.dart';
 import 'widgets/preset_carousel.dart';
@@ -42,17 +42,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final ImagePicker _picker = ImagePicker();
 
   Future<File?> _pickImage() async {
-    final picked = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 100,
-    );
-    if (picked != null) {
-      return File(picked.path);
+    try {
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 100,
+      );
+      if (picked != null) {
+        return File(picked.path);
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open image picker: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
     return null;
   }
 
-  Future<void> _handleCompressTool() async {
+  Future<void> _handleStudioTool() async {
     final canAccess = await checkFeatureAccess(context, ref);
     if (!canAccess || !mounted) return;
 
@@ -61,87 +73,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CompressorScreen(initialImage: file),
+        builder: (_) => ImageStudioScreen(initialImage: file),
       ),
     );
   }
 
-  Future<void> _handleResizeTool() async {
-    final canAccess = await checkFeatureAccess(context, ref);
-    if (!canAccess || !mounted) return;
 
-    final file = await _pickImage();
-    if (file == null || !mounted) return;
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ResizerScreen(initialImage: file),
-      ),
-    );
-  }
-
-  Future<void> _handleConvertTool() async {
-    final canAccess = await checkFeatureAccess(context, ref);
-    if (!canAccess || !mounted) return;
-
-    final file = await _pickImage();
-    if (file == null || !mounted) return;
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ConverterScreen(initialImage: file),
-      ),
-    );
-  }
-
-  Future<void> _handleCropTool() async {
-    final canAccess = await checkFeatureAccess(context, ref);
-    if (!canAccess || !mounted) return;
-
-    final file = await _pickImage();
-    if (file == null || !mounted) return;
-
-    final cropped = await ImageCropper().cropImage(
-      sourcePath: file.path,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Image',
-          toolbarColor: AppColors.primary,
-          toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.original,
-          lockAspectRatio: false,
-          aspectRatioPresets: [
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio3x2,
-            CropAspectRatioPreset.ratio4x3,
-            CropAspectRatioPreset.ratio16x9,
-          ],
-        ),
-        IOSUiSettings(
-          title: 'Crop Image',
-          aspectRatioPresets: [
-            CropAspectRatioPreset.original,
-            CropAspectRatioPreset.square,
-            CropAspectRatioPreset.ratio3x2,
-            CropAspectRatioPreset.ratio4x3,
-            CropAspectRatioPreset.ratio16x9,
-          ],
-        ),
-      ],
-    );
-
-    if (cropped == null || !mounted) return;
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CompressorScreen(
-          initialImage: File(cropped.path),
-          presetTitle: 'Cropped Image Options',
-        ),
-      ),
-    );
-  }
 
   Future<void> _handleBatchTool() async {
     final canAccess = await checkFeatureAccess(context, ref);
@@ -189,12 +126,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
+    File currentImage = file;
+    final hasDimensions = preset.targetWidth != null && preset.targetHeight != null;
+
+    if (hasDimensions) {
+      try {
+        final cropped = await ImageCropper().cropImage(
+          sourcePath: file.path,
+          aspectRatio: CropAspectRatio(
+            ratioX: preset.targetWidth!.toDouble(),
+            ratioY: preset.targetHeight!.toDouble(),
+          ),
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle: 'Frame ${preset.name}',
+              toolbarColor: AppColors.primary,
+              toolbarWidgetColor: Colors.white,
+              lockAspectRatio: true,
+              hideBottomControls: true,
+            ),
+            IOSUiSettings(
+              title: 'Frame ${preset.name}',
+              aspectRatioLockEnabled: true,
+            ),
+          ],
+        );
+
+        if (cropped == null || !mounted) {
+          // User cancelled crop
+          return;
+        }
+        currentImage = File(cropped.path);
+      } catch (e) {
+        debugPrint('Image cropper not supported on this platform: $e');
+        // Fallback to uncropped source image on desktop platforms
+        currentImage = file;
+      }
+    }
+
+    if (!mounted) return;
+
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CompressorScreen(
-          initialImage: file,
-          prefilledTargetSizeKB: preset.targetSizeKB,
-          presetTitle: preset.name,
+        builder: (_) => PresetApplyScreen(
+          initialImage: currentImage,
+          preset: preset,
         ),
       ),
     );
@@ -348,127 +324,154 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Guest Usage Trial Banner
-                _buildGuestUsageBanner(context, isDark),
+            child: AdaptivePageContainer(
+              padding: EdgeInsets.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Guest Usage Trial Banner
+                  _buildGuestUsageBanner(context, isDark),
 
-                // 1. Indian Govt & Exam Presets Carousel
-                PresetCarousel(
-                  presets: PresetConstants.indianGovtPresets,
-                  onPresetTap: _handlePresetSelected,
-                  onSeeAllTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const PresetsHubScreen(),
+                  // 1. Quick Image Tools Grid
+                  // 1. Core Studio & Batch Tools
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+                    child: Text(
+                      'Core Studio',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // 2. Quick Tools Grid
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'Quick Tools',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.15,
-                    children: [
-                      ToolCard(
-                        title: 'Compress',
-                        subtitle: 'Target KB / MB Size',
-                        iconEmoji: '📦',
-                        accentColor: AppColors.primary,
-                        onTap: _handleCompressTool,
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: context.responsiveValue<double>(
+                        compact: 1.05,
+                        medium: 1.30,
+                        expanded: 1.50,
                       ),
-                      ToolCard(
-                        title: 'Resize',
-                        subtitle: 'Pixels & Percentage',
-                        iconEmoji: '🖼️',
-                        accentColor: AppColors.secondary,
-                        onTap: _handleResizeTool,
-                      ),
-                      ToolCard(
-                        title: 'Convert',
-                        subtitle: 'JPG, PNG, WebP',
-                        iconEmoji: '🔄',
-                        accentColor: Colors.purple,
-                        onTap: _handleConvertTool,
-                      ),
-                      ToolCard(
-                        title: 'Crop',
-                        subtitle: 'Multi Aspect Ratios',
-                        iconEmoji: '✂️',
-                        accentColor: Colors.orange,
-                        onTap: _handleCropTool,
-                      ),
-                      ToolCard(
-                        title: 'Batch Optimizer',
-                        subtitle: 'Multi-Image & Zip',
-                        iconEmoji: '⚡',
-                        accentColor: Colors.indigo,
-                        onTap: _handleBatchTool,
-                      ),
-                      ToolCard(
-                        title: 'Signature B&W',
-                        subtitle: 'Shadow Removal Filter',
-                        iconEmoji: '✍️',
-                        accentColor: Colors.teal,
-                        onTap: _handleSignatureTool,
-                      ),
-                      ToolCard(
-                        title: 'Photo Stamp',
-                        subtitle: 'Name & Date of Photo',
-                        iconEmoji: '🏷️',
-                        accentColor: Colors.deepOrange,
-                        onTap: _handlePhotoStampTool,
-                      ),
-                      ToolCard(
-                        title: 'Govt Presets',
-                        subtitle: 'SSC, Vyapam, UPSC',
-                        iconEmoji: '🇮🇳',
-                        accentColor: Colors.green,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const PresetsHubScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                      children: [
+                        ToolCard(
+                          title: 'Single Studio',
+                          subtitle: 'Crop, Resize, Compress, Convert',
+                          iconEmoji: '🎨',
+                          accentColor: AppColors.primary,
+                          onTap: _handleStudioTool,
+                        ),
+                        ToolCard(
+                          title: 'Batch Optimizer',
+                          subtitle: 'Multiple Images & Zip Export',
+                          iconEmoji: '⚡',
+                          accentColor: Colors.indigo,
+                          onTap: _handleBatchTool,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // 3. Recent Processed Files Section
-                historyAsync.when(
-                  data: (historyList) => RecentFilesSection(
-                    historyItems: historyList,
-                    onItemTap: _handleHistoryItemTap,
-                    onClearHistory: _handleClearHistory,
+                  // 2. Exam & Document Utilities Section
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Exam & Document Tools',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'SPECIAL',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: context.responsiveValue<double>(
+                        compact: 1.05,
+                        medium: 1.30,
+                        expanded: 1.50,
+                      ),
+                      children: [
+                        ToolCard(
+                          title: 'Signature B&W',
+                          subtitle: 'Shadow Removal Filter',
+                          iconEmoji: '✍️',
+                          accentColor: Colors.teal,
+                          onTap: _handleSignatureTool,
+                        ),
+                        ToolCard(
+                          title: 'Photo Stamp',
+                          subtitle: 'Name & Date on Photo',
+                          iconEmoji: '🏷️',
+                          accentColor: Colors.deepOrange,
+                          onTap: _handlePhotoStampTool,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Govt & Exam Presets Carousel
+                  PresetCarousel(
+                    presets: PresetConstants.indianGovtPresets,
+                    onPresetTap: _handlePresetSelected,
+                    onSeeAllTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const PresetsHubScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 3. Recent Processed Files Section
+                  historyAsync.when(
+                    data: (historyList) => RecentFilesSection(
+                      historyItems: historyList,
+                      onItemTap: _handleHistoryItemTap,
+                      onClearHistory: _handleClearHistory,
+                    ),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -488,7 +491,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isLimitReached = usageCount >= AppConstants.maxFreeGuestUses;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: EdgeInsets.fromLTRB(context.adaptiveMargin, 0, context.adaptiveMargin, 16),
       child: Material(
         color: Colors.transparent,
         child: InkWell(

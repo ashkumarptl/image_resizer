@@ -14,6 +14,7 @@ class ProcessOptions {
   final int? targetHeight;
   final int? resizePercentage;
   final bool keepAspectRatio;
+  final bool strictDimensions;
 
   const ProcessOptions({
     required this.sourcePath,
@@ -25,6 +26,7 @@ class ProcessOptions {
     this.targetHeight,
     this.resizePercentage,
     this.keepAspectRatio = true,
+    this.strictDimensions = false,
   });
 
   ProcessOptions copyWith({
@@ -37,6 +39,7 @@ class ProcessOptions {
     int? targetHeight,
     int? resizePercentage,
     bool? keepAspectRatio,
+    bool? strictDimensions,
   }) {
     return ProcessOptions(
       sourcePath: sourcePath ?? this.sourcePath,
@@ -48,6 +51,7 @@ class ProcessOptions {
       targetHeight: targetHeight ?? this.targetHeight,
       resizePercentage: resizePercentage ?? this.resizePercentage,
       keepAspectRatio: keepAspectRatio ?? this.keepAspectRatio,
+      strictDimensions: strictDimensions ?? this.strictDimensions,
     );
   }
 }

@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/preset_constants.dart';
 import '../../data/models/image_preset.dart';
-import '../compressor/compressor_screen.dart';
 import '../widgets/login_gate_dialog.dart';
+import 'preset_apply_screen.dart';
 
 class PresetsHubScreen extends ConsumerWidget {
   const PresetsHubScreen({super.key});
@@ -19,14 +20,45 @@ class PresetsHubScreen extends ConsumerWidget {
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked == null) return;
 
+    File currentImage = File(picked.path);
+    final hasDimensions = preset.targetWidth != null && preset.targetHeight != null;
+
+    if (hasDimensions) {
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        aspectRatio: CropAspectRatio(
+          ratioX: preset.targetWidth!.toDouble(),
+          ratioY: preset.targetHeight!.toDouble(),
+        ),
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Frame ${preset.name}',
+            toolbarColor: AppColors.primary,
+            toolbarWidgetColor: Colors.white,
+            lockAspectRatio: true,
+            hideBottomControls: true,
+          ),
+          IOSUiSettings(
+            title: 'Frame ${preset.name}',
+            aspectRatioLockEnabled: true,
+          ),
+        ],
+      );
+
+      if (cropped == null) {
+        // User cancelled crop
+        return;
+      }
+      currentImage = File(cropped.path);
+    }
+
     if (!context.mounted) return;
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CompressorScreen(
-          initialImage: File(picked.path),
-          prefilledTargetSizeKB: preset.targetSizeKB,
-          presetTitle: preset.name,
+        builder: (_) => PresetApplyScreen(
+          initialImage: currentImage,
+          preset: preset,
         ),
       ),
     );

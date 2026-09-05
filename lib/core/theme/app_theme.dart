@@ -15,9 +15,11 @@ class AppTheme {
         primary: AppColors.primary,
         onPrimary: Colors.white,
         primaryContainer: AppColors.primaryContainerLight,
+        onPrimaryContainer: AppColors.primaryDark,
         secondary: AppColors.secondary,
         onSecondary: Colors.white,
         secondaryContainer: AppColors.secondaryContainerLight,
+        onSecondaryContainer: AppColors.secondaryDark,
         surface: AppColors.surfaceLight,
         onSurface: AppColors.textPrimaryLight,
         error: AppColors.error,
@@ -105,6 +107,17 @@ class AppTheme {
           color: Colors.white,
         ),
       ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: SegmentedButton.styleFrom(
+          selectedBackgroundColor: AppColors.secondaryContainerLight,
+          selectedForegroundColor: AppColors.secondaryDark,
+          foregroundColor: AppColors.textPrimaryLight,
+          textStyle: GoogleFonts.outfit(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 
@@ -118,9 +131,11 @@ class AppTheme {
         primary: AppColors.primaryLight,
         onPrimary: Colors.white,
         primaryContainer: AppColors.primaryContainerDark,
+        onPrimaryContainer: AppColors.primaryLight,
         secondary: AppColors.secondaryLight,
         onSecondary: Colors.white,
         secondaryContainer: AppColors.secondaryContainerDark,
+        onSecondaryContainer: AppColors.secondaryLight,
         surface: AppColors.surfaceDark,
         onSurface: AppColors.textPrimaryDark,
         error: AppColors.error,
@@ -206,6 +221,17 @@ class AppTheme {
           fontSize: 13,
           fontWeight: FontWeight.w600,
           color: Colors.white,
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: SegmentedButton.styleFrom(
+          selectedBackgroundColor: AppColors.secondaryContainerDark,
+          selectedForegroundColor: AppColors.secondaryLight,
+          foregroundColor: AppColors.textPrimaryDark,
+          textStyle: GoogleFonts.outfit(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

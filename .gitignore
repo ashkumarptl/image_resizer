@@ -74,6 +74,14 @@ app.*.map.json
 **/ios/Flutter/Generated.xcconfig
 **/ios/Flutter/flutter_export_environment.sh
 
+# macOS related
+**/macos/**/xcuserdata/
+**/macos/**/xcshareddata/WorkspaceSettings.xcsettings
+**/macos/**/DerivedData/
+**/macos/**/Pods/
+**/macos/**/.symlinks/
+**/macos/Flutter/ephemeral/
+
 # Firebase related logs & cache
 .firebase/
 firebase-debug.log*
