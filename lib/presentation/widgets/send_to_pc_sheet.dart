@@ -38,11 +38,12 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
   String? _serverUrl;
   List<NetworkShareInfo> _networks = [];
   String? _selectedIp;
-
   String _statusText = 'Waiting for PC browser...';
   Color _statusColor = AppColors.warning;
   IconData _statusIcon = Icons.hourglass_top_rounded;
   int _downloadCount = 0;
+  bool _isCopied = false;
+  Timer? _copyResetTimer;
 
   @override
   void initState() {
@@ -52,6 +53,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
 
   @override
   void dispose() {
+    _copyResetTimer?.cancel();
     _subscription?.cancel();
     _service.dispose();
     super.dispose();
@@ -131,12 +133,37 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
 
   void _copyUrlToClipboard() {
     if (_serverUrl == null) return;
+    HapticFeedback.lightImpact();
     Clipboard.setData(ClipboardData(text: _serverUrl!));
+    setState(() {
+      _isCopied = true;
+    });
+    _copyResetTimer?.cancel();
+    _copyResetTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => _isCopied = false);
+      }
+    });
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('📋 Link copied! Paste it in your PC/laptop browser.'),
-        backgroundColor: AppColors.primary,
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Copied: $_serverUrl\nOpen in Chrome / Edge on your PC/Laptop',
+                style: const TextStyle(fontSize: 12.5),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.primaryDark,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -221,7 +248,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '$fileCount file${fileCount > 1 ? 's' : ''} · Local Wi-Fi / Hotspot',
+                          '$fileCount file${fileCount > 1 ? 's' : ''} · Cyber Cafe & Form Fillers Transfer',
                           style: TextStyle(
                             fontSize: 12,
                             color: isDark
@@ -376,104 +403,258 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                 ],
                 const SizedBox(height: 18),
 
-                // QR Code Container
+                // QR Code Container (Large & Clean)
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
+                      ),
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.06),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: QrImageView(
-                    data: _serverUrl!,
-                    version: QrVersions.auto,
-                    size: 180.0,
-                    eyeStyle: const QrEyeStyle(
-                      eyeShape: QrEyeShape.square,
-                      color: Color(0xFF0F172A),
-                    ),
-                    dataModuleStyle: const QrDataModuleStyle(
-                      dataModuleShape: QrDataModuleShape.square,
-                      color: Color(0xFF0F172A),
-                    ),
+                  child: Column(
+                    children: [
+                      QrImageView(
+                        data: _serverUrl!,
+                        version: QrVersions.auto,
+                        size: 210.0,
+                        eyeStyle: const QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: Color(0xFF0F172A),
+                        ),
+                        dataModuleStyle: const QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.qr_code_scanner_rounded,
+                            size: 15,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Scan with laptop webcam or camera',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade600,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Direct URL Box with Copy Button
-                InkWell(
-                  onTap: _copyUrlToClipboard,
-                  borderRadius: BorderRadius.circular(14),
-                  child: Ink(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                // Clickable Local IP URL Box with Dedicated "Copy IP" Button
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: _copyUrlToClipboard,
+                              borderRadius: BorderRadius.circular(10),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.language_rounded,
+                                        size: 18,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'LOCAL IP URL',
+                                            style: TextStyle(
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 0.6,
+                                              color: isDark
+                                                  ? AppColors.textSecondaryDark
+                                                  : AppColors.textSecondaryLight,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 1),
+                                          Text(
+                                            _serverUrl!,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'monospace',
+                                              color: AppColors.primary,
+                                              letterSpacing: 0.2,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: _copyUrlToClipboard,
+                            icon: Icon(
+                              _isCopied ? Icons.check_rounded : Icons.copy_rounded,
+                              size: 15,
+                            ),
+                            label: Text(
+                              _isCopied ? 'Copied!' : 'Copy IP',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _isCopied ? AppColors.success : AppColors.primary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.link_rounded, size: 20, color: AppColors.primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          _serverUrl!,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                            letterSpacing: 0.3,
-                          ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '💡 Type this link in Chrome or Edge on your PC if camera is not available',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Icon(
-                            Icons.copy_rounded,
-                            size: 14,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 18),
 
-                // Step-by-Step Instructions
+                // 3-Step Visual Graphics Guide
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isDark
-                        ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
-                        : AppColors.surfaceVariantLight,
-                    borderRadius: BorderRadius.circular(14),
+                        ? AppColors.surfaceVariantDark.withValues(alpha: 0.45)
+                        : AppColors.surfaceVariantLight.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    ),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildStepRow(
-                        step: '1',
-                        text: 'Connect laptop to the same Wi-Fi network or Phone Hotspot.',
-                        isDark: isDark,
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.auto_stories_rounded,
+                              size: 14,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'HOW TO TRANSFER IN 3 EASY STEPS',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.6,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      _buildStepRow(
-                        step: '2',
-                        text: 'Scan QR code or open the link above in Chrome, Edge, Safari, or Firefox.',
+                      const SizedBox(height: 14),
+                      _buildVisualStep(
+                        stepNumber: '1',
+                        icon: Icons.wifi_tethering_rounded,
+                        iconColor: AppColors.primary,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+                        ),
+                        title: 'Connect Same Network',
+                        description: 'Connect laptop to the same Wi-Fi network or Phone Hotspot.',
                         isDark: isDark,
+                        showDivider: true,
+                      ),
+                      _buildVisualStep(
+                        stepNumber: '2',
+                        icon: Icons.laptop_chromebook_rounded,
+                        iconColor: AppColors.secondary,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+                        ),
+                        title: 'Open in PC Browser',
+                        description: 'Scan QR code or open the link above in Chrome, Edge, Safari, or Firefox.',
+                        isDark: isDark,
+                        showDivider: true,
+                      ),
+                      _buildVisualStep(
+                        stepNumber: '3',
+                        icon: Icons.file_download_done_rounded,
+                        iconColor: AppColors.success,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF16A34A), Color(0xFF22C55E)],
+                        ),
+                        title: 'Instant Download for Forms',
+                        description: 'Click Download on PC browser and upload straight to your online application form.',
+                        isDark: isDark,
+                        showDivider: false,
                       ),
                     ],
                   ),
@@ -584,44 +765,116 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
     );
   }
 
-  Widget _buildStepRow({
-    required String step,
-    required String text,
+  Widget _buildVisualStep({
+    required String stepNumber,
+    required IconData icon,
+    required Color iconColor,
+    required Gradient gradient,
+    required String title,
+    required String description,
     required bool isDark,
+    required bool showDivider,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 20,
-          height: 20,
-          margin: const EdgeInsets.only(top: 2),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Graphic Column: Icon Avatar + Connector Line
+          Column(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  gradient: gradient,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: iconColor.withValues(alpha: 0.28),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              if (showDivider)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                ),
+            ],
           ),
-          alignment: Alignment.center,
-          child: Text(
-            step,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+          const SizedBox(width: 12),
+          // Content Column
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: showDivider ? 14 : 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: iconColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'STEP $stepNumber',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                            color: iconColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-              height: 1.4,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
