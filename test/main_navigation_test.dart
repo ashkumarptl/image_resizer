@@ -1,0 +1,261 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:image_resizer/data/repositories/auth_repository.dart';
+import 'package:image_resizer/presentation/main_navigation_screen.dart';
+import 'package:image_resizer/presentation/widgets/floating_bottom_nav_bar.dart';
+import 'package:image_resizer/services/auth_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class MockAuthService extends AuthService {
+  @override
+  Stream<User?> get authStateChanges => Stream<User?>.value(null);
+
+  @override
+  User? get currentUser => null;
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    PackageInfo.setMockInitialValues(
+      appName: 'Image Tools',
+      packageName: 'com.example.image_resizer',
+      version: '1.1.1',
+      buildNumber: '2',
+      buildSignature: '',
+    );
+  });
+
+  group('FloatingBottomNavBar Widget Tests', () {
+    testWidgets('renders all 4 nav items correctly', (WidgetTester tester) async {
+      int selectedIndex = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            bottomNavigationBar: FloatingBottomNavBar(
+              currentIndex: selectedIndex,
+              onTap: (index) => selectedIndex = index,
+              items: const [
+                FloatingNavItem(
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: 'Home',
+                ),
+                FloatingNavItem(
+                  icon: Icons.draw_outlined,
+                  activeIcon: Icons.draw_rounded,
+                  label: 'Exam Tools',
+                ),
+                FloatingNavItem(
+                  icon: Icons.tune_outlined,
+                  activeIcon: Icons.tune_rounded,
+                  label: 'Presets',
+                ),
+                FloatingNavItem(
+                  icon: Icons.settings_outlined,
+                  activeIcon: Icons.settings_rounded,
+                  label: 'Settings',
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Exam Tools'), findsOneWidget);
+      expect(find.text('Presets'), findsOneWidget);
+      expect(find.text('Settings'), findsOneWidget);
+
+      // Tap on Settings
+      await tester.tap(find.text('Settings'));
+      await tester.pumpAndSettle();
+
+      expect(selectedIndex, 3);
+    });
+
+    testWidgets('handles high text scaler (1.30x and 1.50x) without overflow',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(1.35),
+            ),
+            child: child!,
+          ),
+          home: Scaffold(
+            bottomNavigationBar: FloatingBottomNavBar(
+              currentIndex: 0,
+              onTap: (_) {},
+              items: const [
+                FloatingNavItem(
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: 'Home',
+                ),
+                FloatingNavItem(
+                  icon: Icons.draw_outlined,
+                  activeIcon: Icons.draw_rounded,
+                  label: 'Exam Tools',
+                ),
+                FloatingNavItem(
+                  icon: Icons.tune_outlined,
+                  activeIcon: Icons.tune_rounded,
+                  label: 'Presets',
+                ),
+                FloatingNavItem(
+                  icon: Icons.settings_outlined,
+                  activeIcon: Icons.settings_rounded,
+                  label: 'Settings',
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Verify no assertion / overflow occurs during layout and painting
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Exam Tools'), findsOneWidget);
+      expect(find.text('Presets'), findsOneWidget);
+      expect(find.text('Settings'), findsOneWidget);
+    });
+
+    testWidgets('adapts bottom margin for Android 3-button navigation vs gesture navigation',
+        (WidgetTester tester) async {
+      // 1. Test 3-Button navigation (48dp bottom inset)
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              viewPadding: const EdgeInsets.only(bottom: 48),
+              padding: const EdgeInsets.only(bottom: 48),
+            ),
+            child: child!,
+          ),
+          home: Scaffold(
+            bottomNavigationBar: FloatingBottomNavBar(
+              currentIndex: 0,
+              onTap: (_) {},
+              items: const [
+                FloatingNavItem(icon: Icons.home, activeIcon: Icons.home, label: 'Home'),
+                FloatingNavItem(icon: Icons.settings, activeIcon: Icons.settings, label: 'Settings'),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final paddingFinder3Btn = find.descendant(
+        of: find.byType(FloatingBottomNavBar),
+        matching: find.byType(Padding),
+      );
+      final paddingWidget3Btn = tester.widget<Padding>(paddingFinder3Btn.first);
+      // safeBottom (48) + 12 = 60
+      final insets3Btn = paddingWidget3Btn.padding as EdgeInsets;
+      expect(insets3Btn.bottom, equals(60.0));
+
+      // 2. Test Gesture navigation (16dp bottom inset)
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              viewPadding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 16),
+            ),
+            child: child!,
+          ),
+          home: Scaffold(
+            bottomNavigationBar: FloatingBottomNavBar(
+              currentIndex: 0,
+              onTap: (_) {},
+              items: const [
+                FloatingNavItem(icon: Icons.home, activeIcon: Icons.home, label: 'Home'),
+                FloatingNavItem(icon: Icons.settings, activeIcon: Icons.settings, label: 'Settings'),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final paddingFinderGesture = find.descendant(
+        of: find.byType(FloatingBottomNavBar),
+        matching: find.byType(Padding),
+      );
+      final paddingWidgetGesture = tester.widget<Padding>(paddingFinderGesture.first);
+      // safeBottom (16) + 8 = 24
+      final insetsGesture = paddingWidgetGesture.padding as EdgeInsets;
+      expect(insetsGesture.bottom, equals(24.0));
+    });
+  });
+
+  group('MainNavigationScreen Integration Tests', () {
+    testWidgets('switches between Home, Exam Tools, Presets, and Settings tabs',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authServiceProvider.overrideWithValue(MockAuthService()),
+          ],
+          child: const MaterialApp(
+            home: MainNavigationScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 1. Initially on Home tab
+      expect(find.text('Core Studio'), findsOneWidget);
+      expect(find.text('Single Studio'), findsOneWidget);
+
+      // 2. Tap on "Exam Tools" tab in the floating nav bar
+      await tester.tap(find.text('Exam Tools'));
+      await tester.pumpAndSettle();
+
+      // Verify Exam Tools content is shown
+      expect(find.text('Signature B&W Cleaner'), findsWidgets);
+      expect(find.text('Name & Date Photo Stamp'), findsWidgets);
+      expect(find.text('Exam Ready in Seconds'), findsOneWidget);
+
+      // 3. Tap on "Presets" tab in the floating nav bar
+      await tester.tap(find.text('Presets'));
+      await tester.pumpAndSettle();
+
+      // Verify Presets Hub content is shown
+      expect(find.text('Govt & Exam Presets'), findsWidgets);
+      expect(find.text('SSC Exams'), findsOneWidget);
+      expect(find.text('Banking (IBPS)'), findsOneWidget);
+
+      // 4. Tap on "Settings" tab in the floating nav bar
+      await tester.tap(find.text('Settings'));
+      await tester.pumpAndSettle();
+
+      // Verify Settings content is shown
+      expect(find.text('APPEARANCE'), findsOneWidget);
+      expect(find.text('ACCOUNT'), findsOneWidget);
+
+      // 5. Switch back to Home
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+      expect(find.text('Core Studio'), findsOneWidget);
+    });
+  });
+}

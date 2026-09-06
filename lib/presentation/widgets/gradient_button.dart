@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/constants/app_colors.dart';
 
 class GradientButton extends StatelessWidget {
@@ -23,19 +24,21 @@ class GradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pillRadius = BorderRadius.circular(height / 2);
+
     return Container(
       width: width ?? double.infinity,
       height: height,
       decoration: BoxDecoration(
         gradient: onPressed == null ? null : gradient,
         color: onPressed == null ? Colors.grey.shade400 : null,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: pillRadius,
         boxShadow: onPressed == null
             ? null
             : [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.28),
-                  blurRadius: 12,
+                  color: AppColors.primary.withValues(alpha: 0.22),
+                  blurRadius: 14,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -43,8 +46,13 @@ class GradientButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: isLoading ? null : onPressed,
+          borderRadius: pillRadius,
+          onTap: isLoading || onPressed == null
+              ? null
+              : () {
+                  HapticFeedback.lightImpact();
+                  onPressed!();
+                },
           child: Center(
             child: isLoading
                 ? const SizedBox(
@@ -62,13 +70,17 @@ class GradientButton extends StatelessWidget {
                         Icon(icon, color: Colors.white, size: 20),
                         const SizedBox(width: 8),
                       ],
-                      Text(
-                        text,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.2,
+                      Flexible(
+                        child: Text(
+                          text,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.2,
+                          ),
                         ),
                       ),
                     ],

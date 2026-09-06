@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,7 +24,12 @@ final appVersionProvider = FutureProvider<String>((ref) async {
 
 
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key});
+  final bool isTab;
+
+  const SettingsScreen({
+    super.key,
+    this.isTab = false,
+  });
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -137,11 +143,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.isTab,
         title: const Text('Settings'),
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
             // 1. Account Section
             _SectionHeader(title: 'ACCOUNT', isDark: isDark),
@@ -413,15 +420,18 @@ class _ThemeOptionCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
+          borderRadius: BorderRadius.circular(16),
           child: Ink(
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
               color: isSelected
                   ? (isDark ? AppColors.primaryContainerDark : AppColors.primaryContainerLight)
                   : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected ? AppColors.primary : Colors.transparent,
                 width: 1.5,

@@ -11,6 +11,7 @@ import '../../services/crashlytics_service.dart';
 import '../../services/image_service/image_processor.dart';
 import '../result/result_screen.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/processing_progress_modal.dart';
 
 class PresetApplyScreen extends ConsumerStatefulWidget {
   final File initialImage;
@@ -99,7 +100,36 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
         strictDimensions: true,
       );
 
-      final result = await ImageProcessor.processImage(options);
+      final progressNotifier = ValueNotifier<ProcessingProgressState>(
+        const ProcessingProgressState(
+          progress: 0.05,
+          stage: 'Starting background isolate...',
+        ),
+      );
+
+      if (!mounted) return;
+      ProcessingProgressModal.show(
+        context: context,
+        progressNotifier: progressNotifier,
+        title: 'Applying ${preset.name}',
+      );
+
+      final result = await ImageProcessor.processImage(
+        options,
+        onProgress: (progress, stage) {
+          progressNotifier.value = ProcessingProgressState(
+            progress: progress,
+            stage: stage,
+            isCompleted: progress >= 1.0,
+          );
+        },
+      );
+
+      progressNotifier.value = const ProcessingProgressState(
+        progress: 1.0,
+        stage: 'Done! Opening result...',
+        isCompleted: true,
+      );
 
       AnalyticsService.logCompressionUsed(
         targetQuality: result.finalQuality,
@@ -109,7 +139,10 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
 
       await CrashlyticsService.clearProcessingContext();
 
+      await Future.delayed(const Duration(milliseconds: 150));
+
       if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
       setState(() => _isProcessing = false);
 
       Navigator.of(context).pushReplacement(
@@ -120,14 +153,16 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
     } catch (e, stack) {
       CrashlyticsService.recordNonFatalError(e, stack, reason: 'Preset processing error');
 
-      if (!mounted) return;
-      setState(() => _isProcessing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Processing failed: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Processing failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 

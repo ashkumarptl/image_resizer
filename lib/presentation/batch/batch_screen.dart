@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
@@ -143,6 +144,10 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
     for (final res in _batchResult!.results) {
       final ok = await StorageService.saveToGallery(res.outputPath);
       if (ok) savedCount++;
+    }
+
+    if (savedCount > 0) {
+      HapticFeedback.lightImpact();
     }
 
     if (!mounted) return;

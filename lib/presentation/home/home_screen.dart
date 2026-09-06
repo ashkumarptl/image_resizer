@@ -16,9 +16,7 @@ import '../../data/repositories/usage_limit_repository.dart';
 import '../batch/batch_screen.dart';
 import '../photo_stamp/photo_stamp_screen.dart';
 import '../presets/preset_apply_screen.dart';
-import '../presets/presets_hub_screen.dart';
 import '../result/result_screen.dart';
-import '../settings/settings_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
 import '../studio/image_studio_screen.dart';
 import '../widgets/account_section.dart';
@@ -26,6 +24,7 @@ import '../widgets/login_gate_dialog.dart';
 import 'widgets/preset_carousel.dart';
 import 'widgets/recent_files_section.dart';
 import 'widgets/tool_card.dart';
+import '../main_navigation_screen.dart';
 
 final recentHistoryProvider = FutureProvider.autoDispose<List<HistoryItem>>((ref) async {
   return ref.watch(historyRepositoryProvider).getRecentHistory();
@@ -303,17 +302,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings & Theme',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const SettingsScreen(),
-                ),
-              );
-            },
-          ),
         ],
       ),
       body: SafeArea(
@@ -362,7 +350,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       children: [
                         ToolCard(
                           title: 'Single Studio',
-                          subtitle: 'Crop, Resize, Compress, Convert',
+                          subtitle: 'Compress, Resize, Crop & Flip',
                           iconEmoji: '🎨',
                           accentColor: AppColors.primary,
                           onTap: _handleStudioTool,
@@ -451,11 +439,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     presets: PresetConstants.indianGovtPresets,
                     onPresetTap: _handlePresetSelected,
                     onSeeAllTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const PresetsHubScreen(),
-                        ),
-                      );
+                      ref.read(navigationIndexProvider.notifier).state = 2;
                     },
                   ),
                   const SizedBox(height: 24),
@@ -470,6 +454,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     loading: () => const SizedBox.shrink(),
                     error: (_, _) => const SizedBox.shrink(),
                   ),
+                  const SizedBox(height: 100),
                 ],
               ),
             ),

@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/extensions/file_size_extension.dart';
 import '../../services/image_service/signature_enhancer.dart';
 import '../result/result_screen.dart';
+import '../widgets/discard_changes_sheet.dart';
 import '../widgets/gradient_button.dart';
 
 class SignatureCleanerScreen extends StatefulWidget {
@@ -23,6 +25,20 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   int _targetSizeKB = 19;
   bool _isProcessing = false;
   int _fileSizeBytes = 0;
+
+  bool get _hasChanges => _threshold != 0.65 || _targetSizeKB != 19 || _isProcessing;
+
+  Future<void> _handlePopScope(bool didPop) async {
+    if (didPop) return;
+    final shouldDiscard = await DiscardChangesSheet.show(
+      context,
+      title: 'Discard Signature Edits?',
+      message: 'You have customized signature enhancement settings. Are you sure you want to exit?',
+    );
+    if (shouldDiscard && mounted) {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   void initState() {
@@ -68,10 +84,22 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Signature B&W Cleaner'),
-      ),
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, result) => _handlePopScope(didPop),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: BackButton(
+            onPressed: () async {
+              if (_hasChanges) {
+                await _handlePopScope(false);
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          title: const Text('Signature B&W Cleaner'),
+        ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
@@ -186,7 +214,12 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                 max: 0.9,
                 divisions: 12,
                 activeColor: AppColors.primary,
-                onChanged: (val) => setState(() => _threshold = val),
+                onChanged: (val) {
+                  if ((val * 100).round() != (_threshold * 100).round()) {
+                    HapticFeedback.selectionClick();
+                  }
+                  setState(() => _threshold = val);
+                },
               ),
               Text(
                 'Adjust higher if your photo has darker paper shadows.',
@@ -223,7 +256,10 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     ),
                     onSelected: (sel) {
-                      if (sel) setState(() => _targetSizeKB = size);
+                      if (sel) {
+                        HapticFeedback.selectionClick();
+                        setState(() => _targetSizeKB = size);
+                      }
                     },
                   );
                 }).toList(),
@@ -245,6 +281,7 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

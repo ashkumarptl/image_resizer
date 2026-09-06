@@ -22,6 +22,7 @@ class AppTheme {
         onSecondaryContainer: AppColors.secondaryDark,
         surface: AppColors.surfaceLight,
         onSurface: AppColors.textPrimaryLight,
+        surfaceTint: AppColors.primary,
         error: AppColors.error,
         onError: Colors.white,
       ),
@@ -55,10 +56,31 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: AppColors.surfaceLight,
-        elevation: 0,
+        elevation: 1,
+        surfaceTintColor: AppColors.primary.withValues(alpha: 0.04),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: AppColors.borderLight, width: 1),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.surfaceLight,
+        elevation: 3,
+        surfaceTintColor: AppColors.primary.withValues(alpha: 0.08),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+        ),
+        titleTextStyle: GoogleFonts.outfit(
+          color: AppColors.textPrimaryLight,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.transparent,
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -78,12 +100,34 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: const StadiumBorder(),
           textStyle: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             fontSize: 16,
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          side: const BorderSide(color: AppColors.primary, width: 1.2),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
       ),
@@ -93,7 +137,7 @@ class AppTheme {
         secondarySelectedColor: AppColors.primary,
         checkmarkColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           side: const BorderSide(color: AppColors.borderLight),
         ),
         labelStyle: GoogleFonts.outfit(
@@ -138,6 +182,7 @@ class AppTheme {
         onSecondaryContainer: AppColors.secondaryLight,
         surface: AppColors.surfaceDark,
         onSurface: AppColors.textPrimaryDark,
+        surfaceTint: AppColors.primaryLight,
         error: AppColors.error,
         onError: Colors.white,
       ),
@@ -171,10 +216,31 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: AppColors.surfaceDark,
-        elevation: 0,
+        elevation: 1,
+        surfaceTintColor: AppColors.primaryLight.withValues(alpha: 0.05),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: AppColors.borderDark, width: 1),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.surfaceDark,
+        elevation: 3,
+        surfaceTintColor: AppColors.primaryLight.withValues(alpha: 0.08),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+        ),
+        titleTextStyle: GoogleFonts.outfit(
+          color: AppColors.textPrimaryDark,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.transparent,
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -194,12 +260,34 @@ class AppTheme {
           backgroundColor: AppColors.primaryLight,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: const StadiumBorder(),
           textStyle: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             fontSize: 16,
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primaryLight,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primaryLight,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          side: const BorderSide(color: AppColors.primaryLight, width: 1.2),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
       ),
@@ -209,7 +297,7 @@ class AppTheme {
         secondarySelectedColor: AppColors.primary,
         checkmarkColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           side: const BorderSide(color: AppColors.borderDark),
         ),
         labelStyle: GoogleFonts.outfit(

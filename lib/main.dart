@@ -7,7 +7,7 @@ import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'firebase_options.dart';
-import 'presentation/home/home_screen.dart';
+import 'presentation/main_navigation_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/crashlytics_service.dart';
 import 'services/storage_service.dart';
@@ -67,7 +67,7 @@ class ImageToolsApp extends ConsumerWidget {
           child: previewChild,
         );
       },
-      home: const HomeScreen(),
+      home: const MainNavigationScreen(),
     );
   }
 }

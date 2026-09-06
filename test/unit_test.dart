@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_resizer/core/constants/preset_constants.dart';
 import 'package:image_resizer/core/extensions/file_size_extension.dart';
+import 'package:image_resizer/core/theme/app_theme.dart';
 import 'package:image_resizer/core/theme/theme_provider.dart';
 import 'package:image_resizer/data/models/history_item.dart';
 import 'package:image_resizer/data/models/image_preset.dart';
@@ -94,6 +95,9 @@ void main() {
         targetSizeKB: 50,
         outputFormat: 'webp',
         strictDimensions: true,
+        quarterTurns: 1,
+        flipHorizontal: true,
+        flipVertical: false,
       );
 
       expect(updated.sourcePath, '/test.jpg');
@@ -102,6 +106,11 @@ void main() {
       expect(updated.outputFormat, 'webp');
       expect(opts.strictDimensions, false);
       expect(updated.strictDimensions, true);
+      expect(opts.quarterTurns, 0);
+      expect(updated.quarterTurns, 1);
+      expect(opts.flipHorizontal, false);
+      expect(updated.flipHorizontal, true);
+      expect(updated.flipVertical, false);
     });
   });
 
@@ -145,6 +154,40 @@ void main() {
 
       await notifier.setThemeMode(ThemeMode.light);
       expect(notifier.state, ThemeMode.light);
+    });
+
+    test('AppTheme enforces Material 3 shapes, surface tint, and stadium buttons', () {
+      final light = AppTheme.lightTheme;
+      expect(light.useMaterial3, isTrue);
+      expect(light.colorScheme.surfaceTint, isNotNull);
+
+      // Card shape: 20dp
+      final cardBorder = light.cardTheme.shape as RoundedRectangleBorder;
+      expect(cardBorder.borderRadius, equals(BorderRadius.circular(20)));
+
+      // Dialog shape: 28dp
+      final dialogBorder = light.dialogTheme.shape as RoundedRectangleBorder;
+      expect(dialogBorder.borderRadius, equals(BorderRadius.circular(28)));
+
+      // Button shapes: StadiumBorder
+      expect(
+        light.elevatedButtonTheme.style?.shape?.resolve({}),
+        isA<StadiumBorder>(),
+      );
+      expect(
+        light.filledButtonTheme.style?.shape?.resolve({}),
+        isA<StadiumBorder>(),
+      );
+
+      final dark = AppTheme.darkTheme;
+      expect(dark.useMaterial3, isTrue);
+      expect(dark.colorScheme.surfaceTint, isNotNull);
+
+      final darkCardBorder = dark.cardTheme.shape as RoundedRectangleBorder;
+      expect(darkCardBorder.borderRadius, equals(BorderRadius.circular(20)));
+
+      final darkDialogBorder = dark.dialogTheme.shape as RoundedRectangleBorder;
+      expect(darkDialogBorder.borderRadius, equals(BorderRadius.circular(28)));
     });
   });
 }

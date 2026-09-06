@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../services/image_service/name_date_stamper.dart';
 import '../result/result_screen.dart';
+import '../widgets/discard_changes_sheet.dart';
 import '../widgets/gradient_button.dart';
 
 class PhotoStampScreen extends StatefulWidget {
@@ -24,6 +25,20 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
   DateTime _selectedDate = DateTime.now();
   int _targetSizeKB = 48; // Under 50 KB for SSC / UPSC
   bool _isProcessing = false;
+
+  bool get _hasChanges => _nameController.text.trim().isNotEmpty || _targetSizeKB != 48 || _isProcessing;
+
+  Future<void> _handlePopScope(bool didPop) async {
+    if (didPop) return;
+    final shouldDiscard = await DiscardChangesSheet.show(
+      context,
+      title: 'Discard Photo Stamp?',
+      message: 'You have candidate name or date inputs. Are you sure you want to exit without saving?',
+    );
+    if (shouldDiscard && mounted) {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   void initState() {
@@ -102,10 +117,22 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Name & Date on Photo'),
-      ),
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, result) => _handlePopScope(didPop),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: BackButton(
+            onPressed: () async {
+              if (_hasChanges) {
+                await _handlePopScope(false);
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          title: const Text('Name & Date on Photo'),
+        ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
@@ -278,6 +305,7 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
