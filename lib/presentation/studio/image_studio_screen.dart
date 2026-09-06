@@ -1,34 +1,40 @@
-import 'dart:io';
+import 'dart:async';
+import 'dart:io' hide ProcessResult;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image/image.dart' as img;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import '../../core/constants/app_colors.dart';
 import '../../core/layout/adaptive_layout.dart';
-import '../../core/extensions/file_size_extension.dart';
 import '../../data/models/process_options.dart';
+import '../../data/models/process_result.dart';
 import '../../services/analytics_service.dart';
 import '../../services/crashlytics_service.dart';
 import '../../services/image_service/image_processor.dart';
 import '../result/result_screen.dart';
-import '../widgets/gradient_button.dart';
+import '../widgets/discard_changes_sheet.dart';
+import '../widgets/processing_progress_modal.dart';
+import 'widgets/compress_options_sheet.dart';
+import 'widgets/flip_options_sheet.dart';
+import 'widgets/format_options_sheet.dart';
+import 'widgets/resize_options_sheet.dart';
+import 'widgets/studio_bottom_toolbar.dart';
+import 'widgets/studio_info_card.dart';
 
 class ImageStudioScreen extends StatefulWidget {
   final File initialImage;
+  final StudioActiveTool initialTool;
 
   const ImageStudioScreen({
     super.key,
     required this.initialImage,
+    this.initialTool = StudioActiveTool.compress,
   });
 
   @override
   State<ImageStudioScreen> createState() => _ImageStudioScreenState();
 }
-
-enum _ResizeOption { none, exactPixels, percentage }
-enum _CompressionMode { targetSize, quality, none }
 
 class _ImageStudioScreenState extends State<ImageStudioScreen> {
   late File _currentImage;
@@ -38,34 +44,53 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   bool _isLoadingInfo = true;
   bool _isProcessing = false;
 
-  // 1. Crop State
+  // 1. Orientation & Transform State
+  int _quarterTurns = 0;
+  bool _flipHorizontal = false;
+  bool _flipVertical = false;
+
+  // 2. Crop State
   bool _hasCropped = false;
 
-  // 2. Resize State
-  _ResizeOption _resizeOption = _ResizeOption.none;
-  late TextEditingController _widthController;
-  late TextEditingController _heightController;
-  bool _keepAspectRatio = true;
+  // 3. Resize State
+  ResizeSheetOption _resizeOption = ResizeSheetOption.none;
+  int _targetWidth = 0;
+  int _targetHeight = 0;
   int _selectedPercentage = 50;
+  bool _keepAspectRatio = true;
 
-  // 3. Compress & Quality State
-  _CompressionMode _compressionMode = _CompressionMode.targetSize;
-  late TextEditingController _targetSizeController;
+  // 4. Compress & Quality State
+  CompressionSheetMode _compressionMode = CompressionSheetMode.targetSize;
   int _selectedTargetSizeKB = 50;
-
-  // 4. Format & Quality State
-  String _outputFormat = 'jpg';
   double _quality = 85;
+
+  // 5. Format State
+  String _outputFormat = 'jpg';
+
+  // 6. Active Tool in Toolbar
+  late StudioActiveTool _activeTool;
+
+  // 7. Interactive Viewer & Zoom State
+  late TransformationController _transformationController;
+  bool _isZoomedIn = false;
+
+  // 8. Live Preview & Toggle Original State
+  bool _showOriginal = false;
+  File? _previewImageFile;
+  ProcessResult? _previewResult;
+  bool _isGeneratingPreview = false;
+  int _previewRequestId = 0;
+  Timer? _previewDebounceTimer;
 
   @override
   void initState() {
     super.initState();
+    _transformationController = TransformationController();
+    _transformationController.addListener(_onTransformationChanged);
+
     _currentImage = widget.initialImage;
     _fileSizeBytes = _currentImage.lengthSync();
-
-    _widthController = TextEditingController();
-    _heightController = TextEditingController();
-    _targetSizeController = TextEditingController(text: _selectedTargetSizeKB.toString());
+    _activeTool = widget.initialTool;
 
     // Auto-detect format from file extension
     final ext = p.extension(_currentImage.path).replaceAll('.', '').toLowerCase();
@@ -80,24 +105,112 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
   @override
   void dispose() {
-    _widthController.dispose();
-    _heightController.dispose();
-    _targetSizeController.dispose();
+    _previewDebounceTimer?.cancel();
+    _transformationController.removeListener(_onTransformationChanged);
+    _transformationController.dispose();
     super.dispose();
+  }
+
+  void _triggerPreviewUpdate({bool debounce = true}) {
+    _previewDebounceTimer?.cancel();
+    if (debounce) {
+      _previewDebounceTimer = Timer(const Duration(milliseconds: 250), () {
+        _generatePreview();
+      });
+    } else {
+      _generatePreview();
+    }
+  }
+
+  Future<void> _generatePreview() async {
+    if (!mounted) return;
+    final requestId = ++_previewRequestId;
+
+    setState(() => _isGeneratingPreview = true);
+
+    try {
+      final options = ProcessOptions(
+        sourcePath: _currentImage.path,
+        targetSizeKB: _compressionMode == CompressionSheetMode.targetSize
+            ? _selectedTargetSizeKB
+            : null,
+        quality: _quality.round(),
+        outputFormat: _outputFormat,
+        resizeMode: _getResizeMode(),
+        targetWidth: _resizeOption == ResizeSheetOption.exactPixels ? _targetWidth : null,
+        targetHeight: _resizeOption == ResizeSheetOption.exactPixels ? _targetHeight : null,
+        resizePercentage: _resizeOption == ResizeSheetOption.percentage
+            ? _selectedPercentage
+            : null,
+        keepAspectRatio: _keepAspectRatio,
+        quarterTurns: _quarterTurns,
+        flipHorizontal: _flipHorizontal,
+        flipVertical: _flipVertical,
+      );
+
+      final result = await ImageProcessor.processImage(options);
+      if (!mounted || requestId != _previewRequestId) return;
+
+      setState(() {
+        _previewResult = result;
+        _previewImageFile = File(result.outputPath);
+        _isGeneratingPreview = false;
+      });
+    } catch (e, stack) {
+      if (!mounted || requestId != _previewRequestId) return;
+      setState(() => _isGeneratingPreview = false);
+      CrashlyticsService.recordNonFatalError(
+        e,
+        stack,
+        reason: 'Failed to generate live preview in ImageStudioScreen',
+      );
+    }
+  }
+
+  void _onTransformationChanged() {
+    final isZoomed = !_transformationController.value.isIdentity();
+    if (isZoomed != _isZoomedIn) {
+      setState(() => _isZoomedIn = isZoomed);
+    }
+  }
+
+  void _handleDoubleTap() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      if (_isZoomedIn) {
+        _transformationController.value = Matrix4.identity();
+      } else {
+        _transformationController.value = Matrix4.diagonal3Values(2.5, 2.5, 1.0);
+      }
+    });
+  }
+
+  void _resetZoom() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _transformationController.value = Matrix4.identity();
+    });
   }
 
   Future<void> _loadImageMetadata() async {
     try {
-      final bytes = await _currentImage.readAsBytes();
-      final decoded = img.decodeImage(bytes);
-      if (decoded != null) {
-        setState(() {
-          _originalWidth = decoded.width;
-          _originalHeight = decoded.height;
-          _widthController.text = (_originalWidth * 0.5).round().toString();
-          _heightController.text = (_originalHeight * 0.5).round().toString();
-          _isLoadingInfo = false;
-        });
+      final dims = await ImageProcessor.readImageDimensions(_currentImage.path);
+      if (dims != null) {
+        if (mounted) {
+          setState(() {
+            _originalWidth = dims.width;
+            _originalHeight = dims.height;
+            _targetWidth = (_originalWidth * 0.5).round();
+            _targetHeight = (_originalHeight * 0.5).round();
+            _isLoadingInfo = false;
+          });
+          _triggerPreviewUpdate(debounce: false);
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isLoadingInfo = false);
+          _triggerPreviewUpdate(debounce: false);
+        }
       }
     } catch (e, stack) {
       CrashlyticsService.recordNonFatalError(
@@ -105,11 +218,14 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         stack,
         reason: 'Failed to read image metadata in ImageStudioScreen',
       );
-      setState(() => _isLoadingInfo = false);
+      if (mounted) {
+        setState(() => _isLoadingInfo = false);
+      }
     }
   }
 
   Future<void> _handleRePickImage() async {
+    setState(() => _activeTool = StudioActiveTool.none);
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
@@ -120,6 +236,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _currentImage = File(picked.path);
         _fileSizeBytes = _currentImage.lengthSync();
         _hasCropped = false;
+        _quarterTurns = 0;
+        _flipHorizontal = false;
+        _flipVertical = false;
         _isLoadingInfo = true;
       });
       await _loadImageMetadata();
@@ -127,12 +246,13 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   }
 
   Future<void> _handleCrop() async {
+    setState(() => _activeTool = StudioActiveTool.crop);
     try {
       final cropped = await ImageCropper().cropImage(
         sourcePath: _currentImage.path,
         uiSettings: [
           AndroidUiSettings(
-            toolbarTitle: 'Studio Crop & Rotate',
+            toolbarTitle: 'Crop & Frame',
             toolbarColor: AppColors.primary,
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.original,
@@ -146,7 +266,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             ],
           ),
           IOSUiSettings(
-            title: 'Studio Crop & Rotate',
+            title: 'Crop & Frame',
             aspectRatioPresets: [
               CropAspectRatioPreset.original,
               CropAspectRatioPreset.square,
@@ -159,102 +279,272 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       );
 
       if (cropped != null && mounted) {
+        final croppedFile = File(cropped.path);
         setState(() {
-          _currentImage = File(cropped.path);
-          _fileSizeBytes = _currentImage.lengthSync();
+          _currentImage = croppedFile;
+          _fileSizeBytes = croppedFile.lengthSync();
           _hasCropped = true;
+          _quarterTurns = 0;
+          _flipHorizontal = false;
+          _flipVertical = false;
+          _showOriginal = false;
+          _previewImageFile = null;
+          _previewResult = null;
           _isLoadingInfo = true;
         });
         await _loadImageMetadata();
       }
     } catch (e) {
-      debugPrint('Crop tool not supported on this platform: $e');
+      debugPrint('Image Cropper error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cropping is currently supported on mobile (Android/iOS).'),
-            backgroundColor: AppColors.primary,
-          ),
+          SnackBar(content: Text('Could not open crop tool: $e')),
         );
       }
     }
   }
 
-  void _onWidthChanged(String value) {
-    if (!_keepAspectRatio || _originalWidth == 0) return;
-    final w = int.tryParse(value);
-    if (w != null && w > 0) {
-      final h = (_originalHeight * (w / _originalWidth)).round();
-      _heightController.text = h.toString();
-    }
+  void _handleRotate() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _activeTool = StudioActiveTool.rotate;
+      _quarterTurns = (_quarterTurns + 1) % 4;
+      _showOriginal = false;
+      _previewImageFile = null;
+    });
+    _triggerPreviewUpdate(debounce: false);
   }
 
-  void _onHeightChanged(String value) {
-    if (!_keepAspectRatio || _originalHeight == 0) return;
-    final h = int.tryParse(value);
-    if (h != null && h > 0) {
-      final w = (_originalWidth * (h / _originalHeight)).round();
-      _widthController.text = w.toString();
-    }
+  void _handleFlip() {
+    setState(() => _activeTool = StudioActiveTool.flip);
+    FlipOptionsSheet.show(
+      context,
+      initialFlipHorizontal: _flipHorizontal,
+      initialFlipVertical: _flipVertical,
+      onApply: (flipH, flipV) {
+        setState(() {
+          _flipHorizontal = flipH;
+          _flipVertical = flipV;
+          _showOriginal = false;
+          _previewImageFile = null;
+        });
+        _triggerPreviewUpdate(debounce: false);
+      },
+    );
   }
 
-  Future<void> _handleProcessAndSave() async {
-    int? targetKB;
-    int quality = 85;
+  void _openCompressSheet() {
+    setState(() => _activeTool = StudioActiveTool.compress);
+    CompressOptionsSheet.show(
+      context,
+      initialMode: _compressionMode,
+      initialTargetSizeKB: _selectedTargetSizeKB,
+      initialQuality: _quality,
+      originalSizeBytes: _fileSizeBytes,
+      onApply: (mode, targetKB, quality) {
+        setState(() {
+          _compressionMode = mode;
+          _selectedTargetSizeKB = targetKB;
+          _quality = quality;
+          _showOriginal = false;
+        });
+        _triggerPreviewUpdate(debounce: false);
+      },
+    );
+  }
 
-    if (_compressionMode == _CompressionMode.targetSize) {
-      targetKB = int.tryParse(_targetSizeController.text.trim());
-      if (targetKB == null || targetKB <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid target size (KB)')),
-        );
-        return;
+  void _handleCompressToolbar() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      if (_activeTool == StudioActiveTool.compress) {
+        _activeTool = StudioActiveTool.none;
+      } else {
+        _activeTool = StudioActiveTool.compress;
       }
-    } else if (_compressionMode == _CompressionMode.quality) {
-      quality = _quality.round();
-    } else {
-      // Both compression options off: encode at standard high quality
-      quality = 90;
+    });
+  }
+
+  void _handleResize() {
+    setState(() => _activeTool = StudioActiveTool.resize);
+    ResizeOptionsSheet.show(
+      context,
+      initialOption: _resizeOption,
+      originalWidth: _originalWidth,
+      originalHeight: _originalHeight,
+      originalSizeBytes: _fileSizeBytes,
+      initialTargetWidth: _targetWidth,
+      initialTargetHeight: _targetHeight,
+      initialPercentage: _selectedPercentage,
+      initialKeepAspectRatio: _keepAspectRatio,
+      onApply: ({
+        required option,
+        required targetWidth,
+        required targetHeight,
+        required percentage,
+        required keepAspectRatio,
+      }) {
+        setState(() {
+          _resizeOption = option;
+          _targetWidth = targetWidth;
+          _targetHeight = targetHeight;
+          _selectedPercentage = percentage;
+          _keepAspectRatio = keepAspectRatio;
+          _showOriginal = false;
+        });
+        _triggerPreviewUpdate(debounce: false);
+      },
+    );
+  }
+
+  void _handleFormat() {
+    setState(() => _activeTool = StudioActiveTool.format);
+    FormatOptionsSheet.show(
+      context,
+      initialFormat: _outputFormat,
+      initialQuality: _quality,
+      onApply: (format, quality) {
+        setState(() {
+          _outputFormat = format;
+          _quality = quality;
+          _showOriginal = false;
+        });
+        _triggerPreviewUpdate(debounce: false);
+      },
+    );
+  }
+
+  void _resetAllAdjustments() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _quarterTurns = 0;
+      _flipHorizontal = false;
+      _flipVertical = false;
+      _resizeOption = ResizeSheetOption.none;
+      _compressionMode = CompressionSheetMode.targetSize;
+      _selectedTargetSizeKB = 50;
+      _quality = 85;
+      _showOriginal = false;
+      _previewImageFile = null;
+      _previewResult = null;
+    });
+    _triggerPreviewUpdate(debounce: false);
+  }
+
+  ResizeMode _getResizeMode() {
+    switch (_resizeOption) {
+      case ResizeSheetOption.exactPixels:
+        return ResizeMode.exactPixels;
+      case ResizeSheetOption.percentage:
+        return ResizeMode.percentage;
+      case ResizeSheetOption.none:
+        return ResizeMode.none;
     }
+  }
+
+  String _getTargetSummary() {
+    String compressStr;
+    switch (_compressionMode) {
+      case CompressionSheetMode.targetSize:
+        compressStr = 'Target: < $_selectedTargetSizeKB KB';
+        break;
+      case CompressionSheetMode.quality:
+        compressStr = '${_quality.round()}% Quality';
+        break;
+      case CompressionSheetMode.none:
+        compressStr = 'Original Quality';
+        break;
+    }
+
+    String resizeStr = '';
+    if (_resizeOption == ResizeSheetOption.exactPixels && _targetWidth > 0 && _targetHeight > 0) {
+      resizeStr = '$_targetWidth×$_targetHeight px • ';
+    } else if (_resizeOption == ResizeSheetOption.percentage) {
+      resizeStr = '$_selectedPercentage% scale • ';
+    }
+
+    String previewEstStr = '';
+    if (_previewResult != null && !_showOriginal) {
+      final kb = (_previewResult!.outputSizeBytes / 1024).toStringAsFixed(1);
+      previewEstStr = 'Est: $kb KB • ';
+    }
+
+    return '$previewEstStr$resizeStr$compressStr • ${_outputFormat.toUpperCase()}';
+  }
+
+  String _getTargetGoal() {
+    switch (_compressionMode) {
+      case CompressionSheetMode.targetSize:
+        return 'Target: < $_selectedTargetSizeKB KB';
+      case CompressionSheetMode.quality:
+        return '${_quality.round()}% Quality';
+      case CompressionSheetMode.none:
+        return 'Original Quality';
+    }
+  }
+
+  Future<void> _processImage() async {
+    if (_isProcessing) return;
 
     setState(() => _isProcessing = true);
+    HapticFeedback.mediumImpact();
 
-    await CrashlyticsService.setProcessingContext(
-      operation: 'studio_process',
-      inputWidth: _originalWidth,
-      inputHeight: _originalHeight,
-      inputSizeKb: (_fileSizeBytes / 1024).round(),
-      outputFormat: _outputFormat,
+    final progressNotifier = ValueNotifier<ProcessingProgressState>(
+      const ProcessingProgressState(
+        progress: 0.05,
+        stage: 'Starting background isolate...',
+      ),
+    );
+
+    ProcessingProgressModal.show(
+      context: context,
+      progressNotifier: progressNotifier,
+      title: 'Processing High-Res Image',
     );
 
     try {
-      ResizeMode resizeMode = ResizeMode.none;
-      int? targetW;
-      int? targetH;
-      int? percentage;
-
-      if (_resizeOption == _ResizeOption.exactPixels) {
-        resizeMode = ResizeMode.exactPixels;
-        targetW = int.tryParse(_widthController.text.trim());
-        targetH = int.tryParse(_heightController.text.trim());
-      } else if (_resizeOption == _ResizeOption.percentage) {
-        resizeMode = ResizeMode.percentage;
-        percentage = _selectedPercentage;
-      }
-
       final options = ProcessOptions(
         sourcePath: _currentImage.path,
-        targetSizeKB: targetKB,
-        quality: quality,
+        targetSizeKB: _compressionMode == CompressionSheetMode.targetSize
+            ? _selectedTargetSizeKB
+            : null,
+        quality: _quality.round(),
         outputFormat: _outputFormat,
-        resizeMode: resizeMode,
-        targetWidth: targetW,
-        targetHeight: targetH,
-        resizePercentage: percentage,
+        resizeMode: _getResizeMode(),
+        targetWidth: _resizeOption == ResizeSheetOption.exactPixels ? _targetWidth : null,
+        targetHeight: _resizeOption == ResizeSheetOption.exactPixels ? _targetHeight : null,
+        resizePercentage: _resizeOption == ResizeSheetOption.percentage
+            ? _selectedPercentage
+            : null,
         keepAspectRatio: _keepAspectRatio,
+        quarterTurns: _quarterTurns,
+        flipHorizontal: _flipHorizontal,
+        flipVertical: _flipVertical,
       );
 
-      final result = await ImageProcessor.processImage(options);
+      await CrashlyticsService.setProcessingContext(
+        operation: 'ImageStudio_PreviewFirst',
+        inputWidth: _originalWidth,
+        inputHeight: _originalHeight,
+        inputSizeKb: (_fileSizeBytes / 1024).round(),
+        outputFormat: options.outputFormat,
+      );
+
+      final result = await ImageProcessor.processImage(
+        options,
+        onProgress: (progress, stage) {
+          progressNotifier.value = ProcessingProgressState(
+            progress: progress,
+            stage: stage,
+            isCompleted: progress >= 1.0,
+          );
+        },
+      );
+
+      progressNotifier.value = const ProcessingProgressState(
+        progress: 1.0,
+        stage: 'Done! Opening result...',
+        isCompleted: true,
+      );
 
       AnalyticsService.logCompressionUsed(
         targetQuality: result.finalQuality,
@@ -264,7 +554,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
       await CrashlyticsService.clearProcessingContext();
 
+      // Give brief visual feedback of 100% completion before screen transition
+      await Future.delayed(const Duration(milliseconds: 150));
+
       if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
       setState(() => _isProcessing = false);
 
       Navigator.of(context).push(
@@ -275,14 +569,36 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     } catch (e, stack) {
       CrashlyticsService.recordNonFatalError(e, stack, reason: 'ImageStudio processing error');
 
-      if (!mounted) return;
-      setState(() => _isProcessing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error processing image: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error processing image: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  bool get _hasUnsavedChanges {
+    return _quarterTurns != 0 ||
+        _flipHorizontal ||
+        _flipVertical ||
+        _hasCropped ||
+        _resizeOption != ResizeSheetOption.none ||
+        _compressionMode != CompressionSheetMode.targetSize ||
+        _selectedTargetSizeKB != 50 ||
+        _quality != 85 ||
+        _outputFormat != 'jpg';
+  }
+
+  Future<void> _handlePopScope(bool didPop) async {
+    if (didPop) return;
+    final shouldDiscard = await DiscardChangesSheet.show(context);
+    if (shouldDiscard && mounted) {
+      Navigator.of(context).pop();
     }
   }
 
@@ -290,627 +606,860 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isWide = context.isMediumOrWider;
+    final appBarBg = isDark ? AppColors.surfaceDark : AppColors.primary;
+    const appBarFg = Colors.white;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Single Image Studio'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.photo_library_outlined),
-            tooltip: 'Change Image',
-            onPressed: _isProcessing ? null : _handleRePickImage,
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, result) => _handlePopScope(didPop),
+      child: Scaffold(
+        backgroundColor: isDark ? AppColors.backgroundDark : const Color(0xFFF6F8FB),
+        appBar: AppBar(
+          backgroundColor: appBarBg,
+          foregroundColor: appBarFg,
+          iconTheme: const IconThemeData(color: appBarFg),
+          actionsIconTheme: const IconThemeData(color: appBarFg),
+          systemOverlayStyle: SystemUiOverlayStyle.light,
+          elevation: 0,
+          titleSpacing: 4,
+          leading: BackButton(
+            color: appBarFg,
+            onPressed: () async {
+              if (_hasUnsavedChanges) {
+                await _handlePopScope(false);
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: _isLoadingInfo
-            ? const Center(child: CircularProgressIndicator())
-            : AdaptiveSupportingPane(
-                primaryPane: _buildPreviewCard(isDark, isWide: isWide),
-                supportingPane: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Studio Step 1: Dimensions & Resize
-                    _buildResizeSection(isDark),
-                    const SizedBox(height: 16),
-
-                    // 2. Studio Step 2: Target File Size (Compress)
-                    _buildCompressSection(isDark),
-                    const SizedBox(height: 16),
-
-                    // 3. Studio Step 3: Output Format & Quality
-                    _buildFormatSection(isDark),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-                bottomAction: _buildStickyBottomBar(isDark, isWide: isWide),
+          title: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Compress & Resize',
+              style: (Theme.of(context).appBarTheme.titleTextStyle ?? const TextStyle()).copyWith(
+                color: appBarFg,
+                fontWeight: FontWeight.bold,
+                fontSize: 19,
+              ),
+            ),
+          ),
+          actions: [
+            IconButton(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              constraints: const BoxConstraints(minWidth: 38, minHeight: 44),
+              icon: const Icon(Icons.refresh_rounded, size: 22),
+              color: appBarFg,
+              tooltip: 'Reset Adjustments',
+              onPressed: _isProcessing ? null : _resetAllAdjustments,
+            ),
+            IconButton(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              constraints: const BoxConstraints(minWidth: 38, minHeight: 44),
+              icon: const Icon(Icons.photo_library_outlined, size: 22),
+              color: appBarFg,
+              tooltip: 'Change Image',
+              onPressed: _isProcessing ? null : _handleRePickImage,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 10, left: 2),
+              child: _isProcessing
+                  ? const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(appBarFg),
+                        ),
+                      ),
+                    )
+                  : IconButton.filled(
+                      constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+                      style: IconButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: isDark ? AppColors.primary : Colors.white,
+                        foregroundColor: isDark ? Colors.white : AppColors.primary,
+                      ),
+                      icon: const Icon(Icons.check_rounded, size: 22),
+                      tooltip: _compressionMode == CompressionSheetMode.targetSize
+                          ? 'Compress to < $_selectedTargetSizeKB KB & Save'
+                          : (_compressionMode == CompressionSheetMode.none
+                              ? 'Save with Original Quality'
+                              : 'Compress with ${_quality.round()}% Quality & Save'),
+                      onPressed: _processImage,
+                    ),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: _isLoadingInfo
+              ? Center(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: const BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.photo_size_select_actual_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Loading High-Res Photo',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Analyzing resolution in background isolate...',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: const SizedBox(
+                            height: 6,
+                            child: LinearProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : isWide
+                  ? _buildWideLayout(isDark)
+                  : _buildMobileLayout(isDark),
+        ),
+        bottomNavigationBar: _isLoadingInfo
+            ? null
+            : StudioBottomToolbar(
+                activeTool: _activeTool,
+                hasRotated: _quarterTurns != 0,
+                hasFlipped: _flipHorizontal || _flipVertical,
+                hasCropped: _hasCropped,
+                onRotate: _handleRotate,
+                onFlip: _handleFlip,
+                onCrop: _handleCrop,
+                onCompress: _handleCompressToolbar,
+                onCompressLongPress: _openCompressSheet,
+                onResize: _handleResize,
+                onFormat: _handleFormat,
               ),
       ),
     );
   }
 
-  // --- UI Component Builders ---
+  Widget _buildMobileLayout(bool isDark) {
+    return Column(
+      children: [
+        // 1. Top File Info Card
+        StudioInfoCard(
+          filePath: _currentImage.path,
+          width: _originalWidth,
+          height: _originalHeight,
+          fileSizeBytes: _fileSizeBytes,
+          targetSummary: _getTargetSummary(),
+          estimatedSizeBytes: (!_showOriginal && _previewResult != null)
+              ? _previewResult!.outputSizeBytes
+              : null,
+          outputWidth: (!_showOriginal && _previewResult != null && _previewResult!.outputWidth > 0)
+              ? _previewResult!.outputWidth
+              : null,
+          outputHeight: (!_showOriginal && _previewResult != null && _previewResult!.outputHeight > 0)
+              ? _previewResult!.outputHeight
+              : null,
+          outputFormat: _outputFormat,
+          targetGoal: _getTargetGoal(),
+          isCalculating: _isGeneratingPreview,
+          isDark: isDark,
+        ),
 
-  Widget _buildPreviewCard(bool isDark, {bool isWide = false}) {
+        // Quick KB Preset Chips (Fastest Workflow for Android users, shown only when Compress is active)
+        if (_activeTool == StudioActiveTool.compress)
+          _buildQuickKbPresetRow(isDark),
+
+        // 2. Large Central Image Preview (Dominant Viewport)
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: _buildImagePreviewCanvas(isDark),
+          ),
+        ),
+
+        // 3. Thumb-Zone Quick Controls Deck (Bottom 40% Area)
+        _buildThumbQuickDeck(isDark),
+        const SizedBox(height: 6),
+      ],
+    );
+  }
+
+  Widget _buildQuickKbPresetRow(bool isDark) {
+    const presets = [20, 50, 100, 200];
+    final isOriginalSelected = _compressionMode == CompressionSheetMode.none;
+    final isCustomActive = _compressionMode == CompressionSheetMode.quality ||
+        (_compressionMode == CompressionSheetMode.targetSize && !presets.contains(_selectedTargetSizeKB));
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: [
+            // 0. Original Preset Chip
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Material(
+                color: isOriginalSelected
+                    ? AppColors.primary
+                    : (isDark ? AppColors.surfaceDark : Colors.white),
+                borderRadius: BorderRadius.circular(16),
+                elevation: isOriginalSelected ? 2 : 0,
+                shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _compressionMode = CompressionSheetMode.none;
+                      _quality = 100;
+                      _showOriginal = false;
+                    });
+                    _triggerPreviewUpdate(debounce: false);
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isOriginalSelected
+                            ? AppColors.primary
+                            : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                        width: isOriginalSelected ? 1.5 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.image_outlined,
+                          size: 14,
+                          color: isOriginalSelected ? Colors.white : AppColors.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Original',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isOriginalSelected ? FontWeight.bold : FontWeight.w600,
+                            color: isOriginalSelected
+                                ? Colors.white
+                                : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            ...presets.map((kb) {
+              final isSelected = _compressionMode == CompressionSheetMode.targetSize &&
+                  _selectedTargetSizeKB == kb;
+              final isQuick = kb == 20 || kb == 50;
+
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Material(
+                  color: isSelected
+                      ? AppColors.primary
+                      : (isDark ? AppColors.surfaceDark : Colors.white),
+                  borderRadius: BorderRadius.circular(16),
+                  elevation: isSelected ? 2 : 0,
+                  shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                  child: InkWell(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        _compressionMode = CompressionSheetMode.targetSize;
+                        _selectedTargetSizeKB = kb;
+                        _showOriginal = false;
+                      });
+                      _triggerPreviewUpdate(debounce: false);
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                          width: isSelected ? 1.5 : 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isQuick) ...[
+                            Icon(
+                              Icons.bolt_rounded,
+                              size: 14,
+                              color: isSelected ? Colors.white : AppColors.primary,
+                            ),
+                            const SizedBox(width: 3),
+                          ],
+                          Text(
+                            '$kb KB',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+
+            // Custom... Chip
+            Material(
+              color: isCustomActive
+                  ? AppColors.primary
+                  : (isDark ? AppColors.surfaceDark : Colors.white),
+              borderRadius: BorderRadius.circular(16),
+              elevation: isCustomActive ? 2 : 0,
+              shadowColor: AppColors.primary.withValues(alpha: 0.3),
+              child: InkWell(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  _openCompressSheet();
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isCustomActive
+                          ? AppColors.primary
+                          : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                      width: isCustomActive ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.tune_rounded,
+                        size: 13,
+                        color: isCustomActive
+                            ? Colors.white
+                            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isCustomActive
+                            ? (_compressionMode == CompressionSheetMode.targetSize
+                                ? '$_selectedTargetSizeKB KB'
+                                : '${_quality.round()}%')
+                            : 'Custom...',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isCustomActive ? FontWeight.bold : FontWeight.w600,
+                          color: isCustomActive
+                              ? Colors.white
+                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumbQuickDeck(bool isDark) {
+    final hasChanges = _hasUnsavedChanges;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: [
+            // 1. Target KB Quick Pill
+            _buildThumbChip(
+              icon: Icons.compress_rounded,
+              label: _compressionMode == CompressionSheetMode.targetSize
+                  ? '< $_selectedTargetSizeKB KB'
+                  : (_compressionMode == CompressionSheetMode.none
+                      ? 'Original'
+                      : '${_quality.round()}% Qual'),
+              isActive: _activeTool == StudioActiveTool.compress,
+              isDark: isDark,
+              onTap: _openCompressSheet,
+            ),
+            const SizedBox(width: 8),
+
+            // 2. Resize Dimensions Quick Pill
+            _buildThumbChip(
+              icon: Icons.open_in_full_rounded,
+              label: _resizeOption == ResizeSheetOption.exactPixels
+                  ? '$_targetWidth×$_targetHeight'
+                  : _resizeOption == ResizeSheetOption.percentage
+                      ? '$_selectedPercentage%'
+                      : 'Original Size',
+              isActive: _activeTool == StudioActiveTool.resize || _resizeOption != ResizeSheetOption.none,
+              isDark: isDark,
+              onTap: _handleResize,
+            ),
+            const SizedBox(width: 8),
+
+            // 3. Format Quick Pill
+            _buildThumbChip(
+              icon: Icons.tune_rounded,
+              label: _outputFormat.toUpperCase(),
+              isActive: _activeTool == StudioActiveTool.format,
+              isDark: isDark,
+              onTap: _handleFormat,
+            ),
+
+            if (hasChanges) ...[
+              const SizedBox(width: 8),
+              // 4. Reset Adjustments Quick Pill (thumb-accessible)
+              _buildThumbChip(
+                icon: Icons.replay_rounded,
+                label: 'Reset',
+                isActive: false,
+                isDark: isDark,
+                accentColor: AppColors.warning,
+                onTap: _resetAllAdjustments,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumbChip({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required bool isDark,
+    Color? accentColor,
+    required VoidCallback onTap,
+  }) {
+    final activeColor = accentColor ?? AppColors.primary;
+    return Material(
+      color: isActive
+          ? activeColor.withValues(alpha: 0.14)
+          : (isDark ? AppColors.surfaceDark : Colors.white),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isActive
+                  ? activeColor
+                  : (isDark ? AppColors.borderDark : AppColors.borderLight),
+              width: isActive ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: isActive
+                    ? activeColor
+                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
+                  color: isActive
+                      ? activeColor
+                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWideLayout(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Left: Large Preview Canvas with Quick Presets Row
+          Expanded(
+            flex: 6,
+            child: Column(
+              children: [
+                if (_activeTool == StudioActiveTool.compress) ...[
+                  _buildQuickKbPresetRow(isDark),
+                  const SizedBox(height: 6),
+                ],
+                Expanded(child: _buildImagePreviewCanvas(isDark)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Right: Info & Primary Controls Pane
+          Expanded(
+            flex: 4,
+            child: Column(
+              children: [
+                StudioInfoCard(
+                  filePath: _currentImage.path,
+                  width: _originalWidth,
+                  height: _originalHeight,
+                  fileSizeBytes: _fileSizeBytes,
+                  targetSummary: _getTargetSummary(),
+                  estimatedSizeBytes: (!_showOriginal && _previewResult != null)
+                      ? _previewResult!.outputSizeBytes
+                      : null,
+                  outputWidth: (!_showOriginal && _previewResult != null && _previewResult!.outputWidth > 0)
+                      ? _previewResult!.outputWidth
+                      : null,
+                  outputHeight: (!_showOriginal && _previewResult != null && _previewResult!.outputHeight > 0)
+                      ? _previewResult!.outputHeight
+                      : null,
+                  outputFormat: _outputFormat,
+                  targetGoal: _getTargetGoal(),
+                  isCalculating: _isGeneratingPreview,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCanvasImage() {
+    if (_showOriginal) {
+      return Image.file(
+        _currentImage,
+        key: const ValueKey('canvas_original_image'),
+        fit: BoxFit.contain,
+      );
+    }
+
+    if (_previewImageFile != null && _previewImageFile!.existsSync()) {
+      return Image.file(
+        _previewImageFile!,
+        key: ValueKey(_previewImageFile!.path),
+        fit: BoxFit.contain,
+      );
+    }
+
+    return Transform.flip(
+      flipX: _flipHorizontal,
+      flipY: _flipVertical,
+      child: RotatedBox(
+        quarterTurns: _quarterTurns,
+        child: Image.file(
+          _currentImage,
+          key: const ValueKey('canvas_fallback_image'),
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePreviewCanvas(bool isDark) {
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF1E222B) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          color: isDark ? AppColors.borderDark : Colors.grey.shade200,
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
+            color: isDark ? Colors.black38 : Colors.black.withValues(alpha: 0.06),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: isWide
-          ? Column(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: Container(
-                      width: double.infinity,
-                      color: isDark ? Colors.black26 : Colors.grey.shade100,
-                      padding: const EdgeInsets.all(16),
-                      child: Image.file(
-                        _currentImage,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '$_originalWidth × $_originalHeight px',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _fileSizeBytes.toReadableFileSize(),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _isProcessing ? null : _handleCrop,
-                        icon: const Icon(Icons.crop, size: 16),
-                        label: Text(
-                          _hasCropped ? 'Re-Crop' : 'Crop / Rotate',
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            )
-          : Column(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: Container(
-                    height: 200,
-                    width: double.infinity,
-                    color: isDark ? Colors.black26 : Colors.grey.shade100,
-                    child: Image.file(
-                      _currentImage,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '$_originalWidth × $_originalHeight px',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _fileSizeBytes.toReadableFileSize(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _isProcessing ? null : _handleCrop,
-                        icon: const Icon(Icons.crop, size: 15),
-                        label: Text(
-                          _hasCropped ? 'Re-Crop' : 'Crop / Rotate',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(19),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Background subtle grid pattern / canvas
+            Positioned.fill(
+              child: Container(
+                color: isDark ? Colors.black12 : const Color(0xFFFAFBFC),
+              ),
             ),
-    );
-  }
-
-  Widget _buildResizeSection(bool isDark) {
-    return _buildStudioCard(
-      isDark: isDark,
-      icon: Icons.aspect_ratio_rounded,
-      iconColor: AppColors.secondary,
-      title: '1. Resize Dimensions',
-      subtitle: _getResizeSubtitle(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SegmentedButton<_ResizeOption>(
-            segments: const [
-              ButtonSegment(
-                value: _ResizeOption.none,
-                label: Text('Original'),
-                icon: Icon(Icons.check_circle_outline, size: 16),
-              ),
-              ButtonSegment(
-                value: _ResizeOption.exactPixels,
-                label: Text('Pixels'),
-                icon: Icon(Icons.numbers, size: 16),
-              ),
-              ButtonSegment(
-                value: _ResizeOption.percentage,
-                label: Text('Scale'),
-                icon: Icon(Icons.percent, size: 16),
-              ),
-            ],
-            selected: {_resizeOption},
-            onSelectionChanged: (set) {
-              setState(() => _resizeOption = set.first);
-            },
-          ),
-          if (_resizeOption == _ResizeOption.exactPixels) ...[
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _widthController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      labelText: 'Width (px)',
-                      filled: true,
-                      fillColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
-                    onChanged: _onWidthChanged,
+            // Live preview rendering linear progress indicator
+            if (_isGeneratingPreview)
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SizedBox(
+                  height: 3,
+                  child: LinearProgressIndicator(
+                    backgroundColor: Colors.transparent,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(
-                    _keepAspectRatio ? Icons.link : Icons.link_off,
-                    color: _keepAspectRatio ? AppColors.primary : Colors.grey,
+              ),
+            // Zoomable & Transformed Image Preview with Double-Tap Support
+            GestureDetector(
+              onDoubleTap: _handleDoubleTap,
+              child: InteractiveViewer(
+                transformationController: _transformationController,
+                minScale: 0.8,
+                maxScale: 5.0,
+                clipBehavior: Clip.none,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Center(
+                    child: _buildCanvasImage(),
                   ),
-                  tooltip: _keepAspectRatio ? 'Aspect Ratio Locked' : 'Aspect Ratio Unlocked',
-                  onPressed: () {
-                    setState(() => _keepAspectRatio = !_keepAspectRatio);
+                ),
+              ),
+            ),
+            // Top-left: Zoom instruction badge (at 1.0x) or Floating Reset Zoom Button (when zoomed in)
+            Positioned(
+              top: 10,
+              left: 10,
+              child: _isZoomedIn
+                  ? Material(
+                      color: Colors.black.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        onTap: _resetZoom,
+                        borderRadius: BorderRadius.circular(16),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.zoom_out_map_rounded, size: 14, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text(
+                                'Reset Zoom',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  : IgnorePointer(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.pinch_rounded, size: 12, color: Colors.white70),
+                            SizedBox(width: 4),
+                            Text(
+                              'Pinch or double-tap to inspect',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+            ),
+            // Toggle Button Overlay (matching ResultScreen BeforeAfterCard)
+            Positioned(
+              bottom: 12,
+              right: 12,
+              child: Material(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  key: const ValueKey('studio_toggle_original_button'),
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _showOriginal = !_showOriginal;
+                    });
                   },
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _heightController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      labelText: 'Height (px)',
-                      filled: true,
-                      fillColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _showOriginal ? Icons.visibility : Icons.compare,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _showOriginal ? 'Viewing Original' : 'Tap for Original',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                    onChanged: _onHeightChanged,
                   ),
                 ),
-              ],
-            ),
-          ],
-          if (_resizeOption == _ResizeOption.percentage) ...[
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 8,
-              children: [25, 50, 75].map((pct) {
-                final isSelected = _selectedPercentage == pct;
-                return ChoiceChip(
-                  label: Text('$pct%'),
-                  selected: isSelected,
-                  onSelected: (val) {
-                    if (val) setState(() => _selectedPercentage = pct);
-                  },
-                );
-              }).toList(),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompressSection(bool isDark) {
-    return _buildStudioCard(
-      isDark: isDark,
-      icon: Icons.compress_rounded,
-      iconColor: AppColors.primary,
-      title: '2. Compression & Quality',
-      subtitle: _getCompressionSubtitle(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SegmentedButton<_CompressionMode>(
-            segments: const [
-              ButtonSegment(
-                value: _CompressionMode.targetSize,
-                label: Text('Target KB'),
-                icon: Icon(Icons.compress, size: 16),
               ),
-              ButtonSegment(
-                value: _CompressionMode.quality,
-                label: Text('Quality %'),
-                icon: Icon(Icons.tune, size: 16),
-              ),
-              ButtonSegment(
-                value: _CompressionMode.none,
-                label: Text('Off'),
-                icon: Icon(Icons.block, size: 16),
-              ),
-            ],
-            selected: {_compressionMode},
-            onSelectionChanged: (set) {
-              setState(() => _compressionMode = set.first);
-            },
-          ),
-          const SizedBox(height: 14),
-
-          // Option A: Target Size Mode
-          if (_compressionMode == _CompressionMode.targetSize) ...[
-            TextField(
-              controller: _targetSizeController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(
-                hintText: 'e.g. 50',
-                suffixText: 'KB',
-                suffixStyle: const TextStyle(fontWeight: FontWeight.bold),
-                filled: true,
-                fillColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              ),
-              onChanged: (val) {
-                final parsed = int.tryParse(val);
-                if (parsed != null) {
-                  setState(() => _selectedTargetSizeKB = parsed);
-                }
-              },
             ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [20, 50, 100, 200, 500, 1024].map((sizeKb) {
-                final isSelected = _targetSizeController.text == sizeKb.toString();
-                final label = sizeKb >= 1024 ? '1 MB' : '$sizeKb KB';
-                return ChoiceChip(
-                  label: Text(label, style: const TextStyle(fontSize: 12)),
-                  selected: isSelected,
-                  onSelected: (val) {
-                    if (val) {
-                      setState(() {
-                        _selectedTargetSizeKB = sizeKb;
-                        _targetSizeController.text = sizeKb.toString();
-                      });
-                    }
-                  },
-                );
-              }).toList(),
-            ),
-          ],
-
-          // Option B: Quality % Mode
-          if (_compressionMode == _CompressionMode.quality) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Encoding Quality:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            // Live preview updating indicator
+            if (_isGeneratingPreview)
+              Positioned(
+                top: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    '${_quality.round()}%',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
-                  ),
-                ),
-              ],
-            ),
-            Slider(
-              value: _quality,
-              min: 10,
-              max: 100,
-              divisions: 18,
-              label: '${_quality.round()}%',
-              activeColor: AppColors.primary,
-              onChanged: (val) => setState(() => _quality = val),
-            ),
-            Wrap(
-              spacing: 6,
-              children: [40, 60, 80, 90, 100].map((q) {
-                final isSelected = _quality.round() == q;
-                return ChoiceChip(
-                  label: Text('$q%', style: const TextStyle(fontSize: 11)),
-                  selected: isSelected,
-                  onSelected: (val) {
-                    if (val) setState(() => _quality = q.toDouble());
-                  },
-                );
-              }).toList(),
-            ),
-          ],
-
-          // Option C: Both Off Mode
-          if (_compressionMode == _CompressionMode.none) ...[
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Compression controls are turned off. Standard output quality will be used with no size limit.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 10,
+                        height: 10,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.6,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
                       ),
-                    ),
+                      SizedBox(width: 6),
+                      Text(
+                        'Updating preview...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            // Status overlay chips (Rotation or Flip indicator if active)
+            if (_quarterTurns != 0 || _flipHorizontal || _flipVertical)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_quarterTurns != 0) ...[
+                        const Icon(Icons.rotate_right, size: 14, color: Colors.white),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_quarterTurns * 90}°',
+                          style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        if (_flipHorizontal || _flipVertical) const SizedBox(width: 8),
+                      ],
+                      if (_flipHorizontal) ...[
+                        const Icon(Icons.swap_horiz, size: 14, color: Colors.white),
+                        const SizedBox(width: 2),
+                        const Text('Flip H', style: TextStyle(fontSize: 11, color: Colors.white)),
+                      ],
+                      if (_flipVertical) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.swap_vert, size: 14, color: Colors.white),
+                        const SizedBox(width: 2),
+                        const Text('Flip V', style: TextStyle(fontSize: 11, color: Colors.white)),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFormatSection(bool isDark) {
-    return _buildStudioCard(
-      isDark: isDark,
-      icon: Icons.transform_rounded,
-      iconColor: Colors.purple,
-      title: '3. Output Format',
-      subtitle: _outputFormat.toUpperCase(),
-      child: SegmentedButton<String>(
-        segments: const [
-          ButtonSegment(value: 'jpg', label: Text('JPG')),
-          ButtonSegment(value: 'png', label: Text('PNG')),
-          ButtonSegment(value: 'webp', label: Text('WebP')),
-        ],
-        selected: {_outputFormat},
-        onSelectionChanged: (set) {
-          setState(() => _outputFormat = set.first);
-        },
-      ),
-    );
-  }
-
-  Widget _buildStickyBottomBar(bool isDark, {bool isWide = false}) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        isWide ? 16 : 20,
-        12,
-        isWide ? 16 : 20,
-        isWide ? 16 : 12 + MediaQuery.paddingOf(context).bottom,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: isWide ? BorderRadius.circular(16) : null,
-        border: isWide
-            ? Border.all(
-                color: isDark ? AppColors.borderDark : AppColors.borderLight,
-              )
-            : Border(
-                top: BorderSide(
-                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                ),
-              ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black45 : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Summary:',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                ),
-              ),
-              Text(
-                _getPipelineSummary(),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          GradientButton(
-            text: 'Process & Save Image',
-            icon: Icons.bolt_rounded,
-            isLoading: _isProcessing,
-            onPressed: _isProcessing ? null : _handleProcessAndSave,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStudioCard({
-    required bool isDark,
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    Widget? trailing,
-    required Widget child,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: iconColor, size: 18),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              ?trailing,
-            ],
-          ),
-          const SizedBox(height: 14),
-          child,
-        ],
-      ),
     );
-  }
-
-  String _getResizeSubtitle() {
-    switch (_resizeOption) {
-      case _ResizeOption.none:
-        return 'Original: $_originalWidth × $_originalHeight px';
-      case _ResizeOption.exactPixels:
-        return 'Custom: ${_widthController.text} × ${_heightController.text} px';
-      case _ResizeOption.percentage:
-        return 'Scale: $_selectedPercentage%';
-    }
-  }
-
-  String _getCompressionSubtitle() {
-    switch (_compressionMode) {
-      case _CompressionMode.targetSize:
-        return 'Target: under ${_targetSizeController.text} KB';
-      case _CompressionMode.quality:
-        return 'Quality: ${_quality.round()}%';
-      case _CompressionMode.none:
-        return 'Compression off (standard)';
-    }
-  }
-
-  String _getPipelineSummary() {
-    final formatStr = _outputFormat.toUpperCase();
-    String compressStr;
-    switch (_compressionMode) {
-      case _CompressionMode.targetSize:
-        compressStr = '< ${_targetSizeController.text} KB';
-        break;
-      case _CompressionMode.quality:
-        compressStr = '${_quality.round()}% Quality';
-        break;
-      case _CompressionMode.none:
-        compressStr = 'No Limit';
-        break;
-    }
-    final resizeStr = _resizeOption == _ResizeOption.none
-        ? 'Original'
-        : (_resizeOption == _ResizeOption.percentage ? '$_selectedPercentage%' : '${_widthController.text}w');
-    return '$resizeStr • $compressStr • $formatStr';
   }
 }

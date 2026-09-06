@@ -15,6 +15,9 @@ class ProcessOptions {
   final int? resizePercentage;
   final bool keepAspectRatio;
   final bool strictDimensions;
+  final int quarterTurns;
+  final bool flipHorizontal;
+  final bool flipVertical;
 
   const ProcessOptions({
     required this.sourcePath,
@@ -27,6 +30,9 @@ class ProcessOptions {
     this.resizePercentage,
     this.keepAspectRatio = true,
     this.strictDimensions = false,
+    this.quarterTurns = 0,
+    this.flipHorizontal = false,
+    this.flipVertical = false,
   });
 
   ProcessOptions copyWith({
@@ -40,6 +46,9 @@ class ProcessOptions {
     int? resizePercentage,
     bool? keepAspectRatio,
     bool? strictDimensions,
+    int? quarterTurns,
+    bool? flipHorizontal,
+    bool? flipVertical,
   }) {
     return ProcessOptions(
       sourcePath: sourcePath ?? this.sourcePath,
@@ -52,6 +61,9 @@ class ProcessOptions {
       resizePercentage: resizePercentage ?? this.resizePercentage,
       keepAspectRatio: keepAspectRatio ?? this.keepAspectRatio,
       strictDimensions: strictDimensions ?? this.strictDimensions,
+      quarterTurns: quarterTurns ?? this.quarterTurns,
+      flipHorizontal: flipHorizontal ?? this.flipHorizontal,
+      flipVertical: flipVertical ?? this.flipVertical,
     );
   }
 }

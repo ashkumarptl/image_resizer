@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
@@ -6,25 +9,198 @@ import 'package:path/path.dart' as p;
 import '../../data/models/process_options.dart';
 import '../../data/models/process_result.dart';
 
+typedef ImageProgressCallback = void Function(double progress, String stage);
+
+/// Dimension model representing image width and height
+class ImageDimensions {
+  final int width;
+  final int height;
+
+  const ImageDimensions({
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  String toString() => '${width}x$height';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImageDimensions &&
+          runtimeType == other.runtimeType &&
+          width == other.width &&
+          height == other.height;
+
+  @override
+  int get hashCode => width.hashCode ^ height.hashCode;
+}
+
 class ImageProcessor {
   ImageProcessor._();
 
-  /// Process image in a background isolate to keep UI smooth and non-blocking
-  static Future<ProcessResult> processImage(ProcessOptions options) async {
-    final cacheDir = await getTemporaryDirectory();
-    final outputDirPath = cacheDir.path;
+  /// Reads image dimensions (width & height) in a background isolate without freezing UI
+  static Future<ImageDimensions?> readImageDimensions(String filePath) async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return _readDimensionsInternal(filePath);
+    }
+    return compute(_readDimensionsInternal, filePath);
+  }
 
-    return compute(
-      _processImageInternal,
-      _IsolateParams(
-        options: options,
-        outputDirPath: outputDirPath,
-      ),
+  static ImageDimensions? _readDimensionsInternal(String filePath) {
+    try {
+      final file = File(filePath);
+      if (!file.existsSync()) return null;
+      final bytes = file.readAsBytesSync();
+
+      // Fast-path: Header decoding without allocating all pixel data in heap
+      final decoder = img.findDecoderForData(bytes);
+      if (decoder != null) {
+        final info = decoder.startDecode(bytes);
+        if (info != null && info.width > 0 && info.height > 0) {
+          int w = info.width;
+          int h = info.height;
+          // Check EXIF orientation (orientations 5, 6, 7, 8 swap width and height)
+          if (decoder is img.JpegDecoder) {
+            try {
+              final exif = img.ExifData.fromInputBuffer(img.InputBuffer(bytes));
+              if (exif.imageIfd.hasOrientation) {
+                final orientation = exif.imageIfd.orientation;
+                if (orientation != null && orientation >= 5 && orientation <= 8) {
+                  final temp = w;
+                  w = h;
+                  h = temp;
+                }
+              }
+            } catch (_) {
+              // Ignore exif parse issues and use header width/height
+            }
+          }
+          return ImageDimensions(width: w, height: h);
+        }
+      }
+
+      // Safe fallback: decode image within this background isolate
+      final decoded = img.decodeImage(bytes);
+      if (decoded != null) {
+        return ImageDimensions(width: decoded.width, height: decoded.height);
+      }
+    } catch (e) {
+      debugPrint('Error reading image dimensions: $e');
+    }
+    return null;
+  }
+
+  /// Process image in a background isolate to keep UI smooth and non-blocking.
+  /// Real-time determinate progress stages are streamed via [onProgress].
+  static Future<ProcessResult> processImage(
+    ProcessOptions options, {
+    String? customOutputDirPath,
+    ImageProgressCallback? onProgress,
+  }) async {
+    String outputDirPath;
+    if (customOutputDirPath != null) {
+      outputDirPath = customOutputDirPath;
+    } else if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      outputDirPath = Directory.systemTemp.path;
+    } else {
+      try {
+        final cacheDir = await getTemporaryDirectory();
+        outputDirPath = cacheDir.path;
+      } catch (_) {
+        outputDirPath = Directory.systemTemp.path;
+      }
+    }
+
+    final params = _IsolateParams(
+      options: options,
+      outputDirPath: outputDirPath,
     );
+
+    // In test environment, execute directly to avoid compute()/Isolate blocking in widget tests
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      onProgress?.call(0.10, 'Reading image file...');
+      onProgress?.call(0.35, 'Decoding image pixels...');
+      final res = await _processImageInternal(params, onProgress: onProgress);
+      onProgress?.call(1.00, 'Complete');
+      return res;
+    }
+
+    // If progress reporting is requested, use dedicated spawned isolate with message port
+    if (onProgress != null) {
+      return _processWithProgressPort(params, onProgress);
+    }
+
+    return compute(_processImageCompute, params);
+  }
+
+  static Future<ProcessResult> _processWithProgressPort(
+    _IsolateParams params,
+    ImageProgressCallback onProgress,
+  ) async {
+    final receivePort = ReceivePort();
+    Isolate? isolate;
+    StreamSubscription? sub;
+
+    try {
+      final completer = Completer<ProcessResult>();
+
+      sub = receivePort.listen((message) {
+        if (message is _WorkerProgress) {
+          onProgress(message.progress, message.stage);
+        } else if (message is ProcessResult) {
+          if (!completer.isCompleted) completer.complete(message);
+        } else if (message is _WorkerError) {
+          if (!completer.isCompleted) {
+            completer.completeError(
+              Exception(message.error),
+              message.stack != null ? StackTrace.fromString(message.stack!) : null,
+            );
+          }
+        }
+      }, onError: (err, stack) {
+        if (!completer.isCompleted) {
+          completer.completeError(err, stack);
+        }
+      });
+
+      isolate = await Isolate.spawn(
+        _workerIsolateEntryPoint,
+        _WorkerArgs(params: params, sendPort: receivePort.sendPort),
+      );
+
+      return await completer.future;
+    } finally {
+      await sub?.cancel();
+      receivePort.close();
+      isolate?.kill(priority: Isolate.immediate);
+    }
+  }
+
+  static void _workerIsolateEntryPoint(_WorkerArgs args) async {
+    final sendPort = args.sendPort;
+    try {
+      final result = await _processImageInternal(
+        args.params,
+        onProgress: (progress, stage) {
+          sendPort.send(_WorkerProgress(progress, stage));
+        },
+      );
+      sendPort.send(result);
+    } catch (e, stack) {
+      sendPort.send(_WorkerError(e.toString(), stack.toString()));
+    }
+  }
+
+  static Future<ProcessResult> _processImageCompute(_IsolateParams params) {
+    return _processImageInternal(params);
   }
 
   /// Internal processing executed inside the background isolate
-  static Future<ProcessResult> _processImageInternal(_IsolateParams params) async {
+  static Future<ProcessResult> _processImageInternal(
+    _IsolateParams params, {
+    ImageProgressCallback? onProgress,
+  }) async {
     final stopwatch = Stopwatch()..start();
     final options = params.options;
     final sourceFile = File(options.sourcePath);
@@ -33,10 +209,12 @@ class ImageProcessor {
       throw Exception('Source file does not exist at ${options.sourcePath}');
     }
 
-    final originalBytes = await sourceFile.readAsBytes();
+    onProgress?.call(0.10, 'Reading image file...');
+    final originalBytes = sourceFile.readAsBytesSync();
     final originalSizeBytes = originalBytes.length;
 
     // 1. Decode Image
+    onProgress?.call(0.35, 'Decoding high-resolution image...');
     final decodedImage = img.decodeImage(originalBytes);
     if (decodedImage == null) {
       throw Exception('Failed to decode image from ${options.sourcePath}');
@@ -47,7 +225,22 @@ class ImageProcessor {
 
     img.Image workingImage = decodedImage;
 
+    // Apply orientation: Rotation & Flip before resizing/compression
+    onProgress?.call(0.55, 'Applying transformations...');
+    if (options.quarterTurns % 4 != 0) {
+      final angle = (options.quarterTurns % 4) * 90;
+      workingImage = img.copyRotate(workingImage, angle: angle);
+    }
+    if (options.flipHorizontal && options.flipVertical) {
+      workingImage = img.copyFlip(workingImage, direction: img.FlipDirection.both);
+    } else if (options.flipHorizontal) {
+      workingImage = img.copyFlip(workingImage, direction: img.FlipDirection.horizontal);
+    } else if (options.flipVertical) {
+      workingImage = img.copyFlip(workingImage, direction: img.FlipDirection.vertical);
+    }
+
     // 2. Handle Dimension Resizing if requested
+    onProgress?.call(0.70, 'Resizing to target resolution...');
     if (options.resizeMode == ResizeMode.exactPixels) {
       if (options.targetWidth != null || options.targetHeight != null) {
         int targetW = options.targetWidth ?? workingImage.width;
@@ -55,9 +248,9 @@ class ImageProcessor {
 
         if (options.keepAspectRatio) {
           if (options.targetWidth != null && options.targetHeight == null) {
-            targetH = (originalHeight * (targetW / originalWidth)).round();
+            targetH = (workingImage.height * (targetW / workingImage.width)).round();
           } else if (options.targetHeight != null && options.targetWidth == null) {
-            targetW = (originalWidth * (targetH / originalHeight)).round();
+            targetW = (workingImage.width * (targetH / workingImage.height)).round();
           }
         }
 
@@ -84,6 +277,7 @@ class ImageProcessor {
     }
 
     // 3. Handle Target Size or Direct Encoding
+    onProgress?.call(0.85, 'Optimizing compression & quality...');
     Uint8List encodedBytes;
     int finalQuality = options.quality;
     final format = options.outputFormat.toLowerCase();
@@ -106,14 +300,16 @@ class ImageProcessor {
     }
 
     // 4. Save to temporary output file
+    onProgress?.call(0.95, 'Saving processed image...');
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final extension = format == 'jpeg' ? 'jpg' : format;
     final outputFileName = 'img_tool_$timestamp.$extension';
     final outputFilePath = p.join(params.outputDirPath, outputFileName);
     final outputFile = File(outputFilePath);
-    await outputFile.writeAsBytes(encodedBytes);
+    outputFile.writeAsBytesSync(encodedBytes);
 
     stopwatch.stop();
+    onProgress?.call(1.00, 'Complete');
 
     return ProcessResult(
       originalPath: options.sourcePath,
@@ -130,7 +326,8 @@ class ImageProcessor {
     );
   }
 
-  /// Binary search quality and iterative dimension scaling to hit target size
+  /// Binary search quality and iterative dimension scaling to hit target size.
+  /// Includes pre-scale optimizations for low-end devices processing 50MP/108MP camera photos.
   static _OptimizedOutput _optimizeToTargetSize(
     img.Image originalImage, {
     required int targetMaxBytes,
@@ -141,6 +338,31 @@ class ImageProcessor {
     int bestQuality = 80;
     Uint8List? bestBytes;
     final isLosslessPng = format.toLowerCase() == 'png';
+
+    // Pre-optimization for low-end / budget devices:
+    // If image is massive (>4K / 50MP-108MP) and user wants a target file size (e.g. <= 200KB)
+    // without strict dimensions, pre-scale to a manageable resolution to avoid OOM and CPU thermal throttling.
+    if (!strictDimensions) {
+      final maxDim = math.max(currentImage.width, currentImage.height);
+      int maxAllowedDim = 3840;
+      if (targetMaxBytes <= 100 * 1024) {
+        maxAllowedDim = 1920;
+      } else if (targetMaxBytes <= 300 * 1024) {
+        maxAllowedDim = 2560;
+      }
+
+      if (maxDim > maxAllowedDim) {
+        final scale = maxAllowedDim / maxDim;
+        final targetW = (currentImage.width * scale).round();
+        final targetH = (currentImage.height * scale).round();
+        currentImage = img.copyResize(
+          currentImage,
+          width: targetW > 0 ? targetW : 1,
+          height: targetH > 0 ? targetH : 1,
+          interpolation: img.Interpolation.linear,
+        );
+      }
+    }
 
     if (!isLosslessPng) {
       // Step A: Binary search on quality (5% to 95%) for lossy formats (JPG, WebP)
@@ -263,6 +485,30 @@ class _IsolateParams {
     required this.options,
     required this.outputDirPath,
   });
+}
+
+class _WorkerArgs {
+  final _IsolateParams params;
+  final SendPort sendPort;
+
+  const _WorkerArgs({
+    required this.params,
+    required this.sendPort,
+  });
+}
+
+class _WorkerProgress {
+  final double progress;
+  final String stage;
+
+  const _WorkerProgress(this.progress, this.stage);
+}
+
+class _WorkerError {
+  final String error;
+  final String? stack;
+
+  const _WorkerError(this.error, this.stack);
 }
 
 class _OptimizedOutput {
