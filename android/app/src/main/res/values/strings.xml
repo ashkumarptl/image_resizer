@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Image Tools</string>
+    <string name="shortcut_compress_short">Compress</string>
+    <string name="shortcut_compress_long">Quick Compress (&lt; 50 KB)</string>
+    <string name="shortcut_signature_short">Signature</string>
+    <string name="shortcut_signature_long">Clean Signature</string>
+    <string name="shortcut_stamp_short">Photo Stamp</string>
+    <string name="shortcut_stamp_long">Name &amp; Date on Photo</string>
+</resources>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="quick_compress"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_compress"
+        android:shortcutShortLabel="@string/shortcut_compress_short"
+        android:shortcutLongLabel="@string/shortcut_compress_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.ashspark.image_resizer"
+            android:targetClass="com.ashspark.image_resizer.MainActivity">
+            <extra android:name="shortcut" android:value="quick_compress" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="clean_signature"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_signature"
+        android:shortcutShortLabel="@string/shortcut_signature_short"
+        android:shortcutLongLabel="@string/shortcut_signature_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.ashspark.image_resizer"
+            android:targetClass="com.ashspark.image_resizer.MainActivity">
+            <extra android:name="shortcut" android:value="clean_signature" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="photo_stamp"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_stamp"
+        android:shortcutShortLabel="@string/shortcut_stamp_short"
+        android:shortcutLongLabel="@string/shortcut_stamp_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.ashspark.image_resizer"
+            android:targetClass="com.ashspark.image_resizer.MainActivity">
+            <extra android:name="shortcut" android:value="photo_stamp" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+</shortcuts>
