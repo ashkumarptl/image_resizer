@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../data/repositories/history_repository.dart';
+import '../../services/in_app_update_service.dart';
 import '../../services/storage_service.dart';
 import '../home/home_screen.dart';
 import '../widgets/account_section.dart';
@@ -327,6 +328,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                   ),
                                 ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 20),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        InAppUpdateService.checkForUpdate(
+                          context: context,
+                          isManualCheck: true,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Check for Updates', style: TextStyle(fontSize: 14)),
+                            Icon(Icons.system_update_alt_rounded, size: 18, color: AppColors.primary),
                           ],
                         ),
                       ),

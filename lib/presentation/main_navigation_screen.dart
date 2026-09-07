@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/theme_provider.dart';
+import '../services/in_app_update_service.dart';
 import '../services/system_integration_service.dart';
 import 'exam_tools/exam_tools_screen.dart';
 import 'home/home_screen.dart';
@@ -31,6 +32,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
     with WidgetsBindingObserver {
   StreamSubscription<String>? _sharedFileSub;
   StreamSubscription<String>? _shortcutSub;
+  Timer? _updateTimer;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -39,8 +41,21 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _reapplySystemUiStyle();
+      _checkForAppUpdate();
     });
     _initSystemIntegration();
+  }
+
+  void _checkForAppUpdate() {
+    // Avoid running update timers during automated widget tests
+    if (Platform.environment.containsKey('FLUTTER_TEST')) return;
+
+    // Delay slightly to let the first frame and animations settle
+    _updateTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        InAppUpdateService.checkForUpdate(context: context);
+      }
+    });
   }
 
   @override
@@ -98,6 +113,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _updateTimer?.cancel();
     _sharedFileSub?.cancel();
     _shortcutSub?.cancel();
     super.dispose();
