@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/extensions/file_size_extension.dart';
 import '../../../data/models/process_result.dart';
+import 'fullscreen_image_preview.dart';
 
 class BeforeAfterCard extends StatefulWidget {
   final ProcessResult result;
@@ -18,6 +20,25 @@ class BeforeAfterCard extends StatefulWidget {
 
 class _BeforeAfterCardState extends State<BeforeAfterCard> {
   bool _showOriginal = false;
+
+  void _openImagePreview(BuildContext context) {
+    HapticFeedback.selectionClick();
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.95),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: FullscreenImagePreview(
+              result: widget.result,
+              initialShowOriginal: _showOriginal,
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,21 +66,60 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 1. Compact Image Preview with Toggle Pill
+          // 1. Compact Image Preview with Tap to Zoom & Toggle Pill
           Stack(
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                child: Container(
-                  height: 165,
-                  width: double.infinity,
+                child: Material(
                   color: isDark ? Colors.black26 : Colors.grey.shade100,
-                  child: currentFile.existsSync()
-                      ? Image.file(
-                          currentFile,
-                          fit: BoxFit.contain,
-                        )
-                      : const Center(child: Icon(Icons.broken_image, size: 40)),
+                  child: InkWell(
+                    onTap: () => _openImagePreview(context),
+                    child: SizedBox(
+                      height: 165,
+                      width: double.infinity,
+                      child: currentFile.existsSync()
+                          ? Hero(
+                              tag: 'result_image_preview',
+                              child: Image.file(
+                                currentFile,
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          : const Center(child: Icon(Icons.broken_image, size: 40)),
+                    ),
+                  ),
+                ),
+              ),
+              // Top-right: Tap to Preview Pill Badge
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black.withValues(alpha: 0.65),
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => _openImagePreview(context),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.fullscreen_rounded, color: Colors.white, size: 14),
+                          SizedBox(width: 4),
+                          Text(
+                            'Tap to preview',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
               // Toggle Button Overlay
