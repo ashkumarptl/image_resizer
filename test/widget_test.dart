@@ -34,8 +34,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(AppConstants.appName), findsOneWidget);
-    expect(find.text('Single Studio'), findsOneWidget);
-    expect(find.text('Batch Optimizer'), findsOneWidget);
-    expect(find.text('Core Studio'), findsOneWidget);
+    expect(find.text('Single Photo'), findsOneWidget);
+    expect(find.text('Multiple Photos'), findsOneWidget);
+    expect(find.text('Photo Tools'), findsOneWidget);
   });
 }

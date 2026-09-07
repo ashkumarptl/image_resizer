@@ -223,8 +223,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // 1. Initially on Home tab
-      expect(find.text('Core Studio'), findsOneWidget);
-      expect(find.text('Single Studio'), findsOneWidget);
+      expect(find.text('Photo Tools'), findsOneWidget);
+      expect(find.text('Single Photo'), findsOneWidget);
 
       // 2. Tap on "Exam Tools" tab in the floating nav bar
       await tester.tap(find.text('Exam Tools'));
@@ -255,7 +255,7 @@ void main() {
       // 5. Switch back to Home
       await tester.tap(find.text('Home'));
       await tester.pumpAndSettle();
-      expect(find.text('Core Studio'), findsOneWidget);
+      expect(find.text('Photo Tools'), findsOneWidget);
     });
   });
 }

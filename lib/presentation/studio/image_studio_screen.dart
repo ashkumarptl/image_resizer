@@ -11,6 +11,7 @@ import '../../data/models/process_options.dart';
 import '../../data/models/process_result.dart';
 import '../../services/analytics_service.dart';
 import '../../services/crashlytics_service.dart';
+import '../../services/image_service/heic_converter.dart';
 import '../../services/image_service/image_processor.dart';
 import '../result/result_screen.dart';
 import '../widgets/discard_changes_sheet.dart';
@@ -60,9 +61,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   bool _keepAspectRatio = true;
 
   // 4. Compress & Quality State
-  CompressionSheetMode _compressionMode = CompressionSheetMode.targetSize;
+  CompressionSheetMode _compressionMode = CompressionSheetMode.none;
   int _selectedTargetSizeKB = 50;
-  double _quality = 85;
+  double _quality = 100;
 
   // 5. Format State
   String _outputFormat = 'jpg';
@@ -194,6 +195,13 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
   Future<void> _loadImageMetadata() async {
     try {
+      if (HeicConverter.isHeicFile(_currentImage.path)) {
+        final converted = await HeicConverter.ensureCompatibleImage(_currentImage.path);
+        if (mounted && converted != _currentImage.path) {
+          _currentImage = File(converted);
+        }
+      }
+
       final dims = await ImageProcessor.readImageDimensions(_currentImage.path);
       if (dims != null) {
         if (mounted) {
@@ -202,6 +210,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             _originalHeight = dims.height;
             _targetWidth = (_originalWidth * 0.5).round();
             _targetHeight = (_originalHeight * 0.5).round();
+            _fileSizeBytes = _currentImage.existsSync() ? _currentImage.lengthSync() : 0;
             _isLoadingInfo = false;
           });
           _triggerPreviewUpdate(debounce: false);
@@ -420,9 +429,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       _flipHorizontal = false;
       _flipVertical = false;
       _resizeOption = ResizeSheetOption.none;
-      _compressionMode = CompressionSheetMode.targetSize;
+      _compressionMode = CompressionSheetMode.none;
       _selectedTargetSizeKB = 50;
-      _quality = 85;
+      _quality = 100;
       _showOriginal = false;
       _previewImageFile = null;
       _previewResult = null;
@@ -588,9 +597,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _flipVertical ||
         _hasCropped ||
         _resizeOption != ResizeSheetOption.none ||
-        _compressionMode != CompressionSheetMode.targetSize ||
-        _selectedTargetSizeKB != 50 ||
-        _quality != 85 ||
+        _compressionMode != CompressionSheetMode.none ||
+        _quality != 100 ||
         _outputFormat != 'jpg';
   }
 

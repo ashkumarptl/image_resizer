@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_radii.dart';
 import '../../core/constants/preset_constants.dart';
 import '../../data/models/image_preset.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -227,7 +228,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                           : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: AppRadii.pillRadius,
                       side: BorderSide(
                         color: isSelected
                             ? AppColors.primary
@@ -254,12 +255,12 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () => _handleSelectPreset(context, ref, preset),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: AppRadii.cardRadius,
                       child: Ink(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: AppRadii.cardRadius,
                           border: Border.all(
                             color: isDark ? AppColors.borderDark : AppColors.borderLight,
                           ),
@@ -276,9 +277,9 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                             Container(
                               width: 48,
                               height: 48,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: AppColors.primaryContainerLight,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: AppRadii.cardInnerRadius,
                               ),
                               alignment: Alignment.center,
                               child: Text(
@@ -310,7 +311,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                                             horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: AppColors.primary.withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: AppRadii.badgeRadius,
                                         ),
                                         child: Text(
                                           preset.badgeText,

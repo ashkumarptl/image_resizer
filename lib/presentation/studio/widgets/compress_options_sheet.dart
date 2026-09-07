@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_radii.dart';
 
 enum CompressionSheetMode { targetSize, quality, none }
 
@@ -91,13 +92,16 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final mq = MediaQuery.of(context);
+    final keyboardInset = mq.viewInsets.bottom;
+    final navBarInset = mq.viewPadding.bottom;
+    final bottomPadding = keyboardInset > 0 ? keyboardInset : navBarInset;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottomInset),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottomPadding),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: AppRadii.sheetRadius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),
@@ -187,9 +191,9 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
                   value: CompressionSheetMode.none,
                   label: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text('None'),
+                    child: Text('Original'),
                   ),
-                  icon: Icon(Icons.block, size: 16),
+                  icon: Icon(Icons.image_outlined, size: 16),
                 ),
               ],
               selected: {_mode},
@@ -265,7 +269,7 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
                 hintText: 'Enter size e.g. 50',
                 suffixText: 'KB',
                 prefixIcon: const Icon(Icons.data_usage_rounded),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: const OutlineInputBorder(borderRadius: AppRadii.cardSmallRadius),
               ),
               onChanged: (val) {
                 final parsed = int.tryParse(val);
@@ -314,7 +318,7 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadii.cardSmallRadius,
               ),
               child: const Row(
                 children: [
@@ -337,7 +341,7 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadii.cardInnerSmallRadius,
             ),
             child: Row(
               children: [

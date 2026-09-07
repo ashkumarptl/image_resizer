@@ -321,11 +321,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   _buildGuestUsageBanner(context, isDark),
 
                   // 1. Quick Image Tools Grid
-                  // 1. Core Studio & Batch Tools
+                  // 1. Photo Tools
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
                     child: Text(
-                      'Core Studio',
+                      'Photo Tools',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -343,23 +343,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       childAspectRatio: context.responsiveValue<double>(
-                        compact: 1.05,
+                        compact: 1.15,
                         medium: 1.30,
                         expanded: 1.50,
                       ),
                       children: [
                         ToolCard(
-                          title: 'Single Studio',
-                          subtitle: 'Compress, Resize, Crop & Flip',
+                          title: 'Single Photo',
+                          subtitle: 'Compress, Resize & Crop',
                           iconEmoji: '🎨',
                           accentColor: AppColors.primary,
+                          badgeText: 'STUDIO',
                           onTap: _handleStudioTool,
                         ),
                         ToolCard(
-                          title: 'Batch Optimizer',
+                          title: 'Multiple Photos',
                           subtitle: 'Multiple Images & Zip Export',
                           iconEmoji: '⚡',
-                          accentColor: Colors.indigo,
+                          accentColor: AppColors.primary,
+                          badgeText: 'BATCH',
                           onTap: _handleBatchTool,
                         ),
                       ],
@@ -384,7 +386,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.teal.withValues(alpha: 0.15),
+                            color: AppColors.secondary.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(
@@ -392,7 +394,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.bold,
-                              color: Colors.teal,
+                              color: AppColors.secondary,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -410,7 +412,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       childAspectRatio: context.responsiveValue<double>(
-                        compact: 1.05,
+                        compact: 1.15,
                         medium: 1.30,
                         expanded: 1.50,
                       ),
@@ -419,14 +421,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           title: 'Signature B&W',
                           subtitle: 'Shadow Removal Filter',
                           iconEmoji: '✍️',
-                          accentColor: Colors.teal,
+                          accentColor: AppColors.secondary,
                           onTap: _handleSignatureTool,
                         ),
                         ToolCard(
                           title: 'Photo Stamp',
                           subtitle: 'Name & Date on Photo',
                           iconEmoji: '🏷️',
-                          accentColor: Colors.deepOrange,
+                          accentColor: AppColors.secondary,
                           onTap: _handlePhotoStampTool,
                         ),
                       ],

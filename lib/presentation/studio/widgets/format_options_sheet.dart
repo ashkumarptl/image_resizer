@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_radii.dart';
 
 class FormatOptionsSheet extends StatefulWidget {
   final String initialFormat;
@@ -51,11 +52,14 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final mq = MediaQuery.of(context);
+    final navBarInset = mq.viewPadding.bottom;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + navBarInset),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: AppRadii.sheetRadius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),
@@ -213,7 +217,7 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
         HapticFeedback.selectionClick();
         setState(() => _format = value);
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: AppRadii.cardSmallRadius,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
@@ -224,7 +228,7 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
             color: isSelected ? AppColors.primary : Colors.transparent,
             width: 1.5,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadii.cardSmallRadius,
         ),
         child: Row(
           children: [

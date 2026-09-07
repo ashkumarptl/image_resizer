@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_radii.dart';
 import '../../services/analytics_service.dart';
 import '../../services/web_share_service.dart';
 import 'gradient_button.dart';
@@ -162,7 +163,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
         ),
         backgroundColor: AppColors.primaryDark,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadii.cardSmallRadius),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -176,7 +177,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: AppRadii.sheetRadius,
         border: Border(
           top: BorderSide(
             color: isDark ? AppColors.borderDark : AppColors.borderLight,
@@ -216,7 +217,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                     height: 44,
                     decoration: BoxDecoration(
                       gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: AppRadii.cardSmallRadius,
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.primary.withValues(alpha: 0.3),
@@ -286,7 +287,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: AppRadii.cardRadius,
                     border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
                   ),
                   child: Column(
@@ -334,7 +335,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: _statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppRadii.cardSmallRadius,
                     border: Border.all(color: _statusColor.withValues(alpha: 0.3)),
                   ),
                   child: Row(
@@ -408,7 +409,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: AppRadii.dialogRadius,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.08),
@@ -468,7 +469,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: AppRadii.cardRadius,
                     border: Border.all(
                       color: isDark ? AppColors.borderDark : AppColors.borderLight,
                     ),
@@ -480,7 +481,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                           Expanded(
                             child: InkWell(
                               onTap: _copyUrlToClipboard,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: AppRadii.cardInnerRadius,
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 child: Row(
@@ -489,7 +490,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                                       padding: const EdgeInsets.all(6),
                                       decoration: BoxDecoration(
                                         color: AppColors.primary.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: AppRadii.cardInnerSmallRadius,
                                       ),
                                       child: const Icon(
                                         Icons.language_rounded,
@@ -553,8 +554,8 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                               foregroundColor: Colors.white,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: AppRadii.cardInnerRadius,
                               ),
                             ),
                           ),
@@ -583,7 +584,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                     color: isDark
                         ? AppColors.surfaceVariantDark.withValues(alpha: 0.45)
                         : AppColors.surfaceVariantLight.withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: AppRadii.cardRadius,
                     border: Border.all(
                       color: isDark ? AppColors.borderDark : AppColors.borderLight,
                     ),
@@ -597,7 +598,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                             padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
                               color: AppColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: AppRadii.badgeRadius,
                             ),
                             child: const Icon(
                               Icons.auto_stories_rounded,
@@ -667,7 +668,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                       ? AppColors.surfaceVariantDark.withValues(alpha: 0.3)
                       : AppColors.surfaceVariantLight.withValues(alpha: 0.7),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: AppRadii.cardSmallRadius,
                     side: BorderSide(
                       color: AppColors.warning.withValues(alpha: 0.3),
                     ),
@@ -787,7 +788,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                 height: 38,
                 decoration: BoxDecoration(
                   gradient: gradient,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppRadii.cardSmallRadius,
                   boxShadow: [
                     BoxShadow(
                       color: iconColor.withValues(alpha: 0.28),
@@ -831,7 +832,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: iconColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: AppRadii.badgeRadius,
                         ),
                         child: Text(
                           'STEP $stepNumber',

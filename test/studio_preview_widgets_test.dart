@@ -508,12 +508,18 @@ void main() {
       expect(find.text('200 KB'), findsOneWidget);
       expect(find.text('Custom...'), findsOneWidget);
 
-      // Bottom compress button is removed in favor of top right checkmark icon
-      expect(find.text('⚡ Compress to < 50 KB'), findsNothing);
+      // Initially defaults to Original compression (preserves full original quality)
       expect(find.byIcon(Icons.check_rounded), findsOneWidget);
-      expect(find.byTooltip('Compress to < 50 KB & Save'), findsOneWidget);
+      expect(find.byTooltip('Save with Original Quality'), findsOneWidget);
+      expect(find.textContaining('Original Quality'), findsOneWidget);
 
-      // Tap Original chip
+      // Tap 50 KB chip -> switches to 50 KB target
+      await tester.tap(find.text('50 KB').first);
+      await tester.pump();
+      expect(find.byTooltip('Compress to < 50 KB & Save'), findsOneWidget);
+      expect(find.textContaining('Target: < 50 KB'), findsOneWidget);
+
+      // Tap Original chip -> switches back to Original
       await tester.tap(find.text('Original').first);
       await tester.pump();
       expect(find.byTooltip('Save with Original Quality'), findsOneWidget);
