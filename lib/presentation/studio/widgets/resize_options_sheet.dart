@@ -444,12 +444,21 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final maxHeight = MediaQuery.of(context).size.height * 0.88;
+    final mq = MediaQuery.of(context);
+    final keyboardInset = mq.viewInsets.bottom;
+    // viewPadding.bottom = system nav bar height (gesture pill or 3-button bar).
+    // When keyboard is open, viewInsets already includes the nav bar so we use
+    // max() to avoid double-counting. When keyboard is closed, viewPadding gives
+    // us the raw nav bar clearance we need.
+    final navBarInset = mq.viewPadding.bottom;
+    final bottomPadding = keyboardInset > 0
+        ? keyboardInset           // keyboard open: it covers the nav bar too
+        : navBarInset;            // keyboard closed: just clear the nav bar
+    final maxHeight = mq.size.height * 0.88;
 
     return Container(
       constraints: BoxConstraints(maxHeight: maxHeight),
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottomInset),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottomPadding),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -526,7 +535,11 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close, size: 22),
+                icon: Icon(
+                  Icons.close,
+                  size: 22,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],

@@ -58,8 +58,11 @@ class _FlipOptionsSheetState extends State<FlipOptionsSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final mq = MediaQuery.of(context);
+    final navBarInset = mq.viewPadding.bottom;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + navBarInset),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),

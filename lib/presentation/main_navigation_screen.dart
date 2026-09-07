@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import '../core/theme/app_theme.dart';
+import '../core/theme/theme_provider.dart';
 import '../services/system_integration_service.dart';
 import 'exam_tools/exam_tools_screen.dart';
 import 'home/home_screen.dart';
@@ -24,7 +27,8 @@ class MainNavigationScreen extends ConsumerStatefulWidget {
   ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
+class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
+    with WidgetsBindingObserver {
   StreamSubscription<String>? _sharedFileSub;
   StreamSubscription<String>? _shortcutSub;
   final ImagePicker _picker = ImagePicker();
@@ -32,7 +36,41 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _reapplySystemUiStyle();
+    });
     _initSystemIntegration();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    super.didChangePlatformBrightness();
+    _reapplySystemUiStyle();
+  }
+
+  /// Android resets the system nav bar color when the app comes back from
+  /// background (e.g. after switching apps or returning from a permission
+  /// dialog). This observer reapplies the correct style on every resume.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _reapplySystemUiStyle();
+    }
+  }
+
+  void _reapplySystemUiStyle() {
+    final themeMode = ref.read(themeModeProvider);
+    final platformBrightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
+
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            platformBrightness == Brightness.dark);
+
+    SystemChrome.setSystemUIOverlayStyle(
+      isDark ? AppTheme.darkSystemUiStyle : AppTheme.lightSystemUiStyle,
+    );
   }
 
   void _initSystemIntegration() {
@@ -59,6 +97,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _sharedFileSub?.cancel();
     _shortcutSub?.cancel();
     super.dispose();

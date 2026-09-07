@@ -1,9 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 
 class AppTheme {
   AppTheme._();
+
+  /// System UI overlay style for light theme:
+  /// - Status bar: dark icons on light background
+  /// - Navigation bar: white background with dark icons
+  static const SystemUiOverlayStyle lightSystemUiStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+    systemNavigationBarColor: AppColors.backgroundLight,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarContrastEnforced: false,
+    systemStatusBarContrastEnforced: false,
+  );
+
+  /// System UI overlay style for dark theme:
+  /// - Status bar: light icons on dark background
+  /// - Navigation bar: dark background with light icons
+  static const SystemUiOverlayStyle darkSystemUiStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+    systemNavigationBarColor: AppColors.backgroundDark,
+    systemNavigationBarIconBrightness: Brightness.light,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarContrastEnforced: false,
+    systemStatusBarContrastEnforced: false,
+  );
 
   static ThemeData get lightTheme {
     final baseTextTheme = GoogleFonts.outfitTextTheme();
@@ -67,9 +96,7 @@ class AppTheme {
         backgroundColor: AppColors.surfaceLight,
         elevation: 3,
         surfaceTintColor: AppColors.primary.withValues(alpha: 0.08),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         titleTextStyle: GoogleFonts.outfit(
           color: AppColors.textPrimaryLight,
           fontSize: 20,
@@ -87,6 +114,7 @@ class AppTheme {
         backgroundColor: AppColors.backgroundLight,
         elevation: 0,
         centerTitle: false,
+        systemOverlayStyle: lightSystemUiStyle,
         iconTheme: const IconThemeData(color: AppColors.textPrimaryLight),
         titleTextStyle: GoogleFonts.outfit(
           color: AppColors.textPrimaryLight,
@@ -166,7 +194,9 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
-    final baseTextTheme = GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme);
+    final baseTextTheme = GoogleFonts.outfitTextTheme(
+      ThemeData.dark().textTheme,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -227,9 +257,7 @@ class AppTheme {
         backgroundColor: AppColors.surfaceDark,
         elevation: 3,
         surfaceTintColor: AppColors.primaryLight.withValues(alpha: 0.08),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         titleTextStyle: GoogleFonts.outfit(
           color: AppColors.textPrimaryDark,
           fontSize: 20,
@@ -247,6 +275,7 @@ class AppTheme {
         backgroundColor: AppColors.backgroundDark,
         elevation: 0,
         centerTitle: false,
+        systemOverlayStyle: darkSystemUiStyle,
         iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
         titleTextStyle: GoogleFonts.outfit(
           color: AppColors.textPrimaryDark,
