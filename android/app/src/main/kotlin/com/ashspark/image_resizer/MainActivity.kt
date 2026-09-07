@@ -1,6 +1,9 @@
 package com.ashspark.image_resizer
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import androidx.core.content.FileProvider
@@ -16,6 +19,7 @@ class MainActivity : FlutterActivity() {
 
     private var initialSharedFilePath: String? = null
     private var initialShortcut: String? = null
+
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -44,6 +48,49 @@ class MainActivity : FlutterActivity() {
                         } else {
                             result.error("INVALID_PATH", "Path cannot be null", null)
                         }
+                    }
+                    "convertHeicToJpeg" -> {
+                        val path = call.argument<String>("path")
+                        val targetPath = call.argument<String>("targetPath")
+                        val quality = call.argument<Int>("quality") ?: 95
+                        if (path == null || targetPath == null) {
+                            result.error("INVALID_ARGS", "Path or targetPath cannot be null", null)
+                            return@setMethodCallHandler
+                        }
+
+                        Thread {
+                            try {
+                                val file = File(path)
+                                if (!file.exists()) {
+                                    runOnUiThread { result.error("FILE_NOT_FOUND", "File not found: $path", null) }
+                                    return@Thread
+                                }
+
+                                val bitmap: Bitmap? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                    val source = ImageDecoder.createSource(file)
+                                    ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                                        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                                        decoder.isMutableRequired = true
+                                    }
+                                } else {
+                                    BitmapFactory.decodeFile(path)
+                                }
+
+                                if (bitmap != null) {
+                                    val outFile = File(targetPath)
+                                    outFile.parentFile?.mkdirs()
+                                    FileOutputStream(outFile).use { outStream ->
+                                        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outStream)
+                                    }
+                                    bitmap.recycle()
+                                    runOnUiThread { result.success(outFile.absolutePath) }
+                                } else {
+                                    runOnUiThread { result.error("DECODE_FAILED", "Failed to decode image bitmap", null) }
+                                }
+                            } catch (e: Exception) {
+                                runOnUiThread { result.error("CONVERT_ERROR", e.message, null) }
+                            }
+                        }.start()
                     }
                     else -> result.notImplemented()
                 }

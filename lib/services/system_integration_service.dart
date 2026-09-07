@@ -83,6 +83,26 @@ class SystemIntegrationService {
     }
   }
 
+  /// Converts a HEIC / HEIF image file to standard JPEG using native platform decoder.
+  Future<String?> convertHeicToJpeg(String sourcePath, {String? targetPath}) async {
+    try {
+      final destPath = targetPath ??
+          '${sourcePath.replaceAll(RegExp(r'\.(heic|heif)$', caseSensitive: false), '')}_converted_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final result = await _channel.invokeMethod<String>(
+        'convertHeicToJpeg',
+        {
+          'path': sourcePath,
+          'targetPath': destPath,
+          'quality': 95,
+        },
+      );
+      return result;
+    } catch (e) {
+      debugPrint('[SystemIntegrationService] Error converting HEIC via platform: $e');
+      return null;
+    }
+  }
+
   @visibleForTesting
   void dispose() {
     _sharedFileController.close();

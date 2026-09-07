@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../data/models/process_options.dart';
 import '../../data/models/process_result.dart';
+import 'heic_converter.dart';
 
 typedef ImageProgressCallback = void Function(double progress, String stage);
 
@@ -39,12 +41,48 @@ class ImageDimensions {
 class ImageProcessor {
   ImageProcessor._();
 
-  /// Reads image dimensions (width & height) in a background isolate without freezing UI
+  /// Reads image dimensions (width & height) in a background isolate without freezing UI.
+  /// Automatically uses native engine decoder fallback for HEIC/HEIF files.
   static Future<ImageDimensions?> readImageDimensions(String filePath) async {
-    if (Platform.environment.containsKey('FLUTTER_TEST')) {
-      return _readDimensionsInternal(filePath);
+    ImageDimensions? dims;
+    try {
+      if (Platform.environment.containsKey('FLUTTER_TEST')) {
+        dims = _readDimensionsInternal(filePath);
+      } else {
+        dims = await compute(_readDimensionsInternal, filePath);
+      }
+    } catch (_) {}
+
+    if (dims != null && dims.width > 0 && dims.height > 0) {
+      return dims;
     }
-    return compute(_readDimensionsInternal, filePath);
+
+    // Fallback for HEIC/unsupported pure-Dart formats
+    try {
+      final compatiblePath = await HeicConverter.ensureCompatibleImage(filePath);
+      if (compatiblePath != filePath) {
+        if (Platform.environment.containsKey('FLUTTER_TEST')) {
+          dims = _readDimensionsInternal(compatiblePath);
+        } else {
+          dims = await compute(_readDimensionsInternal, compatiblePath);
+        }
+        if (dims != null && dims.width > 0 && dims.height > 0) {
+          return dims;
+        }
+      }
+
+      // Final fallback via Flutter engine
+      final file = File(filePath);
+      if (file.existsSync()) {
+        final bytes = await file.readAsBytes();
+        final codec = await ui.instantiateImageCodec(bytes);
+        final frame = await codec.getNextFrame();
+        return ImageDimensions(width: frame.image.width, height: frame.image.height);
+      }
+    } catch (e) {
+      debugPrint('[ImageProcessor] Fallback dimension read error: $e');
+    }
+    return null;
   }
 
   static ImageDimensions? _readDimensionsInternal(String filePath) {
@@ -98,6 +136,12 @@ class ImageProcessor {
     String? customOutputDirPath,
     ImageProgressCallback? onProgress,
   }) async {
+    // Automatically convert HEIC/unsupported format to compatible format before processing
+    final effectiveSourcePath = await HeicConverter.ensureCompatibleImage(options.sourcePath);
+    final effectiveOptions = effectiveSourcePath != options.sourcePath
+        ? options.copyWith(sourcePath: effectiveSourcePath)
+        : options;
+
     String outputDirPath;
     if (customOutputDirPath != null) {
       outputDirPath = customOutputDirPath;
@@ -113,7 +157,7 @@ class ImageProcessor {
     }
 
     final params = _IsolateParams(
-      options: options,
+      options: effectiveOptions,
       outputDirPath: outputDirPath,
     );
 
