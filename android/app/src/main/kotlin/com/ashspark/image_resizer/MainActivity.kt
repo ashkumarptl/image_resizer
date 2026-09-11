@@ -62,6 +62,24 @@ class MainActivity : FlutterActivity() {
                             result.error("INVALID_PATH", "Path cannot be null", null)
                         }
                     }
+                    "printImage" -> {
+                        val path = call.argument<String>("path")
+                        if (path != null) {
+                            val success = printImage(path)
+                            result.success(success)
+                        } else {
+                            result.error("INVALID_PATH", "Path cannot be null", null)
+                        }
+                    }
+                    "printPdf" -> {
+                        val path = call.argument<String>("path")
+                        if (path != null) {
+                            val success = printPdf(path)
+                            result.success(success)
+                        } else {
+                            result.error("INVALID_PATH", "Path cannot be null", null)
+                        }
+                    }
                     "convertHeicToJpeg" -> {
                         val path = call.argument<String>("path")
                         val targetPath = call.argument<String>("targetPath")
@@ -200,6 +218,73 @@ class MainActivity : FlutterActivity() {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(intent)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    private fun printImage(filePath: String): Boolean {
+        return try {
+            val file = File(filePath)
+            if (!file.exists()) return false
+            val bitmap = BitmapFactory.decodeFile(filePath) ?: return false
+            val printHelper = androidx.print.PrintHelper(this).apply {
+                scaleMode = androidx.print.PrintHelper.SCALE_MODE_FIT
+            }
+            val jobName = "Image_Tools_${file.nameWithoutExtension}"
+            printHelper.printBitmap(jobName, bitmap)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    private fun printPdf(filePath: String): Boolean {
+        return try {
+            val file = File(filePath)
+            if (!file.exists()) return false
+            val printManager = getSystemService(android.content.Context.PRINT_SERVICE) as? android.print.PrintManager ?: return false
+            val jobName = "Image_Tools_${file.nameWithoutExtension}"
+            val adapter = object : android.print.PrintDocumentAdapter() {
+                override fun onLayout(
+                    oldAttributes: android.print.PrintAttributes?,
+                    newAttributes: android.print.PrintAttributes?,
+                    cancellationSignal: android.os.CancellationSignal?,
+                    callback: LayoutResultCallback?,
+                    extras: android.os.Bundle?
+                ) {
+                    if (cancellationSignal?.isCanceled == true) {
+                        callback?.onLayoutCancelled()
+                        return
+                    }
+                    val info = android.print.PrintDocumentInfo.Builder(file.name)
+                        .setContentType(android.print.PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
+                        .build()
+                    callback?.onLayoutFinished(info, true)
+                }
+
+                override fun onWrite(
+                    pages: Array<out android.print.PageRange>?,
+                    destination: android.os.ParcelFileDescriptor?,
+                    cancellationSignal: android.os.CancellationSignal?,
+                    callback: WriteResultCallback?
+                ) {
+                    try {
+                        java.io.FileInputStream(file).use { input ->
+                            java.io.FileOutputStream(destination?.fileDescriptor).use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        callback?.onWriteFinished(arrayOf(android.print.PageRange.ALL_PAGES))
+                    } catch (e: Exception) {
+                        callback?.onWriteFailed(e.message)
+                    }
+                }
+            }
+            printManager.print(jobName, adapter, null)
             true
         } catch (e: Exception) {
             e.printStackTrace()

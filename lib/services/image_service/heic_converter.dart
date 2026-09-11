@@ -96,7 +96,7 @@ class HeicConverter {
         final pngBytes = byteData.buffer.asUint8List();
         final decoded = img.decodePng(pngBytes);
         if (decoded != null) {
-          final jpgBytes = img.encodeJpg(decoded, quality: 95);
+          final jpgBytes = img.encodeJpg(decoded, quality: 85);
           await cachedFile.parent.create(recursive: true);
           await cachedFile.writeAsBytes(jpgBytes);
           debugPrint('[HeicConverter] Converted HEIC via engine fallback: $destPath');

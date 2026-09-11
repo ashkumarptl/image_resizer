@@ -18,6 +18,9 @@ class ProcessOptions {
   final int quarterTurns;
   final bool flipHorizontal;
   final bool flipVertical;
+  final bool preventSizeIncrease;
+  final bool stripMetadata;
+  final int? targetDpi;
 
   const ProcessOptions({
     required this.sourcePath,
@@ -33,6 +36,9 @@ class ProcessOptions {
     this.quarterTurns = 0,
     this.flipHorizontal = false,
     this.flipVertical = false,
+    this.preventSizeIncrease = true,
+    this.stripMetadata = true,
+    this.targetDpi,
   });
 
   ProcessOptions copyWith({
@@ -49,6 +55,9 @@ class ProcessOptions {
     int? quarterTurns,
     bool? flipHorizontal,
     bool? flipVertical,
+    bool? preventSizeIncrease,
+    bool? stripMetadata,
+    int? targetDpi,
   }) {
     return ProcessOptions(
       sourcePath: sourcePath ?? this.sourcePath,
@@ -64,6 +73,9 @@ class ProcessOptions {
       quarterTurns: quarterTurns ?? this.quarterTurns,
       flipHorizontal: flipHorizontal ?? this.flipHorizontal,
       flipVertical: flipVertical ?? this.flipVertical,
+      preventSizeIncrease: preventSizeIncrease ?? this.preventSizeIncrease,
+      stripMetadata: stripMetadata ?? this.stripMetadata,
+      targetDpi: targetDpi ?? this.targetDpi,
     );
   }
 }

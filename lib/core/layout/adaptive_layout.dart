@@ -201,12 +201,20 @@ class AdaptiveSupportingPane extends StatelessWidget {
   /// Whether the supporting pane should be scrollable in side-by-side mode (default: true).
   final bool scrollableSupportingPane;
 
+  /// Whether dual-pane layout requires landscape orientation (default: false).
+  /// When true, tablet in portrait will use the single-column stacked layout.
+  final bool requireLandscape;
+
+  /// Maximum content width for stacked mode on wider screens (default: 720dp).
+  final double maxStackedContentWidth;
+
   const AdaptiveSupportingPane({
     super.key,
     required this.primaryPane,
     required this.supportingPane,
     this.bottomAction,
     this.breakpoint = M3Breakpoints.compactMaxWidth,
+    this.requireLandscape = false,
     this.primaryFlex = 5,
     this.supportingFlex = 5,
     this.paneSpacing = 20.0,
@@ -214,13 +222,15 @@ class AdaptiveSupportingPane extends StatelessWidget {
     this.scrollablePrimaryPane = false,
     this.scrollableSupportingPane = true,
     this.stretchPrimaryPane = true,
+    this.maxStackedContentWidth = 720.0,
   });
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= breakpoint;
+        final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+        final isWide = constraints.maxWidth >= breakpoint && (!requireLandscape || isLandscape);
 
         if (isWide) {
           // Dual-pane side-by-side layout (Material 3 Supporting Pane)
@@ -271,7 +281,7 @@ class AdaptiveSupportingPane extends StatelessWidget {
           );
         }
 
-        // Single-column stacked layout (Compact / Mobile)
+        // Single-column stacked layout (Compact / Mobile / Portrait Tablet)
         return Column(
           children: [
             Expanded(
@@ -280,13 +290,18 @@ class AdaptiveSupportingPane extends StatelessWidget {
                   horizontal: context.adaptiveMargin,
                   vertical: 16.0,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    primaryPane,
-                    const SizedBox(height: 16),
-                    supportingPane,
-                  ],
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: maxStackedContentWidth),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        primaryPane,
+                        const SizedBox(height: 16),
+                        supportingPane,
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

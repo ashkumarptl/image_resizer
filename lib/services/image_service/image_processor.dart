@@ -9,7 +9,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../data/models/process_options.dart';
 import '../../data/models/process_result.dart';
+import 'dpi_service.dart';
 import 'heic_converter.dart';
+import 'metadata_stripper.dart';
+import 'safe_image_decoder.dart';
 
 typedef ImageProgressCallback = void Function(double progress, String stage);
 
@@ -92,30 +95,9 @@ class ImageProcessor {
       final bytes = file.readAsBytesSync();
 
       // Fast-path: Header decoding without allocating all pixel data in heap
-      final decoder = img.findDecoderForData(bytes);
-      if (decoder != null) {
-        final info = decoder.startDecode(bytes);
-        if (info != null && info.width > 0 && info.height > 0) {
-          int w = info.width;
-          int h = info.height;
-          // Check EXIF orientation (orientations 5, 6, 7, 8 swap width and height)
-          if (decoder is img.JpegDecoder) {
-            try {
-              final exif = img.ExifData.fromInputBuffer(img.InputBuffer(bytes));
-              if (exif.imageIfd.hasOrientation) {
-                final orientation = exif.imageIfd.orientation;
-                if (orientation != null && orientation >= 5 && orientation <= 8) {
-                  final temp = w;
-                  w = h;
-                  h = temp;
-                }
-              }
-            } catch (_) {
-              // Ignore exif parse issues and use header width/height
-            }
-          }
-          return ImageDimensions(width: w, height: h);
-        }
+      final headerDims = SafeImageDecoder.readHeaderDimensions(bytes);
+      if (headerDims != null) {
+        return ImageDimensions(width: headerDims.width, height: headerDims.height);
       }
 
       // Safe fallback: decode image within this background isolate
@@ -257,9 +239,9 @@ class ImageProcessor {
     final originalBytes = sourceFile.readAsBytesSync();
     final originalSizeBytes = originalBytes.length;
 
-    // 1. Decode Image
-    onProgress?.call(0.35, 'Decoding high-resolution image...');
-    final decodedImage = img.decodeImage(originalBytes);
+    // 1. Decode Image with OOM protection (downsampling 48MP/108MP if needed)
+    onProgress?.call(0.35, 'Decoding image (OOM protected)...');
+    final decodedImage = await SafeImageDecoder.decodeSafe(originalBytes);
     if (decodedImage == null) {
       throw Exception('Failed to decode image from ${options.sourcePath}');
     }
@@ -268,6 +250,11 @@ class ImageProcessor {
     final originalHeight = decodedImage.height;
 
     img.Image workingImage = decodedImage;
+
+    // Automatic Privacy: Strip GPS location, camera model, and sensitive EXIF tags
+    if (options.stripMetadata) {
+      MetadataStripper.stripFromImage(workingImage);
+    }
 
     // Apply orientation: Rotation & Flip before resizing/compression
     onProgress?.call(0.55, 'Applying transformations...');
@@ -341,6 +328,43 @@ class ImageProcessor {
     } else {
       // Direct Encoding based on quality
       encodedBytes = _encodeImage(workingImage, format: format, quality: finalQuality);
+
+      // Auto-clamp safeguard: If user did not upscale dimensions and format is lossy,
+      // prevent unexpected file size inflation over original input size.
+      if (options.preventSizeIncrease &&
+          format != 'png' &&
+          workingImage.width <= originalWidth &&
+          workingImage.height <= originalHeight &&
+          encodedBytes.length > originalSizeBytes) {
+        int low = 20;
+        int high = finalQuality;
+        Uint8List? bestBytes;
+        int bestQuality = finalQuality;
+
+        while (low <= high) {
+          final mid = (low + high) ~/ 2;
+          final testBytes = _encodeImage(workingImage, format: format, quality: mid);
+          if (testBytes.length <= originalSizeBytes) {
+            bestBytes = testBytes;
+            bestQuality = mid;
+            low = mid + 1; // Try higher quality within boundary
+          } else {
+            high = mid - 1;
+          }
+        }
+
+        if (bestBytes != null) {
+          encodedBytes = bestBytes;
+          finalQuality = bestQuality;
+        } else {
+          // If even quality 20 is larger than original, use a moderate quality to minimize bloat
+          final fallbackBytes = _encodeImage(workingImage, format: format, quality: 60);
+          if (fallbackBytes.length < encodedBytes.length) {
+            encodedBytes = fallbackBytes;
+            finalQuality = 60;
+          }
+        }
+      }
     }
 
     // 4. Save to temporary output file
@@ -350,7 +374,13 @@ class ImageProcessor {
     final outputFileName = 'img_tool_$timestamp.$extension';
     final outputFilePath = p.join(params.outputDirPath, outputFileName);
     final outputFile = File(outputFilePath);
-    outputFile.writeAsBytesSync(encodedBytes);
+
+    // Apply target DPI if specified (lossless metadata injection)
+    final finalBytes = options.targetDpi != null
+        ? DpiService.setDpi(encodedBytes, options.targetDpi!, format: extension)
+        : encodedBytes;
+
+    outputFile.writeAsBytesSync(finalBytes);
 
     stopwatch.stop();
     onProgress?.call(1.00, 'Complete');
@@ -359,7 +389,7 @@ class ImageProcessor {
       originalPath: options.sourcePath,
       outputPath: outputFilePath,
       originalSizeBytes: originalSizeBytes,
-      outputSizeBytes: encodedBytes.length,
+      outputSizeBytes: finalBytes.length,
       originalWidth: originalWidth,
       originalHeight: originalHeight,
       outputWidth: workingImage.width,
@@ -367,6 +397,7 @@ class ImageProcessor {
       outputFormat: extension,
       finalQuality: finalQuality,
       processingTime: stopwatch.elapsed,
+      metadataStripped: options.stripMetadata,
     );
   }
 
@@ -442,8 +473,19 @@ class ImageProcessor {
     // Step B: If quality adjustment alone isn't enough (or for PNG), scale down dimensions iteratively.
     // If strictDimensions is requested (e.g. for exam portal requirements), do not resize dimensions.
     if (!strictDimensions && (bestBytes == null || bestBytes.length > targetMaxBytes)) {
-      double scale = 0.90;
       final int stepQuality = isLosslessPng ? 100 : 75;
+
+      // Estimate initial scale using area-ratio formula: area ~ bytes, so scale ~ sqrt(target / current)
+      final int currentBytes = (bestBytes != null && bestBytes.isNotEmpty)
+          ? bestBytes.length
+          : _encodeImage(currentImage, format: format, quality: stepQuality).length;
+
+      double scale = 0.90;
+      if (currentBytes > targetMaxBytes && currentBytes > 0) {
+        // Direct mathematical jump with a 5% safety margin
+        final estimated = math.sqrt(targetMaxBytes / currentBytes) * 0.95;
+        scale = estimated.clamp(0.05, 0.90);
+      }
 
       while (scale >= 0.05) {
         final newW = (originalImage.width * scale).round();
@@ -485,7 +527,8 @@ class ImageProcessor {
           }
         }
 
-        scale -= 0.10;
+        // If mathematical estimation didn't quite fit, step down proportionally
+        scale *= 0.80;
       }
     }
 

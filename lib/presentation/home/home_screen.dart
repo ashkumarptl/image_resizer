@@ -1,29 +1,25 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/layout/adaptive_layout.dart';
-import '../../core/constants/preset_constants.dart';
 import '../../data/models/history_item.dart';
-import '../../data/models/image_preset.dart';
 import '../../data/models/process_result.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../data/repositories/usage_limit_repository.dart';
 import '../batch/batch_screen.dart';
+import '../perspective_crop/perspective_crop_screen.dart';
 import '../photo_stamp/photo_stamp_screen.dart';
-import '../presets/preset_apply_screen.dart';
 import '../result/result_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
 import '../studio/image_studio_screen.dart';
 import '../widgets/account_section.dart';
+import '../widgets/bouncy_tap.dart';
+import '../widgets/image_source_picker_sheet.dart';
 import '../widgets/login_gate_dialog.dart';
-import 'widgets/preset_carousel.dart';
 import 'widgets/recent_files_section.dart';
-import 'widgets/tool_card.dart';
 import '../main_navigation_screen.dart';
 
 final recentHistoryProvider = FutureProvider.autoDispose<List<HistoryItem>>((ref) async {
@@ -38,29 +34,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final ImagePicker _picker = ImagePicker();
-
-  Future<File?> _pickImage() async {
-    try {
-      final picked = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 100,
-      );
-      if (picked != null) {
-        return File(picked.path);
-      }
-    } catch (e) {
-      debugPrint('Error picking image: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not open image picker: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-    return null;
+  Future<File?> _pickImage({String title = 'Select Image Source'}) async {
+    return ImageSourcePickerSheet.show(context, title: title);
   }
 
   Future<void> _handleStudioTool() async {
@@ -76,8 +51,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
-
 
   Future<void> _handleBatchTool() async {
     final canAccess = await checkFeatureAccess(context, ref);
@@ -118,61 +91,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _handlePresetSelected(ImagePreset preset) async {
+  Future<void> _handlePerspectiveCropTool() async {
     final canAccess = await checkFeatureAccess(context, ref);
     if (!canAccess || !mounted) return;
 
-    final file = await _pickImage();
+    final file = await _pickImage(title: 'Select Document / Photo to Deskew');
     if (file == null || !mounted) return;
-
-    File currentImage = file;
-    final hasDimensions = preset.targetWidth != null && preset.targetHeight != null;
-
-    if (hasDimensions) {
-      try {
-        final cropped = await ImageCropper().cropImage(
-          sourcePath: file.path,
-          aspectRatio: CropAspectRatio(
-            ratioX: preset.targetWidth!.toDouble(),
-            ratioY: preset.targetHeight!.toDouble(),
-          ),
-          uiSettings: [
-            AndroidUiSettings(
-              toolbarTitle: 'Frame ${preset.name}',
-              toolbarColor: AppColors.primary,
-              toolbarWidgetColor: Colors.white,
-              lockAspectRatio: true,
-              hideBottomControls: true,
-            ),
-            IOSUiSettings(
-              title: 'Frame ${preset.name}',
-              aspectRatioLockEnabled: true,
-            ),
-          ],
-        );
-
-        if (cropped == null || !mounted) {
-          // User cancelled crop
-          return;
-        }
-        currentImage = File(cropped.path);
-      } catch (e) {
-        debugPrint('Image cropper not supported on this platform: $e');
-        // Fallback to uncropped source image on desktop platforms
-        currentImage = file;
-      }
-    }
-
-    if (!mounted) return;
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PresetApplyScreen(
-          initialImage: currentImage,
-          preset: preset,
-        ),
+        builder: (_) => PerspectiveCropScreen(initialImage: file),
       ),
     );
+  }
+
+  Future<void> _handleScanToPdfTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
+    ref.read(navigationIndexProvider.notifier).state = 1;
   }
 
   void _handleHistoryItemTap(HistoryItem item) {
@@ -211,41 +148,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                const Text(
-                  AppConstants.appName,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryContainerLight,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'OFFLINE',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryDark,
-                      letterSpacing: 0.5,
+            const Text(
+              AppConstants.appName,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF10B981),
+                      shape: BoxShape.circle,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              AppConstants.appTagline,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.normal,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  const SizedBox(width: 4),
+                  Text(
+                    'Offline',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -311,7 +248,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             child: AdaptivePageContainer(
               padding: EdgeInsets.zero,
               child: Column(
@@ -320,131 +257,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // Guest Usage Trial Banner
                   _buildGuestUsageBanner(context, isDark),
 
-                  // 1. Quick Image Tools Grid
-                  // 1. Photo Tools
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                    child: Text(
-                      'Photo Tools',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: context.responsiveValue<double>(
-                        compact: 1.15,
-                        medium: 1.30,
-                        expanded: 1.50,
-                      ),
-                      children: [
-                        ToolCard(
-                          title: 'Single Photo',
-                          subtitle: 'Compress, Resize & Crop',
-                          iconEmoji: '🎨',
-                          accentColor: AppColors.primary,
-                          badgeText: 'STUDIO',
-                          onTap: _handleStudioTool,
-                        ),
-                        ToolCard(
-                          title: 'Multiple Photos',
-                          subtitle: 'Multiple Images & Zip Export',
-                          iconEmoji: '⚡',
-                          accentColor: AppColors.primary,
-                          badgeText: 'BATCH',
-                          onTap: _handleBatchTool,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 2. Exam & Document Utilities Section
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Exam & Document Tools',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'SPECIAL',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.secondary,
-                              letterSpacing: 0.5,
+                  // 1 & 2. Hero Pick & Scan to PDF Cards (Side-by-side on desktop/wide landscape)
+                  if (context.screenWidth >= 960) ...[
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: _buildHeroPickCard(context, isDark, withoutOuterPadding: true),
                             ),
-                          ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildScanToPdfCard(
+                                context,
+                                isDark,
+                                withoutOuterPadding: true,
+                                isWideMode: true,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: context.responsiveValue<double>(
-                        compact: 1.15,
-                        medium: 1.30,
-                        expanded: 1.50,
                       ),
-                      children: [
-                        ToolCard(
-                          title: 'Signature B&W',
-                          subtitle: 'Shadow Removal Filter',
-                          iconEmoji: '✍️',
-                          accentColor: AppColors.secondary,
-                          onTap: _handleSignatureTool,
-                        ),
-                        ToolCard(
-                          title: 'Photo Stamp',
-                          subtitle: 'Name & Date on Photo',
-                          iconEmoji: '🏷️',
-                          accentColor: AppColors.secondary,
-                          onTap: _handlePhotoStampTool,
-                        ),
-                      ],
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
+                  ] else ...[
+                    // Mobile stacked layout
+                    _buildHeroPickCard(context, isDark),
+                    const SizedBox(height: 16),
+                    _buildScanToPdfCard(context, isDark),
+                    const SizedBox(height: 20),
+                  ],
 
-                  // Govt & Exam Presets Carousel
-                  PresetCarousel(
-                    presets: PresetConstants.indianGovtPresets,
-                    onPresetTap: _handlePresetSelected,
-                    onSeeAllTap: () {
-                      ref.read(navigationIndexProvider.notifier).state = 2;
-                    },
-                  ),
-                  const SizedBox(height: 24),
+                  // 3. Streamlined Quick Utilities (3 items)
+                  _buildQuickUtilitiesSection(context, isDark),
+                  const SizedBox(height: 22),
 
                   // 3. Recent Processed Files Section
                   historyAsync.when(
@@ -466,16 +314,541 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  Widget _buildHeroPickCard(BuildContext context, bool isDark, {bool withoutOuterPadding = false}) {
+    final card = RepaintBoundary(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark
+                ? AppColors.borderDark
+                : AppColors.primary.withValues(alpha: 0.18),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black26
+                  : AppColors.primary.withValues(alpha: 0.06),
+              blurRadius: 18,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Icon with soft halo
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.add_photo_alternate_rounded,
+                size: 28,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Title
+            Text(
+              'Select Photo to Optimize',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.2,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              ),
+            ),
+            const SizedBox(height: 4),
+
+            // Subtitle
+            Text(
+              'Compress size, crop framing, or convert format',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12.5,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Action Buttons Row
+            Row(
+              children: [
+                Expanded(
+                  child: BouncyTap(
+                    onTap: _handleStudioTool,
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.flash_on_rounded, size: 16, color: Colors.white),
+                          SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'Single Photo',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: BouncyTap(
+                    onTap: _handleBatchTool,
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.surfaceVariantDark
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.copy_all_rounded,
+                            size: 16,
+                            color: isDark ? AppColors.textPrimaryDark : const Color(0xFF334155),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'Batch (Multi)',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: isDark ? AppColors.textPrimaryDark : const Color(0xFF334155),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (withoutOuterPadding) return card;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+      child: card,
+    );
+  }
+
+  Widget _buildScanToPdfCard(
+    BuildContext context,
+    bool isDark, {
+    bool withoutOuterPadding = false,
+    bool isWideMode = false,
+  }) {
+    final Widget card;
+
+    if (isWideMode) {
+      card = RepaintBoundary(
+        child: Material(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            onTap: _handleScanToPdfTool,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.borderDark
+                      : AppColors.primary.withValues(alpha: 0.18),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black26
+                        : AppColors.primary.withValues(alpha: 0.06),
+                    blurRadius: 18,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(
+                        alpha: isDark ? 0.22 : 0.1,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.document_scanner_rounded,
+                      size: 28,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Text(
+                        'Scan Documents to PDF',
+                        style: TextStyle(
+                          fontSize: isWideMode ? 16 : 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.2,
+                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.secondaryContainerDark
+                              : AppColors.secondaryContainerLight,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'DOCS',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? AppColors.secondaryLight
+                                : AppColors.secondaryDark,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Multi-page scanner, auto-deskew & PDF export',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  BouncyTap(
+                    onTap: _handleScanToPdfTool,
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.camera_alt_rounded, size: 16, color: Colors.white),
+                          SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              'Open Document Scanner',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      card = Material(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: _handleScanToPdfTool,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? AppColors.borderDark
+                    : AppColors.primary.withValues(alpha: 0.15),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black26
+                      : AppColors.primary.withValues(alpha: 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(
+                      alpha: isDark ? 0.22 : 0.1,
+                    ),
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.document_scanner_rounded,
+                    size: 24,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Scan to PDF',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.2,
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimaryLight,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.secondaryContainerDark
+                                  : AppColors.secondaryContainerLight,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'DOCS',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? AppColors.secondaryLight
+                                    : AppColors.secondaryDark,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Camera scanner, multi-page document & PDF export',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(
+                      alpha: isDark ? 0.18 : 0.08,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (withoutOuterPadding) return card;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+      child: card,
+    );
+  }
+
+  Widget _buildQuickUtilitiesSection(BuildContext context, bool isDark) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Quick Utilities',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  ref.read(navigationIndexProvider.notifier).state = 2;
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Exam Hub',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppColors.primaryLight : AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 14,
+                        color: isDark ? AppColors.primaryLight : AppColors.primary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _QuickUtilityTile(
+                  title: 'Signature',
+                  subtitle: 'Clean B&W',
+                  icon: Icons.draw_rounded,
+                  accentColor: const Color(0xFF0D9488),
+                  isDark: isDark,
+                  onTap: _handleSignatureTool,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _QuickUtilityTile(
+                  title: 'Photo Stamp',
+                  subtitle: 'Name & Date',
+                  icon: Icons.badge_rounded,
+                  accentColor: const Color(0xFF6366F1),
+                  isDark: isDark,
+                  onTap: _handlePhotoStampTool,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _QuickUtilityTile(
+                  title: 'Deskew Doc',
+                  subtitle: 'Straighten ID',
+                  icon: Icons.crop_rotate_rounded,
+                  accentColor: const Color(0xFFEA580C),
+                  isDark: isDark,
+                  onTap: _handlePerspectiveCropTool,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildGuestUsageBanner(BuildContext context, bool isDark) {
     final isDeveloper = ref.watch(isDeveloperProvider);
     if (isDeveloper) {
-      // Developer has unlimited access and should not see limit banner
       return const SizedBox.shrink();
     }
 
     final user = ref.watch(currentUserProvider);
     if (user != null) {
-      // Authenticated user has unlimited access
       return const SizedBox.shrink();
     }
 
@@ -595,3 +968,82 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
+class _QuickUtilityTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color accentColor;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _QuickUtilityTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.accentColor,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyTap(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: isDark ? 0.22 : 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: accentColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -2,7 +2,9 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/constants/app_colors.dart';
+import 'bouncy_tap.dart';
 
 class FloatingNavItem {
   final IconData icon;
@@ -134,7 +136,7 @@ class FloatingBottomNavBar extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.35, end: 0, curve: Curves.easeOutCubic),
     );
   }
 }
@@ -159,55 +161,93 @@ class _NavBarItemWidget extends StatelessWidget {
         ? AppColors.textSecondaryDark
         : AppColors.textSecondaryLight;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        splashColor: activeColor.withValues(alpha: 0.1),
-        highlightColor: activeColor.withValues(alpha: 0.05),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOutCubic,
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? activeColor.withValues(alpha: isDark ? 0.20 : 0.12)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedScale(
-                scale: isSelected ? 1.06 : 1.0,
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  isSelected ? item.activeIcon : item.icon,
-                  size: 22,
-                  color: isSelected ? activeColor : inactiveColor,
-                ),
+    return BouncyTap(
+      pressedScale: 0.90,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(22),
+          splashColor: activeColor.withValues(alpha: 0.1),
+          highlightColor: activeColor.withValues(alpha: 0.05),
+          child: RepaintBoundary(
+            child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOutCubic,
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? activeColor.withValues(alpha: isDark ? 0.22 : 0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: isSelected
+                    ? activeColor.withValues(alpha: isDark ? 0.35 : 0.22)
+                    : Colors.transparent,
+                width: 1,
               ),
-              const SizedBox(height: 2),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: AnimatedDefaultTextStyle(
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: activeColor.withValues(alpha: isDark ? 0.30 : 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedScale(
+                  scale: isSelected ? 1.12 : 1.0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutBack,
+                  child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    transitionBuilder: (child, anim) =>
+                        ScaleTransition(scale: anim, child: child),
+                    child: Icon(
+                      isSelected ? item.activeIcon : item.icon,
+                      key: ValueKey('${item.label}_$isSelected'),
+                      size: 22,
                       color: isSelected ? activeColor : inactiveColor,
-                      letterSpacing: isSelected ? 0.2 : 0.0,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    child: Text(item.label),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 200),
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? activeColor : inactiveColor,
+                        letterSpacing: isSelected ? 0.2 : 0.0,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      child: Text(item.label),
+                    ),
+                  ),
+                ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
+                  height: 3,
+                  width: isSelected ? 14 : 0,
+                  margin: const EdgeInsets.only(top: 2),
+                  decoration: BoxDecoration(
+                    color: isSelected ? activeColor : Colors.transparent,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ],
+            ),
+          ),
           ),
         ),
       ),

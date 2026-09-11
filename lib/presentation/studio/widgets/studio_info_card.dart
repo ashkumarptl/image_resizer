@@ -17,6 +17,9 @@ class StudioInfoCard extends StatelessWidget {
   final String? targetGoal;
   final bool isCalculating;
   final bool isDark;
+  final bool stripMetadata;
+  final int? dpi;
+  final int? targetDpi;
 
   const StudioInfoCard({
     super.key,
@@ -32,6 +35,9 @@ class StudioInfoCard extends StatelessWidget {
     this.targetGoal,
     this.isCalculating = false,
     required this.isDark,
+    this.stripMetadata = true,
+    this.dpi,
+    this.targetDpi,
   });
 
   @override
@@ -95,7 +101,7 @@ class StudioInfoCard extends StatelessWidget {
 
                 // Original Specs (Dimensions & File Size)
                 Text(
-                  '$width × $height px   •   ${fileSizeBytes.toReadableFileSize()}',
+                  '$width × $height px   •   ${fileSizeBytes.toReadableFileSize()}${dpi != null ? '   •   $dpi DPI' : ''}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -298,18 +304,33 @@ class StudioInfoCard extends StatelessWidget {
             ] else if (isIncreased && int.parse(pct) > 0) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                 decoration: BoxDecoration(
                   color: Colors.amber.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  '+$pct%',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.amber.shade800,
+                  border: Border.all(
+                    color: Colors.amber.withValues(alpha: 0.4),
+                    width: 0.8,
                   ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      size: 11,
+                      color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      '+$pct% larger',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -354,6 +375,57 @@ class StudioInfoCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondary,
                   ),
+                ),
+              ),
+            ],
+            if (targetDpi != null) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  '➔ $targetDpi DPI',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+            if (stripMetadata) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF14532D).withValues(alpha: 0.4) : AppColors.successContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.shield_outlined,
+                      size: 10,
+                      color: AppColors.success,
+                    ),
+                    SizedBox(width: 2.5),
+                    Text(
+                      'No GPS',
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

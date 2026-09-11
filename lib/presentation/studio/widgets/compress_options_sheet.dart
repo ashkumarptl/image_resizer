@@ -206,13 +206,33 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
           const SizedBox(height: 16),
 
           if (_mode == CompressionSheetMode.targetSize) ...[
-            Text(
-              'Quick Target Size (KB)',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Quick Target Size (KB)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '$_targetSizeKB KB',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             SingleChildScrollView(
@@ -245,7 +265,11 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
                         selected: isSelected,
                         onSelected: (selected) {
                           if (selected) {
-                            HapticFeedback.selectionClick();
+                            if (size == 20 || size == 50) {
+                              HapticFeedback.mediumImpact();
+                            } else {
+                              HapticFeedback.selectionClick();
+                            }
                             setState(() {
                               _mode = CompressionSheetMode.targetSize;
                               _targetSizeKB = size;
@@ -259,7 +283,41 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
+            Slider(
+              value: _targetSizeKB.toDouble().clamp(10, 500),
+              min: 10,
+              max: 500,
+              divisions: 98,
+              label: '$_targetSizeKB KB',
+              onChanged: (val) {
+                int target = val.round();
+                const snapPoints = [20, 50, 100, 200, 500];
+                int? snappedPoint;
+                for (final sp in snapPoints) {
+                  if ((target - sp).abs() <= 4) {
+                    snappedPoint = sp;
+                    break;
+                  }
+                }
+                if (snappedPoint != null) {
+                  target = snappedPoint;
+                }
+
+                if (target != _targetSizeKB) {
+                  if (snappedPoint != null) {
+                    HapticFeedback.mediumImpact();
+                  } else {
+                    HapticFeedback.selectionClick();
+                  }
+                  setState(() {
+                    _targetSizeKB = target;
+                    _customSizeController.text = target.toString();
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 6),
             TextField(
               controller: _customSizeController,
               keyboardType: TextInputType.number,

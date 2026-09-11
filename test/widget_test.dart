@@ -35,7 +35,7 @@ void main() {
 
     expect(find.text(AppConstants.appName), findsOneWidget);
     expect(find.text('Single Photo'), findsOneWidget);
-    expect(find.text('Multiple Photos'), findsOneWidget);
-    expect(find.text('Photo Tools'), findsOneWidget);
+    expect(find.text('Batch (Multi)'), findsOneWidget);
+    expect(find.text('Quick Utilities'), findsOneWidget);
   });
 }

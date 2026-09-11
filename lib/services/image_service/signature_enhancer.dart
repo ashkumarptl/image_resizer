@@ -1,9 +1,19 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../../data/models/process_result.dart';
+
+import 'safe_image_decoder.dart';
+
+enum SignatureInkColor {
+  original,
+  darkNavy,
+  pureBlack,
+  royalBlue,
+}
 
 class SignatureEnhanceOptions {
   final String sourcePath;
@@ -11,6 +21,8 @@ class SignatureEnhanceOptions {
   final int targetSizeKB; // Default 19 KB (Strictly under 20 KB)
   final int? targetWidth; // e.g. 400
   final int? targetHeight; // e.g. 200
+  final int quarterTurns;
+  final SignatureInkColor inkColor;
 
   const SignatureEnhanceOptions({
     required this.sourcePath,
@@ -18,7 +30,29 @@ class SignatureEnhanceOptions {
     this.targetSizeKB = 19,
     this.targetWidth = 400,
     this.targetHeight = 200,
+    this.quarterTurns = 0,
+    this.inkColor = SignatureInkColor.darkNavy,
   });
+
+  SignatureEnhanceOptions copyWith({
+    String? sourcePath,
+    double? threshold,
+    int? targetSizeKB,
+    int? targetWidth,
+    int? targetHeight,
+    int? quarterTurns,
+    SignatureInkColor? inkColor,
+  }) {
+    return SignatureEnhanceOptions(
+      sourcePath: sourcePath ?? this.sourcePath,
+      threshold: threshold ?? this.threshold,
+      targetSizeKB: targetSizeKB ?? this.targetSizeKB,
+      targetWidth: targetWidth ?? this.targetWidth,
+      targetHeight: targetHeight ?? this.targetHeight,
+      quarterTurns: quarterTurns ?? this.quarterTurns,
+      inkColor: inkColor ?? this.inkColor,
+    );
+  }
 }
 
 class SignatureEnhancer {
@@ -48,25 +82,40 @@ class SignatureEnhancer {
     }
 
     final bytes = await sourceFile.readAsBytes();
-    final decoded = img.decodeImage(bytes);
+    final maxDecodeDim = (options.targetWidth != null || options.targetHeight != null)
+        ? math.max((options.targetWidth ?? 400) * 2, (options.targetHeight ?? 200) * 2).clamp(800, 2048)
+        : 2048;
+    final decoded = await SafeImageDecoder.decodeSafe(bytes, maxDimension: maxDecodeDim);
     if (decoded == null) {
       throw Exception('Failed to decode signature image');
     }
 
-    final origW = decoded.width;
-    final origH = decoded.height;
+    // Apply rotation if specified
+    img.Image workingSource = decoded;
+    if (options.quarterTurns % 4 != 0) {
+      final angle = (options.quarterTurns % 4) * 90;
+      workingSource = img.copyRotate(workingSource, angle: angle);
+    }
+
+    final origW = workingSource.width;
+    final origH = workingSource.height;
     final origSize = bytes.length;
 
-    // 1. Grayscale
-    final grayscale = img.grayscale(decoded);
-
-    // 2. High-contrast binarization thresholding
+    // 1. High-contrast thresholding with white background isolation
     final thresholdInt = (options.threshold * 255).round().clamp(0, 255);
-    final enhanced = img.Image(width: grayscale.width, height: grayscale.height);
+    final enhanced = img.Image(width: workingSource.width, height: workingSource.height);
 
-    for (var y = 0; y < grayscale.height; y++) {
-      for (var x = 0; x < grayscale.width; x++) {
-        final pixel = grayscale.getPixel(x, y);
+    final isOriginalInk = options.inkColor == SignatureInkColor.original;
+    final (r, g, b) = switch (options.inkColor) {
+      SignatureInkColor.pureBlack => (0, 0, 0),
+      SignatureInkColor.royalBlue => (14, 55, 160),
+      SignatureInkColor.darkNavy => (15, 23, 42),
+      SignatureInkColor.original => (0, 0, 0),
+    };
+
+    for (var y = 0; y < workingSource.height; y++) {
+      for (var x = 0; x < workingSource.width; x++) {
+        final pixel = workingSource.getPixel(x, y);
         // Luminance calculation
         final lum = (0.299 * pixel.r + 0.587 * pixel.g + 0.114 * pixel.b).round();
 
@@ -74,8 +123,20 @@ class SignatureEnhancer {
           // Pure white background
           enhanced.setPixelRgba(x, y, 255, 255, 255, 255);
         } else {
-          // Sharp dark ink
-          enhanced.setPixelRgba(x, y, 15, 23, 42, 255);
+          if (isOriginalInk) {
+            // Retain original vibrant ink stroke color
+            enhanced.setPixelRgba(
+              x,
+              y,
+              pixel.r.toInt(),
+              pixel.g.toInt(),
+              pixel.b.toInt(),
+              255,
+            );
+          } else {
+            // Sharp dark ink
+            enhanced.setPixelRgba(x, y, r, g, b, 255);
+          }
         }
       }
     }

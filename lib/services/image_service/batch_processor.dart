@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
@@ -38,46 +39,73 @@ class BatchResult {
 class BatchProcessor {
   BatchProcessor._();
 
-  /// Process multiple images sequentially and report progress
+  /// Process multiple images using controlled worker concurrency and report progress
   static Future<BatchResult> processBatch({
     required List<String> sourceFilePaths,
     required ProcessOptions baseOptions,
+    Map<String, ProcessOptions>? itemOverrides,
     bool createZip = true,
     Function(BatchProgress progress)? onProgress,
   }) async {
     final stopwatch = Stopwatch()..start();
-    final results = <ProcessResult>[];
     final total = sourceFilePaths.length;
-
-    for (var i = 0; i < total; i++) {
-      final path = sourceFilePaths[i];
-      final fileName = p.basename(path);
-
-      onProgress?.call(
-        BatchProgress(
-          completed: i,
-          total: total,
-          currentFileName: fileName,
-        ),
+    if (total == 0) {
+      return BatchResult(
+        results: const [],
+        zipFilePath: null,
+        totalDuration: Duration.zero,
       );
+    }
 
-      final itemOptions = baseOptions.copyWith(sourcePath: path);
-      try {
-        final result = await ImageProcessor.processImage(itemOptions);
-        results.add(result);
+    onProgress?.call(
+      BatchProgress(
+        completed: 0,
+        total: total,
+        currentFileName: p.basename(sourceFilePaths.first),
+      ),
+    );
 
-        onProgress?.call(
-          BatchProgress(
-            completed: i + 1,
-            total: total,
-            latestResult: result,
-            currentFileName: fileName,
-          ),
-        );
-      } catch (e) {
-        debugPrint('Error processing $path in batch: $e');
+    final indexedResults = List<ProcessResult?>.filled(total, null);
+    int completedCount = 0;
+    int nextIndex = 0;
+
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+    // Concurrency limit: 2 to 3 parallel workers on multi-core systems, avoiding OOM while boosting speed
+    final concurrency = isTest ? 1 : math.min(math.max(1, Platform.numberOfProcessors - 1), 3);
+
+    Future<void> worker() async {
+      while (true) {
+        if (nextIndex >= total) break;
+        final i = nextIndex++;
+        final path = sourceFilePaths[i];
+        final fileName = p.basename(path);
+
+        final itemOptions = (itemOverrides != null && itemOverrides.containsKey(path))
+            ? itemOverrides[path]!.copyWith(sourcePath: path)
+            : baseOptions.copyWith(sourcePath: path);
+
+        try {
+          final result = await ImageProcessor.processImage(itemOptions);
+          indexedResults[i] = result;
+          completedCount++;
+          onProgress?.call(
+            BatchProgress(
+              completed: completedCount,
+              total: total,
+              latestResult: result,
+              currentFileName: fileName,
+            ),
+          );
+        } catch (e) {
+          completedCount++;
+          debugPrint('Error processing $path in batch: $e');
+        }
       }
     }
+
+    await Future.wait(List.generate(math.min(concurrency, total), (_) => worker()));
+
+    final results = indexedResults.whereType<ProcessResult>().toList();
 
     String? zipPath;
     if (createZip && results.isNotEmpty) {
@@ -95,9 +123,19 @@ class BatchProcessor {
 
   /// Create a zip archive containing all output files
   static Future<String> _createZipArchive(List<ProcessResult> results) async {
-    final cacheDir = await getTemporaryDirectory();
+    String cacheDirPath;
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      cacheDirPath = Directory.systemTemp.path;
+    } else {
+      try {
+        final cacheDir = await getTemporaryDirectory();
+        cacheDirPath = cacheDir.path;
+      } catch (_) {
+        cacheDirPath = Directory.systemTemp.path;
+      }
+    }
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final zipFile = File(p.join(cacheDir.path, 'image_tools_batch_$timestamp.zip'));
+    final zipFile = File(p.join(cacheDirPath, 'image_tools_batch_$timestamp.zip'));
 
     final encoder = ZipFileEncoder();
     encoder.create(zipFile.path);

@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
+import 'widgets/image_source_picker_sheet.dart';
+import '../core/constants/app_colors.dart';
+import '../core/layout/adaptive_layout.dart';
 import '../core/theme/app_theme.dart';
 import '../core/theme/theme_provider.dart';
 import '../services/in_app_update_service.dart';
 import '../services/system_integration_service.dart';
-import 'exam_tools/exam_tools_screen.dart';
+import 'scan_to_pdf/scan_to_pdf_screen.dart';
 import 'home/home_screen.dart';
 import 'photo_stamp/photo_stamp_screen.dart';
 import 'presets/presets_hub_screen.dart';
@@ -33,11 +35,13 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
   StreamSubscription<String>? _sharedFileSub;
   StreamSubscription<String>? _shortcutSub;
   Timer? _updateTimer;
-  final ImagePicker _picker = ImagePicker();
+  late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    final initialIndex = ref.read(navigationIndexProvider);
+    _pageController = PageController(initialPage: initialIndex);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _reapplySystemUiStyle();
@@ -106,6 +110,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
       final initialShortcut = await service.getInitialShortcut();
       if (initialShortcut != null && mounted) {
         _handleShortcut(initialShortcut);
+        return;
       }
     });
   }
@@ -113,6 +118,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _pageController.dispose();
     _updateTimer?.cancel();
     _sharedFileSub?.cancel();
     _shortcutSub?.cancel();
@@ -137,12 +143,8 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
     final canAccess = await checkFeatureAccess(context, ref);
     if (!canAccess || !mounted) return;
 
-    final picked = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 100,
-    );
-    if (picked == null || !mounted) return;
-    final file = File(picked.path);
+    final file = await ImageSourcePickerSheet.show(context);
+    if (file == null || !mounted) return;
 
     switch (shortcut) {
       case 'quick_compress':
@@ -176,13 +178,23 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(navigationIndexProvider);
 
+    ref.listen<int>(navigationIndexProvider, (previous, next) {
+      if (_pageController.hasClients) {
+        final currentPage =
+            _pageController.page?.round() ?? _pageController.initialPage;
+        if (currentPage != next) {
+          _pageController.animateToPage(
+            next,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOutCubic,
+          );
+        }
+      }
+    });
+
     final screens = [
       const HomeScreen(),
-      ExamToolsScreen(
-        onNavigateToPresets: () {
-          ref.read(navigationIndexProvider.notifier).state = 2;
-        },
-      ),
+      const ScanToPdfScreen(isTab: true),
       const PresetsHubScreen(isTab: true),
       const SettingsScreen(isTab: true),
     ];
@@ -194,14 +206,14 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
         label: 'Home',
       ),
       FloatingNavItem(
+        icon: Icons.picture_as_pdf_outlined,
+        activeIcon: Icons.picture_as_pdf_rounded,
+        label: 'Scan to PDF',
+      ),
+      FloatingNavItem(
         icon: Icons.draw_outlined,
         activeIcon: Icons.draw_rounded,
         label: 'Exam Tools',
-      ),
-      FloatingNavItem(
-        icon: Icons.tune_outlined,
-        activeIcon: Icons.tune_rounded,
-        label: 'Presets',
       ),
       FloatingNavItem(
         icon: Icons.settings_outlined,
@@ -210,12 +222,115 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
       ),
     ];
 
+    final pageView = PageView(
+      controller: _pageController,
+      physics: const ClampingScrollPhysics(),
+      onPageChanged: (index) {
+        if (ref.read(navigationIndexProvider) != index) {
+          HapticFeedback.selectionClick();
+          ref.read(navigationIndexProvider.notifier).state = index;
+        }
+      },
+      children: screens.map((screen) => _KeepAlivePage(child: screen)).toList(),
+    );
+
+    final isWide = context.isMediumOrWider;
+
+    if (isWide) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+
+      return Scaffold(
+        extendBody: false,
+        body: Row(
+          children: [
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, railConstraints) {
+                  final isShort = railConstraints.maxHeight < 460;
+                  return SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: railConstraints.maxHeight),
+                      child: IntrinsicHeight(
+                        child: NavigationRail(
+                          selectedIndex: currentIndex,
+                          onDestinationSelected: (index) {
+                            ref.read(navigationIndexProvider.notifier).state = index;
+                          },
+                          labelType: NavigationRailLabelType.all,
+                          leading: Padding(
+                            padding: EdgeInsets.only(
+                              top: isShort ? 4 : 8,
+                              bottom: isShort ? 8 : 20,
+                            ),
+                            child: Container(
+                              width: isShort ? 36 : 44,
+                              height: isShort ? 36 : 44,
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                borderRadius: BorderRadius.circular(isShort ? 10 : 14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(alpha: 0.25),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  Icons.photo_size_select_large_rounded,
+                                  color: Colors.white,
+                                  size: isShort ? 18 : 22,
+                                ),
+                              ),
+                            ),
+                          ),
+                          destinations: const [
+                            NavigationRailDestination(
+                              icon: Icon(Icons.home_outlined),
+                              selectedIcon: Icon(Icons.home_rounded),
+                              label: Text('Home'),
+                            ),
+                            NavigationRailDestination(
+                              icon: Icon(Icons.picture_as_pdf_outlined),
+                              selectedIcon: Icon(Icons.picture_as_pdf_rounded),
+                              label: Text('Scan to PDF'),
+                            ),
+                            NavigationRailDestination(
+                              icon: Icon(Icons.draw_outlined),
+                              selectedIcon: Icon(Icons.draw_rounded),
+                              label: Text('Exam Tools'),
+                            ),
+                            NavigationRailDestination(
+                              icon: Icon(Icons.settings_outlined),
+                              selectedIcon: Icon(Icons.settings_rounded),
+                              label: Text('Settings'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            VerticalDivider(
+              thickness: 1,
+              width: 1,
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            ),
+            Expanded(
+              child: pageView,
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(
-        index: currentIndex,
-        children: screens,
-      ),
+      body: pageView,
       bottomNavigationBar: FloatingBottomNavBar(
         currentIndex: currentIndex,
         onTap: (index) {
@@ -226,3 +341,26 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
     );
   }
 }
+
+/// Preserves the state of each screen inside [PageView] across slide transitions.
+class _KeepAlivePage extends StatefulWidget {
+  final Widget child;
+
+  const _KeepAlivePage({required this.child});
+
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
+  }
+}
+

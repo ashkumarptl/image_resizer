@@ -1377,8 +1377,25 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           divisions: 38,
           activeColor: AppColors.primary,
           onChanged: (val) {
-            final rounded = val.round();
+            int rounded = val.round();
+            const snapPoints = [25, 50, 75, 100, 150, 200];
+            int? snappedPoint;
+            for (final sp in snapPoints) {
+              if ((rounded - sp).abs() <= 2) {
+                snappedPoint = sp;
+                break;
+              }
+            }
+            if (snappedPoint != null) {
+              rounded = snappedPoint;
+            }
+
             if (rounded != _percentage) {
+              if (snappedPoint != null) {
+                HapticFeedback.mediumImpact();
+              } else {
+                HapticFeedback.selectionClick();
+              }
               setState(() => _percentage = rounded);
             }
           },

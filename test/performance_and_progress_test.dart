@@ -75,6 +75,19 @@ void main() {
       expect(stageMessages.any((msg) => msg.toLowerCase().contains('decoding')), true);
     });
 
+    test('processImage with preventSizeIncrease ensures output does not exceed original size for direct encoding', () async {
+      final origSize = testJpegFile.lengthSync();
+      final options = ProcessOptions(
+        sourcePath: testJpegFile.path,
+        quality: 95,
+        preventSizeIncrease: true,
+      );
+
+      final result = await ImageProcessor.processImage(options);
+      expect(result, isNotNull);
+      expect(result.outputSizeBytes, lessThanOrEqualTo(origSize));
+    });
+
     test('ImageDimensions equality and toString work properly', () {
       const d1 = ImageDimensions(width: 1920, height: 1080);
       const d2 = ImageDimensions(width: 1920, height: 1080);
@@ -131,6 +144,8 @@ void main() {
       expect(find.text('100'), findsOneWidget);
       expect(find.text('Complete'), findsOneWidget);
       expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+
+      await tester.pumpAndSettle();
     });
   });
 }

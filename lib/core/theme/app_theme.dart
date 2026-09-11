@@ -2,9 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
+import 'smooth_page_transitions.dart';
 
 class AppTheme {
   AppTheme._();
+
+  static const PageTransitionsTheme defaultPageTransitionsTheme =
+      PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: SmoothPageTransitionsBuilder(),
+      TargetPlatform.iOS: SmoothPageTransitionsBuilder(),
+      TargetPlatform.macOS: SmoothPageTransitionsBuilder(),
+      TargetPlatform.windows: SmoothPageTransitionsBuilder(),
+      TargetPlatform.linux: SmoothPageTransitionsBuilder(),
+    },
+  );
 
   /// System UI overlay style for light theme:
   /// - Status bar: dark icons on light background
@@ -97,6 +109,7 @@ class AppTheme {
         elevation: 3,
         surfaceTintColor: AppColors.primary.withValues(alpha: 0.08),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        constraints: const BoxConstraints(maxWidth: 560),
         titleTextStyle: GoogleFonts.outfit(
           color: AppColors.textPrimaryLight,
           fontSize: 20,
@@ -104,10 +117,26 @@ class AppTheme {
         ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: Colors.transparent,
-        elevation: 2,
+        backgroundColor: AppColors.surfaceLight,
+        modalBackgroundColor: AppColors.surfaceLight,
+        elevation: 6,
+        constraints: BoxConstraints(maxWidth: 640),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: AppColors.surfaceLight,
+        surfaceTintColor: AppColors.primary.withValues(alpha: 0.05),
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.borderLight),
+        ),
+        textStyle: GoogleFonts.outfit(
+          color: AppColors.textPrimaryLight,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -190,6 +219,34 @@ class AppTheme {
           ),
         ),
       ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: AppColors.surfaceLight,
+        elevation: 0,
+        indicatorColor: AppColors.primaryContainerLight,
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        selectedIconTheme: const IconThemeData(
+          color: AppColors.primaryDark,
+          size: 24,
+        ),
+        unselectedIconTheme: const IconThemeData(
+          color: AppColors.textSecondaryLight,
+          size: 24,
+        ),
+        selectedLabelTextStyle: GoogleFonts.outfit(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primaryDark,
+        ),
+        unselectedLabelTextStyle: GoogleFonts.outfit(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textSecondaryLight,
+        ),
+        labelType: NavigationRailLabelType.all,
+      ),
+      pageTransitionsTheme: defaultPageTransitionsTheme,
     );
   }
 
@@ -258,6 +315,7 @@ class AppTheme {
         elevation: 3,
         surfaceTintColor: AppColors.primaryLight.withValues(alpha: 0.08),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        constraints: const BoxConstraints(maxWidth: 560),
         titleTextStyle: GoogleFonts.outfit(
           color: AppColors.textPrimaryDark,
           fontSize: 20,
@@ -265,10 +323,26 @@ class AppTheme {
         ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: Colors.transparent,
-        elevation: 2,
+        backgroundColor: AppColors.surfaceDark,
+        modalBackgroundColor: AppColors.surfaceDark,
+        elevation: 6,
+        constraints: BoxConstraints(maxWidth: 640),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: AppColors.surfaceDark,
+        surfaceTintColor: AppColors.primaryLight.withValues(alpha: 0.05),
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.borderDark),
+        ),
+        textStyle: GoogleFonts.outfit(
+          color: AppColors.textPrimaryDark,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -351,6 +425,34 @@ class AppTheme {
           ),
         ),
       ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: AppColors.surfaceDark,
+        elevation: 0,
+        indicatorColor: AppColors.primaryContainerDark,
+        indicatorShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        selectedIconTheme: const IconThemeData(
+          color: AppColors.primaryLight,
+          size: 24,
+        ),
+        unselectedIconTheme: const IconThemeData(
+          color: AppColors.textSecondaryDark,
+          size: 24,
+        ),
+        selectedLabelTextStyle: GoogleFonts.outfit(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primaryLight,
+        ),
+        unselectedLabelTextStyle: GoogleFonts.outfit(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textSecondaryDark,
+        ),
+        labelType: NavigationRailLabelType.all,
+      ),
+      pageTransitionsTheme: defaultPageTransitionsTheme,
     );
   }
 }

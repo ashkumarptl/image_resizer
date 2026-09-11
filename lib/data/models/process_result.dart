@@ -13,6 +13,7 @@ class ProcessResult {
   final String outputFormat;
   final int finalQuality;
   final Duration processingTime;
+  final bool metadataStripped;
 
   const ProcessResult({
     required this.originalPath,
@@ -26,6 +27,7 @@ class ProcessResult {
     required this.outputFormat,
     required this.finalQuality,
     required this.processingTime,
+    this.metadataStripped = true,
   });
 
   /// Percentage saved (e.g. 78.5% saved, or negative if grew)

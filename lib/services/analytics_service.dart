@@ -250,4 +250,25 @@ class AnalyticsService {
       debugPrint('[Analytics] Error: $e');
     }
   }
+
+  static Future<void> logBatchExportPdf({
+    required int pageCount,
+    required String quality,
+    required String action,
+  }) async {
+    try {
+      await _analytics.logEvent(
+        name: 'batch_export_pdf',
+        parameters: {
+          'page_count': pageCount,
+          'quality': quality,
+          'action': action,
+        },
+      );
+      debugPrint('[Analytics] Event: batch_export_pdf ($pageCount pages, $quality, $action)');
+    } catch (e) {
+      debugPrint('[Analytics] Error: $e');
+    }
+  }
 }
+

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/layout/adaptive_layout.dart';
 import '../../services/image_service/name_date_stamper.dart';
 import '../result/result_screen.dart';
 import '../widgets/discard_changes_sheet.dart';
@@ -116,6 +117,7 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isWide = context.isMediumOrWider;
 
     return PopScope(
       canPop: !_hasChanges,
@@ -133,179 +135,193 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
           ),
           title: const Text('Name & Date on Photo'),
         ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            20,
-            20,
-            32 + MediaQuery.paddingOf(context).bottom,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Live Simulation Preview Card
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            height: 220,
-                            width: double.infinity,
-                            color: isDark ? Colors.black26 : Colors.grey.shade100,
-                            child: Image.file(
-                              widget.initialImage,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                        // Live Footer Overlay Simulation
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            border: Border(
-                              top: BorderSide(color: Colors.grey, width: 1),
-                            ),
-                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _nameController.text.isEmpty
-                                    ? 'CANDIDATE NAME'
-                                    : _nameController.text.toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'DOP: ${_dateController.text}',
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+        body: SafeArea(
+          child: AdaptiveSupportingPane(
+            stretchPrimaryPane: false,
+            primaryFlex: 6,
+            supportingFlex: 5,
+            primaryPane: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: _buildPreviewCard(isDark, isWide),
               ),
-              const SizedBox(height: 24),
-
-              // Inputs Section
-              Text(
-                'Candidate Name (as per ID)',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
+            ),
+            supportingPane: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInputsSection(isDark),
+                  const SizedBox(height: 24),
+                  _buildTargetSizeSection(isDark),
+                ],
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.characters,
-                decoration: InputDecoration(
-                  hintText: 'e.g. RAHUL SHARMA',
-                  filled: true,
-                  fillColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onChanged: (_) => setState(() {}),
+            ),
+            bottomAction: Padding(
+              padding: EdgeInsets.only(
+                bottom: isWide ? 0 : MediaQuery.paddingOf(context).bottom + 8,
               ),
-              const SizedBox(height: 16),
-
-              Text(
-                'Date of Photo (DOP)',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _dateController,
-                readOnly: true,
-                onTap: _pickDate,
-                decoration: InputDecoration(
-                  suffixIcon: const Icon(Icons.calendar_today, size: 20),
-                  filled: true,
-                  fillColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Target Size
-              Text(
-                'Target Size Preset',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 10,
-                children: [48, 98, 190].map((size) {
-                  final isSelected = _targetSizeKB == size;
-                  return ChoiceChip(
-                    label: Text(size == 48 ? '20-50 KB (SSC/Vyapam)' : '< ${size + 2} KB'),
-                    selected: isSelected,
-                    selectedColor: AppColors.primary,
-                    checkmarkColor: Colors.white,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    ),
-                    onSelected: (sel) {
-                      if (sel) setState(() => _targetSizeKB = size);
-                    },
-                  );
-                }).toList(),
-              ),
-
-              const SizedBox(height: 36),
-
-              GradientButton(
+              child: GradientButton(
                 text: '🏷️ Create Stamped Photo',
                 isLoading: _isProcessing,
                 onPressed: _isProcessing ? null : _handleStamp,
               ),
-              const SizedBox(height: 16),
-              const SafeArea(
-                top: false,
-                child: SizedBox.shrink(),
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  Widget _buildPreviewCard(bool isDark, bool isWide) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              height: isWide ? 340 : 220,
+              width: double.infinity,
+              color: isDark ? Colors.black26 : Colors.grey.shade100,
+              child: Image.file(
+                widget.initialImage,
+                fit: BoxFit.contain,
+                cacheWidth: 800,
+              ),
+            ),
+          ),
+          // Live Footer Overlay Simulation
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(color: Colors.grey, width: 1),
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _nameController.text.isEmpty
+                      ? 'CANDIDATE NAME'
+                      : _nameController.text.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'DOP: ${_dateController.text}',
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputsSection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Candidate Name (as per ID)',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _nameController,
+          textCapitalization: TextCapitalization.characters,
+          decoration: InputDecoration(
+            hintText: 'e.g. RAHUL SHARMA',
+            filled: true,
+            fillColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Date of Photo (DOP)',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _dateController,
+          readOnly: true,
+          onTap: _pickDate,
+          decoration: InputDecoration(
+            suffixIcon: const Icon(Icons.calendar_today, size: 20),
+            filled: true,
+            fillColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTargetSizeSection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Target Size Preset',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          children: [48, 98, 190].map((size) {
+            final isSelected = _targetSizeKB == size;
+            return ChoiceChip(
+              label: Text(size == 48 ? '20-50 KB (SSC/Vyapam)' : '< ${size + 2} KB'),
+              selected: isSelected,
+              selectedColor: AppColors.primary,
+              checkmarkColor: Colors.white,
+              labelStyle: TextStyle(
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              ),
+              onSelected: (sel) {
+                if (sel) setState(() => _targetSizeKB = size);
+              },
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
 }

@@ -464,28 +464,36 @@ class GoogleSignInButton extends StatelessWidget {
                   ],
           ),
           child: Center(
-            child: isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const _GoogleLogoIcon(size: 20),
-                      const SizedBox(width: 12),
-                      Text(
-                        text,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFFE3E3E3) : const Color(0xFF1F1F1F),
-                          letterSpacing: 0.2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.5),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const _GoogleLogoIcon(size: 20),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(
+                            text,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? const Color(0xFFE3E3E3) : const Color(0xFF1F1F1F),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+            ),
           ),
         ),
       ),

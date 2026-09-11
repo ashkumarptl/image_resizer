@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Aspect Ratio / Size Option Bar (Original, square, 3x2, 4x3, 16x9) -->
+    <!-- Reduced from 64dp to 44dp so the options bar is compact and doesn't encroach on the canvas -->
+    <dimen name="ucrop_height_wrapper_controls">44dp</dimen>
+    <!-- Reduced from 40dp to 30dp to vertically center aspect ratio text in the compact bar -->
+    <dimen name="ucrop_height_crop_aspect_ratio_text">30dp</dimen>
+
+    <!-- Bottom state controls bar (Crop, Rotate, Scale buttons) -->
+    <!-- Reduced from 72dp to 58dp so crop canvas has maximum visible vertical space -->
+    <dimen name="ucrop_height_wrapper_states">58dp</dimen>
+
+    <!-- Crop frame padding inside view - increased from 16dp to 20dp so crop handles never get cut off -->
+    <dimen name="ucrop_padding_crop_frame">20dp</dimen>
+</resources>

@@ -105,6 +105,7 @@ void main() {
               onCompress: () => compressTapped = true,
               onResize: () {},
               onFormat: () {},
+              onBgRemover: () {},
             ),
           ),
         ),
@@ -116,6 +117,7 @@ void main() {
       expect(find.text('COMPRESS'), findsOneWidget);
       expect(find.text('RESIZE'), findsOneWidget);
       expect(find.text('FORMAT'), findsOneWidget);
+      expect(find.text('BG REMOVE'), findsOneWidget);
       expect(find.text('REPLACE'), findsNothing);
 
       // Verify badges
@@ -149,6 +151,7 @@ void main() {
               onCompress: () {},
               onResize: () {},
               onFormat: () {},
+              onBgRemover: () {},
               enableSwipeAnimation: false,
             ),
           ),
@@ -230,6 +233,49 @@ void main() {
 
       expect(appliedMode, CompressionSheetMode.targetSize);
       expect(appliedSize, 100);
+      expect(appliedQuality, 85);
+    });
+
+    testWidgets('Target size slider is rendered and changes value on interaction', (tester) async {
+      CompressionSheetMode? appliedMode;
+      int? appliedSize;
+      double? appliedQuality;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: CompressOptionsSheet(
+                initialMode: CompressionSheetMode.targetSize,
+                initialTargetSizeKB: 50,
+                initialQuality: 85,
+                originalSizeBytes: 500000,
+                onApply: (mode, size, quality) {
+                  appliedMode = mode;
+                  appliedSize = size;
+                  appliedQuality = quality;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Verify slider exists
+      final sliderFinder = find.byType(Slider);
+      expect(sliderFinder, findsOneWidget);
+
+      // Drag slider towards left
+      await tester.drag(sliderFinder, const Offset(-60, 0));
+      await tester.pump();
+
+      // Tap apply button
+      await tester.tap(find.text('Apply Compression Settings'));
+      await tester.pump();
+
+      expect(appliedMode, CompressionSheetMode.targetSize);
+      expect(appliedSize, isNotNull);
+      expect(appliedSize != 50, isTrue);
       expect(appliedQuality, 85);
     });
   });
@@ -634,6 +680,114 @@ void main() {
       expect(find.text('Tap for Original'), findsOneWidget);
       expect(find.byIcon(Icons.compare), findsOneWidget);
       expect(find.byKey(const ValueKey('canvas_original_image')), findsNothing);
+    });
+
+    testWidgets('Undo and Redo buttons enable and revert/restore state correctly',
+        (tester) async {
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ImageStudioScreen(initialImage: testImageFile),
+          ),
+        );
+        await Future.delayed(const Duration(milliseconds: 150));
+      });
+      await tester.pump();
+
+      final undoButtonFinder = find.byKey(const ValueKey('studio_undo_button'));
+      final redoButtonFinder = find.byKey(const ValueKey('studio_redo_button'));
+
+      expect(undoButtonFinder, findsOneWidget);
+      expect(redoButtonFinder, findsOneWidget);
+
+      // Initially, no adjustments made -> both Undo and Redo are disabled
+      IconButton undoBtn = tester.widget(undoButtonFinder);
+      IconButton redoBtn = tester.widget(redoButtonFinder);
+      expect(undoBtn.onPressed, isNull);
+      expect(redoBtn.onPressed, isNull);
+
+      // 1. Perform adjustment: Tap 50 KB preset chip
+      await tester.tap(find.text('50 KB').first);
+      await tester.pump();
+
+      expect(find.byTooltip('Compress to < 50 KB & Save'), findsOneWidget);
+
+      // Now Undo should be enabled, Redo disabled
+      undoBtn = tester.widget(undoButtonFinder);
+      redoBtn = tester.widget(redoButtonFinder);
+      expect(undoBtn.onPressed, isNotNull);
+      expect(redoBtn.onPressed, isNull);
+
+      // 2. Tap Undo -> Should revert back to Original Quality
+      await tester.tap(undoButtonFinder);
+      await tester.pump();
+
+      expect(find.byTooltip('Save with Original Quality'), findsOneWidget);
+      undoBtn = tester.widget(undoButtonFinder);
+      redoBtn = tester.widget(redoButtonFinder);
+      expect(undoBtn.onPressed, isNull); // At initial state, cannot undo further
+      expect(redoBtn.onPressed, isNotNull); // Can redo back to 50 KB
+
+      // 3. Tap Redo -> Should restore 50 KB target
+      await tester.tap(redoButtonFinder);
+      await tester.pump();
+
+      expect(find.byTooltip('Compress to < 50 KB & Save'), findsOneWidget);
+      undoBtn = tester.widget(undoButtonFinder);
+      redoBtn = tester.widget(redoButtonFinder);
+      expect(undoBtn.onPressed, isNotNull);
+      expect(redoBtn.onPressed, isNull);
+
+      // 4. Perform second adjustment: Rotate
+      await tester.tap(find.text('ROTATE'));
+      await tester.pump();
+
+      // Undo once -> Reverts rotation back to 50 KB unrotated
+      await tester.tap(undoButtonFinder);
+      await tester.pump();
+
+      expect(find.byTooltip('Compress to < 50 KB & Save'), findsOneWidget);
+      redoBtn = tester.widget(redoButtonFinder);
+      expect(redoBtn.onPressed, isNotNull);
+
+      // Undo again -> Reverts 50 KB back to Original
+      await tester.tap(undoButtonFinder);
+      await tester.pump();
+
+      expect(find.byTooltip('Save with Original Quality'), findsOneWidget);
+
+      // Redo once -> Back to 50 KB
+      await tester.tap(redoButtonFinder);
+      await tester.pump();
+      expect(find.byTooltip('Compress to < 50 KB & Save'), findsOneWidget);
+    });
+
+    testWidgets('Renders tablet portrait layout correctly with top canvas and bottom control deck',
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 1280);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ImageStudioScreen(initialImage: testImageFile),
+          ),
+        );
+        await Future.delayed(const Duration(milliseconds: 250));
+      });
+      await tester.pump();
+
+      // Top preset row and canvas
+      expect(find.text('Original'), findsWidgets);
+      expect(find.text('Process & Save Image'), findsOneWidget);
+      // Tool selector tabs in pro deck
+      expect(find.text('Compress'), findsWidgets);
+      expect(find.text('Resize'), findsWidgets);
+      expect(find.text('Format'), findsWidgets);
     });
   });
 }

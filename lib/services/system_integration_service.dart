@@ -83,6 +83,34 @@ class SystemIntegrationService {
     }
   }
 
+  /// Direct prints the image via native system print manager / dialog.
+  Future<bool> printImage(String filePath) async {
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'printImage',
+        {'path': filePath},
+      );
+      return result ?? false;
+    } catch (e) {
+      debugPrint('Error printing image via system service: $e');
+      return false;
+    }
+  }
+
+  /// Direct prints the PDF document via native system print manager / spooler.
+  Future<bool> printPdf(String filePath) async {
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'printPdf',
+        {'path': filePath},
+      );
+      return result ?? false;
+    } catch (e) {
+      debugPrint('Error printing PDF via system service: $e');
+      return false;
+    }
+  }
+
   /// Converts a HEIC / HEIF image file to standard JPEG using native platform decoder.
   Future<String?> convertHeicToJpeg(String sourcePath, {String? targetPath}) async {
     try {

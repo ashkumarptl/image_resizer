@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_resizer/core/constants/app_constants.dart';
 import 'package:image_resizer/data/repositories/auth_repository.dart';
 import 'package:image_resizer/presentation/main_navigation_screen.dart';
 import 'package:image_resizer/presentation/widgets/floating_bottom_nav_bar.dart';
@@ -48,14 +49,14 @@ void main() {
                   label: 'Home',
                 ),
                 FloatingNavItem(
+                  icon: Icons.picture_as_pdf_outlined,
+                  activeIcon: Icons.picture_as_pdf_rounded,
+                  label: 'Scan to PDF',
+                ),
+                FloatingNavItem(
                   icon: Icons.draw_outlined,
                   activeIcon: Icons.draw_rounded,
                   label: 'Exam Tools',
-                ),
-                FloatingNavItem(
-                  icon: Icons.tune_outlined,
-                  activeIcon: Icons.tune_rounded,
-                  label: 'Presets',
                 ),
                 FloatingNavItem(
                   icon: Icons.settings_outlined,
@@ -69,8 +70,8 @@ void main() {
       );
 
       expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Scan to PDF'), findsOneWidget);
       expect(find.text('Exam Tools'), findsOneWidget);
-      expect(find.text('Presets'), findsOneWidget);
       expect(find.text('Settings'), findsOneWidget);
 
       // Tap on Settings
@@ -101,14 +102,14 @@ void main() {
                   label: 'Home',
                 ),
                 FloatingNavItem(
+                  icon: Icons.picture_as_pdf_outlined,
+                  activeIcon: Icons.picture_as_pdf_rounded,
+                  label: 'Scan to PDF',
+                ),
+                FloatingNavItem(
                   icon: Icons.draw_outlined,
                   activeIcon: Icons.draw_rounded,
                   label: 'Exam Tools',
-                ),
-                FloatingNavItem(
-                  icon: Icons.tune_outlined,
-                  activeIcon: Icons.tune_rounded,
-                  label: 'Presets',
                 ),
                 FloatingNavItem(
                   icon: Icons.settings_outlined,
@@ -125,8 +126,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(find.text('Home'), findsOneWidget);
+      expect(find.text('Scan to PDF'), findsOneWidget);
       expect(find.text('Exam Tools'), findsOneWidget);
-      expect(find.text('Presets'), findsOneWidget);
       expect(find.text('Settings'), findsOneWidget);
     });
 
@@ -203,7 +204,7 @@ void main() {
   });
 
   group('MainNavigationScreen Integration Tests', () {
-    testWidgets('switches between Home, Exam Tools, Presets, and Settings tabs',
+    testWidgets('phone layout (< 600dp) uses FloatingBottomNavBar and switches tabs',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 2.0;
@@ -222,30 +223,52 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 1. Initially on Home tab
-      expect(find.text('Photo Tools'), findsOneWidget);
-      expect(find.text('Single Photo'), findsOneWidget);
+      // Mobile verifies FloatingBottomNavBar is used and NavigationRail is not
+      expect(find.byType(FloatingBottomNavBar), findsOneWidget);
+      expect(find.byType(NavigationRail), findsNothing);
 
-      // 2. Tap on "Exam Tools" tab in the floating nav bar
-      await tester.tap(find.text('Exam Tools'));
+      // 1. Initially on Home tab
+      expect(find.text(AppConstants.appName), findsOneWidget);
+      expect(find.text('Single Photo'), findsOneWidget);
+      expect(find.text('Batch (Multi)'), findsOneWidget);
+
+      // 2. Tap on "Scan to PDF" tab in the floating nav bar
+      await tester.tap(find.descendant(
+        of: find.byType(FloatingBottomNavBar),
+        matching: find.text('Scan to PDF'),
+      ));
       await tester.pumpAndSettle();
 
-      // Verify Exam Tools content is shown
+      // Verify Scan to PDF content is shown
+      expect(find.text('Scan with Camera'), findsOneWidget);
+      expect(find.text('Auto-deskew, enhance & convert to PDF'), findsOneWidget);
+
+      // 3. Tap on "Exam Tools" tab in the floating nav bar
+      await tester.tap(find.descendant(
+        of: find.byType(FloatingBottomNavBar),
+        matching: find.text('Exam Tools'),
+      ));
+      await tester.pumpAndSettle();
+
+      // Verify Exam Tools content is shown by default
+      expect(find.text('Exam Document Tools'), findsWidgets);
       expect(find.text('Signature B&W Cleaner'), findsWidgets);
       expect(find.text('Name & Date Photo Stamp'), findsWidgets);
-      expect(find.text('Exam Ready in Seconds'), findsOneWidget);
 
-      // 3. Tap on "Presets" tab in the floating nav bar
+      // Switch to Presets tab pill inside the combined screen
       await tester.tap(find.text('Presets'));
       await tester.pumpAndSettle();
 
       // Verify Presets Hub content is shown
       expect(find.text('Govt & Exam Presets'), findsWidgets);
-      expect(find.text('SSC Exams'), findsOneWidget);
-      expect(find.text('Banking (IBPS)'), findsOneWidget);
+      expect(find.text('SSC Signature'), findsOneWidget);
+      expect(find.text('UPSC Civil Services Photo'), findsOneWidget);
 
       // 4. Tap on "Settings" tab in the floating nav bar
-      await tester.tap(find.text('Settings'));
+      await tester.tap(find.descendant(
+        of: find.byType(FloatingBottomNavBar),
+        matching: find.text('Settings'),
+      ));
       await tester.pumpAndSettle();
 
       // Verify Settings content is shown
@@ -253,9 +276,145 @@ void main() {
       expect(find.text('ACCOUNT'), findsOneWidget);
 
       // 5. Switch back to Home
-      await tester.tap(find.text('Home'));
+      await tester.tap(find.descendant(
+        of: find.byType(FloatingBottomNavBar),
+        matching: find.text('Home'),
+      ));
       await tester.pumpAndSettle();
-      expect(find.text('Photo Tools'), findsOneWidget);
+      expect(find.text(AppConstants.appName), findsOneWidget);
+      expect(find.text('Single Photo'), findsOneWidget);
+    });
+
+    testWidgets('sliding / swiping horizontally switches screens and updates active tab',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authServiceProvider.overrideWithValue(MockAuthService()),
+          ],
+          child: const MaterialApp(
+            home: MainNavigationScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Initially on Home tab (index 0)
+      expect(find.text(AppConstants.appName), findsOneWidget);
+
+      // Swipe left on the screen to slide to "Scan to PDF" (index 1)
+      await tester.drag(find.text(AppConstants.appName), const Offset(-400, 0));
+      await tester.pumpAndSettle();
+
+      // Verify Scan to PDF content is now shown
+      expect(find.text('Scan with Camera'), findsOneWidget);
+
+      // Swipe left again to slide to "Exam Tools" (index 2)
+      await tester.drag(find.text('Scan with Camera'), const Offset(-400, 0));
+      await tester.pumpAndSettle();
+
+      // Verify Exam Tools content is now shown
+      expect(find.text('Exam Document Tools'), findsWidgets);
+
+      // Swipe right to slide back to "Scan to PDF" (index 1)
+      await tester.drag(find.text('Exam Document Tools').first, const Offset(400, 0));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Scan with Camera'), findsOneWidget);
+    });
+
+    testWidgets('tablet/wide layout (>= 600dp) uses NavigationRail and switches tabs',
+        (WidgetTester tester) async {
+      // 1800 x 2400 with DPR 2.0 = 900 x 1200 logical dp (expanded / tablet)
+      tester.view.physicalSize = const Size(1800, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authServiceProvider.overrideWithValue(MockAuthService()),
+          ],
+          child: const MaterialApp(
+            home: MainNavigationScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tablet verifies NavigationRail is rendered and FloatingBottomNavBar is not
+      expect(find.byType(NavigationRail), findsOneWidget);
+      expect(find.byType(FloatingBottomNavBar), findsNothing);
+
+      // Initially on Home tab
+      expect(find.text(AppConstants.appName), findsOneWidget);
+      expect(find.text('Single Photo'), findsOneWidget);
+
+      // Tap on "Scan to PDF" in the NavigationRail
+      await tester.tap(find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.text('Scan to PDF'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Scan with Camera'), findsOneWidget);
+
+      // Tap on "Settings" in the NavigationRail
+      await tester.tap(find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.text('Settings'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('APPEARANCE'), findsOneWidget);
+      expect(find.text('ACCOUNT'), findsOneWidget);
+
+      // Tap back on "Home" in the NavigationRail
+      await tester.tap(find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.text('Home'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Single Photo'), findsOneWidget);
+    });
+
+    testWidgets('mobile landscape / short height wide layout (740x360dp) uses NavigationRail without overflow',
+        (WidgetTester tester) async {
+      // 1480 x 720 with DPR 2.0 = 740 x 360 logical dp (mobile landscape)
+      tester.view.physicalSize = const Size(1480, 720);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authServiceProvider.overrideWithValue(MockAuthService()),
+          ],
+          child: const MaterialApp(
+            home: MainNavigationScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // NavigationRail is present and no RenderFlex overflow occurs
+      expect(find.byType(NavigationRail), findsOneWidget);
+      expect(find.byType(FloatingBottomNavBar), findsNothing);
+      expect(tester.takeException(), isNull);
+
+      // Verify tabs switch cleanly
+      await tester.tap(find.descendant(
+        of: find.byType(NavigationRail),
+        matching: find.text('Settings'),
+      ));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
     });
   });
 }
+

@@ -79,3 +79,8 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    implementation("androidx.print:print:1.0.0")
+}
+

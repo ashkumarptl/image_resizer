@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/constants/app_colors.dart';
 
 enum StudioActiveTool {
@@ -11,6 +12,7 @@ enum StudioActiveTool {
   compress,
   resize,
   format,
+  bgRemover,
 }
 
 class StudioBottomToolbar extends StatefulWidget {
@@ -21,10 +23,12 @@ class StudioBottomToolbar extends StatefulWidget {
   final VoidCallback onCompress;
   final VoidCallback onResize;
   final VoidCallback onFormat;
+  final VoidCallback onBgRemover;
   final VoidCallback? onCompressLongPress;
   final bool hasFlipped;
   final bool hasRotated;
   final bool hasCropped;
+  final bool hasRemovedBg;
   final bool enableSwipeAnimation;
 
   const StudioBottomToolbar({
@@ -36,10 +40,12 @@ class StudioBottomToolbar extends StatefulWidget {
     required this.onCompress,
     required this.onResize,
     required this.onFormat,
+    required this.onBgRemover,
     this.onCompressLongPress,
     this.hasFlipped = false,
     this.hasRotated = false,
     this.hasCropped = false,
+    this.hasRemovedBg = false,
     this.enableSwipeAnimation = true,
   });
 
@@ -226,9 +232,14 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
       ),
       child: SafeArea(
         top: false,
-        child: Stack(
+        child: Align(
           alignment: Alignment.center,
-          children: [
+          heightFactor: 1.0,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
             // Scrollable Tools Row
             NotificationListener<ScrollNotification>(
               onNotification: (notification) {
@@ -275,6 +286,17 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                         onTap: () {
                           _dismissHint();
                           widget.onFormat();
+                        },
+                      ),
+                      _buildToolButton(
+                        context,
+                        icon: Icons.auto_fix_high_rounded,
+                        label: 'BG REMOVE',
+                        isActive: widget.activeTool == StudioActiveTool.bgRemover || widget.hasRemovedBg,
+                        badgeText: widget.hasRemovedBg ? 'DONE' : null,
+                        onTap: () {
+                          _dismissHint();
+                          widget.onBgRemover();
                         },
                       ),
                       _buildToolButton(
@@ -377,6 +399,8 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                 ),
               ),
           ],
+            ),
+          ),
         ),
       ),
     );
@@ -454,8 +478,16 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
         color: isActive ? activeBg : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
+          onLongPress: onLongPress != null
+              ? () {
+                  HapticFeedback.selectionClick();
+                  onLongPress();
+                }
+              : null,
           borderRadius: BorderRadius.circular(10),
           child: Container(
             constraints: const BoxConstraints(minWidth: 64),

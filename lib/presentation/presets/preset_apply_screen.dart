@@ -10,6 +10,7 @@ import '../../services/analytics_service.dart';
 import '../../services/crashlytics_service.dart';
 import '../../services/image_service/image_processor.dart';
 import '../result/result_screen.dart';
+import '../../core/layout/adaptive_layout.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/processing_progress_modal.dart';
 
@@ -98,6 +99,7 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
         targetHeight: preset.targetHeight,
         keepAspectRatio: false, // Already cropped to exact aspect ratio
         strictDimensions: true,
+        targetDpi: preset.targetDpi,
       );
 
       final progressNotifier = ValueNotifier<ProcessingProgressState>(
@@ -171,6 +173,8 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final preset = widget.preset;
 
+    final isWide = context.isMediumOrWider;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(preset.name),
@@ -183,246 +187,284 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. Preset Requirement Card
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                  ),
-                ),
-                child: Row(
+        child: isWide
+            ? AdaptiveSupportingPane(
+                scrollablePrimaryPane: true,
+                stretchPrimaryPane: false,
+                primaryFlex: 5,
+                supportingFlex: 5,
+                primaryPane: _buildImagePreviewContainer(isDark),
+                supportingPane: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainerLight,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        preset.iconEmoji,
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
+                    _buildPresetRequirementCard(isDark, preset),
+                    const SizedBox(height: 16),
+                    _buildComplianceChecklist(isDark, preset),
+                    const SizedBox(height: 24),
+                    _buildApplySection(isDark),
+                  ],
+                ),
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildPresetRequirementCard(isDark, preset),
+                    const SizedBox(height: 16),
+                    _buildImagePreviewContainer(isDark),
+                    const SizedBox(height: 20),
+                    _buildComplianceChecklist(isDark, preset),
+                    const SizedBox(height: 28),
+                    _buildApplySection(isDark),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildPresetRequirementCard(bool isDark, ImagePreset preset) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainerLight,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              preset.iconEmoji,
+              style: const TextStyle(fontSize: 24),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  preset.name,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? AppColors.textPrimaryDark
-                                        : AppColors.textPrimaryLight,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  preset.badgeText,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            preset.description,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        preset.name,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // 2. Image Preview Container
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                  ),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  children: [
                     Container(
-                      constraints: const BoxConstraints(maxHeight: 280),
-                      width: double.infinity,
-                      color: isDark ? Colors.black26 : Colors.black12,
-                      child: Image.file(
-                        _currentImage,
-                        fit: BoxFit.contain,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.image_outlined,
-                                size: 16,
-                                color: isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Current: ${_currentSizeBytes.toReadableFileSize()}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                      : AppColors.textSecondaryLight,
-                                ),
-                              ),
-                            ],
-                          ),
-                          TextButton.icon(
-                            onPressed: _isProcessing ? null : _handleReCrop,
-                            icon: const Icon(Icons.crop, size: 15),
-                            label: const Text('Adjust Crop', style: TextStyle(fontSize: 12)),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // 3. Portal Compliance Checklist
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.verified_outlined,
-                          size: 18,
+                      child: Text(
+                        preset.badgeText,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.primary,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Portal Requirements To Be Applied',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _buildCheckItem(
-                      icon: Icons.aspect_ratio_rounded,
-                      title: 'Dimensions',
-                      value: preset.targetWidth != null && preset.targetHeight != null
-                          ? '${preset.targetWidth} × ${preset.targetHeight} px (Strict)'
-                          : 'Original Aspect',
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildCheckItem(
-                      icon: Icons.data_usage_rounded,
-                      title: 'Target Size',
-                      value: preset.minSizeKB != null
-                          ? '${preset.minSizeKB} KB to ${preset.targetSizeKB} KB'
-                          : '< ${preset.targetSizeKB} KB',
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildCheckItem(
-                      icon: Icons.file_present_rounded,
-                      title: 'Output Format',
-                      value: '${preset.outputFormat.toUpperCase()} (Standard)',
-                      isDark: isDark,
+                      ),
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 28),
-
-              // 4. One-Click Apply Button
-              GradientButton(
-                text: 'Make Exam-Ready',
-                icon: Icons.bolt_rounded,
-                isLoading: _isProcessing,
-                onPressed: _handleApplyPreset,
-              ),
-
-              const SizedBox(height: 12),
-              Center(
-                child: Text(
-                  '100% Offline & Private · Strict Portal Validation',
+                const SizedBox(height: 4),
+                Text(
+                  preset.description,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     color: isDark
                         ? AppColors.textSecondaryDark
                         : AppColors.textSecondaryLight,
                   ),
                 ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePreviewContainer(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          Container(
+            constraints: const BoxConstraints(maxHeight: 340),
+            width: double.infinity,
+            color: isDark ? Colors.black26 : Colors.black12,
+            child: Image.file(
+              _currentImage,
+              fit: BoxFit.contain,
+              cacheWidth: 800,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.image_outlined,
+                      size: 16,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Current: ${_currentSizeBytes.toReadableFileSize()}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton.icon(
+                  onPressed: _isProcessing ? null : _handleReCrop,
+                  icon: const Icon(Icons.crop, size: 15),
+                  label: const Text('Adjust Crop', style: TextStyle(fontSize: 12)),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComplianceChecklist(bool isDark, ImagePreset preset) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.verified_outlined,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Portal Requirements To Be Applied',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 12),
+          _buildCheckItem(
+            icon: Icons.aspect_ratio_rounded,
+            title: 'Dimensions',
+            value: preset.targetWidth != null && preset.targetHeight != null
+                ? '${preset.targetWidth} × ${preset.targetHeight} px (Strict)'
+                : 'Original Aspect',
+            isDark: isDark,
+          ),
+          const SizedBox(height: 8),
+          _buildCheckItem(
+            icon: Icons.data_usage_rounded,
+            title: 'Target Size',
+            value: preset.minSizeKB != null
+                ? '${preset.minSizeKB} KB to ${preset.targetSizeKB} KB'
+                : '< ${preset.targetSizeKB} KB',
+            isDark: isDark,
+          ),
+          const SizedBox(height: 8),
+          _buildCheckItem(
+            icon: Icons.file_present_rounded,
+            title: 'Output Format',
+            value: '${preset.outputFormat.toUpperCase()} (Standard)',
+            isDark: isDark,
+          ),
+          if (preset.targetDpi != null) ...[
+            const SizedBox(height: 8),
+            _buildCheckItem(
+              icon: Icons.high_quality_rounded,
+              title: 'Resolution (DPI)',
+              value: '${preset.targetDpi} DPI (Portal Standard)',
+              isDark: isDark,
+            ),
+          ],
+        ],
       ),
+    );
+  }
+
+  Widget _buildApplySection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GradientButton(
+          text: 'Make Exam-Ready',
+          icon: Icons.bolt_rounded,
+          isLoading: _isProcessing,
+          onPressed: _handleApplyPreset,
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            '100% Offline & Private · Strict Portal Validation',
+            style: TextStyle(
+              fontSize: 11,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

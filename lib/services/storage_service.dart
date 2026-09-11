@@ -26,6 +26,44 @@ class StorageService {
     }
   }
 
+  /// Save a PDF file to the device's public Downloads or Documents folder
+  static Future<File?> savePdfToDevice(String sourcePdfPath, {String? customFileName}) async {
+    try {
+      final sourceFile = File(sourcePdfPath);
+      if (!await sourceFile.exists()) {
+        debugPrint('Source PDF file does not exist: $sourcePdfPath');
+        return null;
+      }
+
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = customFileName ?? 'Doc_$timestamp.pdf';
+
+      Directory? targetDir;
+
+      // 1. Android public Download folder
+      if (!kIsWeb && Platform.isAndroid) {
+        final androidDownloadDir = Directory('/storage/emulated/0/Download');
+        if (await androidDownloadDir.exists()) {
+          targetDir = androidDownloadDir;
+        }
+      }
+
+      // 2. Standard Downloads directory
+      targetDir ??= await getDownloadsDirectory();
+
+      // 3. Fallback to Documents directory
+      targetDir ??= await getApplicationDocumentsDirectory();
+
+      final destinationPath = '${targetDir.path}/$fileName';
+      final savedFile = await sourceFile.copy(destinationPath);
+      debugPrint('PDF saved successfully to: $destinationPath');
+      return savedFile;
+    } catch (e) {
+      debugPrint('Error saving PDF to device: $e');
+      return null;
+    }
+  }
+
   /// Clean old temporary processed files to free device storage
   static Future<void> cleanOldCacheFiles({Duration maxAge = const Duration(days: 7)}) async {
     try {

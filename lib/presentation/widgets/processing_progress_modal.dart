@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/constants/app_colors.dart';
+
 
 /// Holds real-time progress information for image processing operations
 class ProcessingProgressState {
@@ -70,24 +72,69 @@ class ProcessingProgressModal extends StatelessWidget {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Icon Header with Gradient Ring
-                  Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.35),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
+                  // Animated Icon Header with Gradient Ring & Celebration Switcher
+                  RepaintBoundary(
+                    child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) => ScaleTransition(
+                      scale: CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutBack,
+                      ),
+                      child: child,
                     ),
                     child: state.isCompleted
-                        ? const Icon(Icons.check_rounded, color: Colors.white, size: 30)
-                        : const Icon(Icons.bolt_rounded, color: Colors.white, size: 32),
+                        ? Container(
+                            key: const ValueKey('completed'),
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [AppColors.success, Color(0xFF059669)],
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.success.withValues(alpha: 0.4),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.check_rounded, color: Colors.white, size: 32)
+                                .animate()
+                                .scale(
+                                  begin: const Offset(0.5, 0.5),
+                                  end: const Offset(1, 1),
+                                  curve: Curves.easeOutBack,
+                                  duration: 350.ms,
+                                ),
+                          )
+                        : Container(
+                            key: const ValueKey('processing'),
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              gradient: AppColors.primaryGradient,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.35),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 32)
+                                .animate(onPlay: (c) => c.repeat(reverse: true))
+                                .scale(
+                                  begin: const Offset(0.9, 0.9),
+                                  end: const Offset(1.1, 1.1),
+                                  duration: 750.ms,
+                                  curve: Curves.easeInOut,
+                                ),
+                          ),
+                    ),
                   ),
                   const SizedBox(height: 18),
 
@@ -103,36 +150,40 @@ class ProcessingProgressModal extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
 
-                  // Large Percent Display
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        '$percentInt',
-                        style: TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                          letterSpacing: -1,
+                  // Large Percent Display (Switches color on completion)
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 250),
+                    style: TextStyle(
+                      fontSize: 34,
+                      fontWeight: FontWeight.w800,
+                      color: state.isCompleted ? AppColors.success : AppColors.primary,
+                      letterSpacing: -1,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text('$percentInt'),
+                        const SizedBox(width: 2),
+                        Text(
+                          '%',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: state.isCompleted
+                                ? AppColors.success.withValues(alpha: 0.8)
+                                : AppColors.primary.withValues(alpha: 0.8),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        '%',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Smooth Animated Linear Progress Indicator
-                  TweenAnimationBuilder<double>(
+                  // Smooth Animated Linear Progress Indicator with Shimmer highlight
+                  RepaintBoundary(
+                    child: TweenAnimationBuilder<double>(
                     tween: Tween<double>(begin: 0.0, end: clampedProgress),
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOutCubic,
@@ -141,16 +192,45 @@ class ProcessingProgressModal extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                         child: SizedBox(
                           height: 10,
-                          child: LinearProgressIndicator(
-                            value: value,
-                            backgroundColor: isDark
-                                ? AppColors.surfaceVariantDark
-                                : AppColors.surfaceVariantLight,
-                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              LinearProgressIndicator(
+                                value: value,
+                                backgroundColor: isDark
+                                    ? AppColors.surfaceVariantDark
+                                    : AppColors.surfaceVariantLight,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  state.isCompleted ? AppColors.success : AppColors.primary,
+                                ),
+                              ),
+                              if (!state.isCompleted && value > 0.05)
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.white.withValues(alpha: 0.35),
+                                          Colors.transparent,
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                      .animate(onPlay: (c) => c.repeat())
+                                      .slideX(
+                                        begin: -1.0,
+                                        end: 1.0,
+                                        duration: 1200.ms,
+                                        curve: Curves.easeInOut,
+                                      ),
+                                ),
+                            ],
                           ),
                         ),
                       );
                     },
+                  ),
                   ),
                   const SizedBox(height: 14),
 
@@ -233,7 +313,11 @@ class ProcessingProgressModal extends StatelessWidget {
             },
           ),
         ),
-      ),
+      ).animate().fadeIn(duration: 250.ms).scale(
+            begin: const Offset(0.92, 0.92),
+            end: const Offset(1, 1),
+            curve: Curves.easeOutCubic,
+          ),
     );
   }
 }

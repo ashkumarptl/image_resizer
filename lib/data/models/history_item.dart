@@ -8,6 +8,7 @@ class HistoryItem {
   final int height;
   final String format;
   final DateTime processedAt;
+  final String? thumbnailPath;
 
   const HistoryItem({
     required this.id,
@@ -19,7 +20,34 @@ class HistoryItem {
     required this.height,
     required this.format,
     required this.processedAt,
+    this.thumbnailPath,
   });
+
+  HistoryItem copyWith({
+    String? id,
+    String? filePath,
+    String? originalPath,
+    int? originalSizeBytes,
+    int? outputSizeBytes,
+    int? width,
+    int? height,
+    String? format,
+    DateTime? processedAt,
+    String? thumbnailPath,
+  }) {
+    return HistoryItem(
+      id: id ?? this.id,
+      filePath: filePath ?? this.filePath,
+      originalPath: originalPath ?? this.originalPath,
+      originalSizeBytes: originalSizeBytes ?? this.originalSizeBytes,
+      outputSizeBytes: outputSizeBytes ?? this.outputSizeBytes,
+      width: width ?? this.width,
+      height: height ?? this.height,
+      format: format ?? this.format,
+      processedAt: processedAt ?? this.processedAt,
+      thumbnailPath: thumbnailPath ?? this.thumbnailPath,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -32,6 +60,7 @@ class HistoryItem {
       'height': height,
       'format': format,
       'processedAt': processedAt.toIso8601String(),
+      'thumbnailPath': thumbnailPath,
     };
   }
 
@@ -46,6 +75,7 @@ class HistoryItem {
       height: json['height'] as int,
       format: json['format'] as String,
       processedAt: DateTime.parse(json['processedAt'] as String),
+      thumbnailPath: json['thumbnailPath'] as String?,
     );
   }
 }
