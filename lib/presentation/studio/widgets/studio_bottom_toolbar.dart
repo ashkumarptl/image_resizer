@@ -14,6 +14,8 @@ enum StudioActiveTool {
   resize,
   format,
   bgRemover,
+  docFilter,
+  tools,
 }
 
 class StudioBottomToolbar extends StatefulWidget {
@@ -25,11 +27,13 @@ class StudioBottomToolbar extends StatefulWidget {
   final VoidCallback onResize;
   final VoidCallback onFormat;
   final VoidCallback onBgRemover;
+  final VoidCallback? onDocFilter;
   final VoidCallback? onCompressLongPress;
   final bool hasFlipped;
   final bool hasRotated;
   final bool hasCropped;
   final bool hasRemovedBg;
+  final bool hasAppliedFilter;
   final bool enableSwipeAnimation;
 
   const StudioBottomToolbar({
@@ -42,11 +46,13 @@ class StudioBottomToolbar extends StatefulWidget {
     required this.onResize,
     required this.onFormat,
     required this.onBgRemover,
+    this.onDocFilter,
     this.onCompressLongPress,
     this.hasFlipped = false,
     this.hasRotated = false,
     this.hasCropped = false,
     this.hasRemovedBg = false,
+    this.hasAppliedFilter = false,
     this.enableSwipeAnimation = true,
   });
 
@@ -222,10 +228,16 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.primary,
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            width: 1.0,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: isDark ? Colors.black45 : Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -302,6 +314,18 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                           widget.onBgRemover();
                         },
                       ),
+                      if (widget.onDocFilter != null)
+                        _buildToolButton(
+                          context,
+                          icon: Icons.document_scanner_rounded,
+                          label: 'DOC FILTER',
+                          isActive: widget.activeTool == StudioActiveTool.docFilter || widget.hasAppliedFilter,
+                          badgeText: widget.hasAppliedFilter ? 'DONE' : null,
+                          onTap: () {
+                            _dismissHint();
+                            widget.onDocFilter!();
+                          },
+                        ),
                       _buildToolButton(
                         context,
                         icon: Icons.crop_outlined,
@@ -411,7 +435,8 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
 
   Widget _buildScrollEdgeIndicator({required bool isRight, required bool isDark}) {
     final canScroll = isRight ? _canScrollRight : _canScrollLeft;
-    final bgColor = isDark ? AppColors.surfaceDark : AppColors.primary;
+    final bgColor = isDark ? AppColors.surfaceDark : Colors.white;
+    final iconColor = isDark ? Colors.white70 : AppColors.textSecondaryLight;
 
     return Positioned(
       left: isRight ? null : 0,
@@ -451,7 +476,7 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
               child: Center(
                 child: Icon(
                   isRight ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
-                  color: Colors.white70,
+                  color: iconColor,
                   size: context.adaptiveIconSize(18, tabletSize: 24, largeTabletSize: 26),
                 ),
               ),
@@ -471,9 +496,12 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
     required VoidCallback onTap,
     VoidCallback? onLongPress,
   }) {
-    final activeBg = Colors.white.withValues(alpha: 0.22);
-    const unselectedColor = Colors.white70;
-    const selectedColor = Colors.white;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeBg = isDark
+        ? AppColors.primary.withValues(alpha: 0.22)
+        : AppColors.primary.withValues(alpha: 0.12);
+    final unselectedColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    const selectedColor = AppColors.primary;
 
     final minWidth = context.isLargeTablet ? 92.0 : (context.isMediumOrWider ? 80.0 : 64.0);
     final iconSize = context.adaptiveIconSize(24, tabletSize: 30, largeTabletSize: 34);
@@ -484,7 +512,7 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
       padding: EdgeInsets.symmetric(horizontal: context.isMediumOrWider ? 6 : 4),
       child: Material(
         color: isActive ? activeBg : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: () {
             HapticFeedback.selectionClick();
@@ -496,7 +524,7 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                   onLongPress();
                 }
               : null,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             constraints: BoxConstraints(minWidth: minWidth),
             padding: EdgeInsets.symmetric(
@@ -537,10 +565,13 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                         vertical: context.isMediumOrWider ? 2 : 1,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.amber.shade700,
+                        color: AppColors.primary,
                         borderRadius: BorderRadius.circular(4),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black26, blurRadius: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.35),
+                            blurRadius: 3,
+                          ),
                         ],
                       ),
                       child: Text(

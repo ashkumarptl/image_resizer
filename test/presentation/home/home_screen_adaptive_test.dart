@@ -98,7 +98,8 @@ void main() {
       expect(find.text('Quick Utilities'), findsOneWidget);
       expect(find.text('Signature'), findsOneWidget);
       expect(find.text('Photo Stamp'), findsOneWidget);
-      expect(find.text('Deskew Doc'), findsOneWidget);
+      expect(find.text('Deskew Doc'), findsNothing);
+      expect(find.text('Doc Filter'), findsNothing);
 
       // Verify side-by-side layout (horizontal)
       final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
@@ -123,7 +124,8 @@ void main() {
       expect(find.text('Quick Utilities'), findsOneWidget);
       expect(find.text('Signature'), findsOneWidget);
       expect(find.text('Photo Stamp'), findsOneWidget);
-      expect(find.text('Deskew Doc'), findsOneWidget);
+      expect(find.text('Deskew Doc'), findsNothing);
+      expect(find.text('Doc Filter'), findsNothing);
 
       // Verify single-column stacked layout (hero card above scan to pdf card)
       final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
@@ -149,7 +151,8 @@ void main() {
       expect(find.text('Quick Utilities'), findsOneWidget);
       expect(find.text('Signature'), findsOneWidget);
       expect(find.text('Photo Stamp'), findsOneWidget);
-      expect(find.text('Deskew Doc'), findsOneWidget);
+      expect(find.text('Deskew Doc'), findsNothing);
+      expect(find.text('Doc Filter'), findsNothing);
 
       // Verify side-by-side layout (since width 1280 >= 840)
       final singlePhotoPos = tester.getCenter(find.text('Single Photo'));

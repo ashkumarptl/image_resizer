@@ -11,7 +11,6 @@ import 'perspective_crop_painter.dart';
 class PerspectiveCropCanvas extends StatefulWidget {
   final File imageFile;
   final int quarterTurns;
-  final PerspectiveFilter filter;
   final NormalizedPoint topLeft;
   final NormalizedPoint topRight;
   final NormalizedPoint bottomRight;
@@ -27,7 +26,6 @@ class PerspectiveCropCanvas extends StatefulWidget {
     super.key,
     required this.imageFile,
     required this.quarterTurns,
-    this.filter = PerspectiveFilter.none,
     required this.topLeft,
     required this.topRight,
     required this.bottomRight,
@@ -38,36 +36,8 @@ class PerspectiveCropCanvas extends StatefulWidget {
 
   final void Function(int width, int height)? onImageLoaded;
 
-  static ColorFilter? getColorFilter(PerspectiveFilter filter) {
-    switch (filter) {
-      case PerspectiveFilter.none:
-        return null;
-
-      case PerspectiveFilter.grayscale:
-        return const ColorFilter.matrix(<double>[
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0,      0,      0,      1, 0,
-        ]);
-
-      case PerspectiveFilter.documentBw:
-        return const ColorFilter.matrix(<double>[
-          0.8504, 2.8608, 0.2888, 0, -540.0,
-          0.8504, 2.8608, 0.2888, 0, -540.0,
-          0.8504, 2.8608, 0.2888, 0, -540.0,
-          0,      0,      0,      1, 0,
-        ]);
-
-      case PerspectiveFilter.enhanced:
-        return const ColorFilter.matrix(<double>[
-          1.3976, -0.1341, -0.0135, 0, -24.0,
-          -0.0399, 1.3034, -0.0135, 0, -24.0,
-          -0.0399, -0.1341, 1.4240, 0, -24.0,
-          0,       0,       0,      1, 0,
-        ]);
-    }
-  }
+  static ColorFilter? getColorFilter(PerspectiveFilter filter) =>
+      DocumentFilterHelper.getColorFilter(filter);
 
   @override
   State<PerspectiveCropCanvas> createState() => _PerspectiveCropCanvasState();
@@ -265,21 +235,11 @@ class _PerspectiveCropCanvasState extends State<PerspectiveCropCanvas> {
   }
 
   Widget _buildFilteredImage() {
-    final imageWidget = Image.file(
+    return Image.file(
       widget.imageFile,
       fit: BoxFit.fill,
       cacheWidth: 1080,
       filterQuality: FilterQuality.medium,
-    );
-
-    final colorFilter = PerspectiveCropCanvas.getColorFilter(widget.filter);
-    if (colorFilter == null) {
-      return imageWidget;
-    }
-
-    return ColorFiltered(
-      colorFilter: colorFilter,
-      child: imageWidget,
     );
   }
 
@@ -325,7 +285,7 @@ class _PerspectiveCropCanvasState extends State<PerspectiveCropCanvas> {
           onPanCancel: _handlePanCancel,
           child: Stack(
             children: [
-              // 1. Underneath Image with Live Color Filter
+              // 1. Underneath Image
               Positioned.fromRect(
                 rect: _imageRect,
                 child: RotatedBox(
@@ -388,7 +348,7 @@ class _PerspectiveCropCanvasState extends State<PerspectiveCropCanvas> {
                   image: _uiImage!,
                   normalizedPoint: activePoint,
                   quarterTurns: widget.quarterTurns,
-                  colorFilter: PerspectiveCropCanvas.getColorFilter(widget.filter),
+                  colorFilter: null,
                 ),
               ),
             ),

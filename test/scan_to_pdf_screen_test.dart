@@ -18,7 +18,7 @@ class MockAuthService extends AuthService {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('ScanToPdfScreen renders header with offline badge, quick action cards, and search bar',
+  testWidgets('ScanToPdfScreen renders clean header, floating action pill, and empty state',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -32,32 +32,31 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Verify Title & Subtitle
+    // Verify Title
     expect(find.text('Scan to PDF'), findsWidgets);
-    expect(find.text('Auto-deskew, enhance & convert to PDF'), findsOneWidget);
 
-    // Verify Offline Badge
-    expect(find.text('Offline'), findsOneWidget);
+    // Verify Info / Tips button is present and opens tips bottom sheet
+    expect(find.byIcon(Icons.info_outline_rounded), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.info_outline_rounded));
+    await tester.pumpAndSettle();
 
-    // Verify Quick Action cards
-    expect(find.text('Scan\nDocument'), findsOneWidget);
-    expect(find.text('Import\nImages'), findsOneWidget);
-
-    // Verify Search bar
-    expect(find.text('Search documents, notes, etc...'), findsOneWidget);
-
-    // Verify New Scan FAB is present
-    expect(find.text('New Scan'), findsOneWidget);
-
-    // Verify Feature badges
-    expect(find.text('⚡ Auto Boundary'), findsOneWidget);
-    expect(find.text('🌓 Shadow Clean'), findsOneWidget);
-    expect(find.text('📑 Multi-Page PDF'), findsOneWidget);
-    expect(find.text('🔒 100% Offline'), findsOneWidget);
-
-    // Verify Tips card
+    // Verify Tips bottom sheet
     expect(find.text('Tips for Best PDF Scans'), findsOneWidget);
     expect(find.textContaining('Contrast Background', findRichText: true), findsOneWidget);
+    expect(find.text('Got it'), findsOneWidget);
+
+    // Close tips bottom sheet
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+
+    // Verify Floating Action Pill has 'Scan' and 'Gallery'
+    expect(find.text('Scan'), findsWidgets);
+    expect(find.text('Gallery'), findsWidgets);
+
+    // Verify Empty State call to actions
+    expect(find.text('No Documents Yet'), findsOneWidget);
+    expect(find.text('Scan Document'), findsOneWidget);
+    expect(find.text('Import Images'), findsOneWidget);
   });
 
   testWidgets('ScanToPdfScreen project card renders cleanly on small screens without overflow',
@@ -143,13 +142,24 @@ void main() {
 
   testWidgets('ScanToPdfScreen filter bottom sheet opens without Material assertion error',
       (WidgetTester tester) async {
+    final project = ScanProject(
+      id: 'doc1',
+      name: 'Sample Doc',
+      pagePaths: ['/dummy/page1.jpg'],
+      createdAt: DateTime(2026, 9, 8),
+      updatedAt: DateTime(2026, 9, 8),
+    );
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           authServiceProvider.overrideWithValue(MockAuthService()),
         ],
-        child: const MaterialApp(
-          home: ScanToPdfScreen(isTab: true),
+        child: MaterialApp(
+          home: ScanToPdfScreen(
+            isTab: true,
+            initialProjects: [project],
+          ),
         ),
       ),
     );

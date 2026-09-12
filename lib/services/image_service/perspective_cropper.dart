@@ -357,6 +357,7 @@ class PerspectiveCropper {
     PerspectiveFilter filter, {
     String? outputPath,
     int quality = 90,
+    int quarterTurns = 0,
   }) async {
     final targetPath = outputPath ??
         '${inputFile.parent.path}/filtered_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -367,11 +368,91 @@ class PerspectiveCropper {
       outputPath: targetFile.path,
       filter: filter,
       quality: quality,
+      quarterTurns: quarterTurns,
     );
 
     await compute(_filterIsolateWorker, params);
     return targetFile;
   }
+
+  /// Applies a document filter and returns a ProcessResult suitable for UI/History
+  static Future<ProcessResult> processFilter(
+    File inputFile,
+    PerspectiveFilter filter, {
+    String? outputPath,
+    int quality = 90,
+    int quarterTurns = 0,
+  }) async {
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST') ||
+        Platform.environment['FLUTTER_TEST'] == 'true' ||
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
+
+    final stopwatch = Stopwatch()..start();
+    String targetDir;
+    if (isTest) {
+      targetDir = Directory.systemTemp.path;
+    } else {
+      try {
+        final tempDir = await getTemporaryDirectory();
+        targetDir = tempDir.path;
+      } catch (_) {
+        targetDir = Directory.systemTemp.path;
+      }
+    }
+
+    final targetPath = outputPath ??
+        p.join(targetDir, 'doc_filtered_${DateTime.now().millisecondsSinceEpoch}.jpg');
+    final targetFile = File(targetPath);
+
+    final params = _FilterIsolateParams(
+      inputPath: inputFile.path,
+      outputPath: targetFile.path,
+      filter: filter,
+      quality: quality,
+      quarterTurns: quarterTurns,
+    );
+
+    final FilterResultData? filterResult;
+    if (isTest) {
+      filterResult = _filterIsolateWorker(params);
+    } else {
+      filterResult = await compute(_filterIsolateWorker, params);
+    }
+
+    if (filterResult == null || !targetFile.existsSync()) {
+      throw Exception('Failed to apply document filter');
+    }
+
+    stopwatch.stop();
+
+    return ProcessResult(
+      originalPath: inputFile.path,
+      outputPath: targetFile.path,
+      originalSizeBytes: inputFile.lengthSync(),
+      outputSizeBytes: targetFile.lengthSync(),
+      originalWidth: filterResult.origW,
+      originalHeight: filterResult.origH,
+      outputWidth: filterResult.outW,
+      outputHeight: filterResult.outH,
+      outputFormat: 'jpg',
+      finalQuality: quality,
+      processingTime: stopwatch.elapsed,
+    );
+  }
+}
+
+class FilterResultData {
+  final int origW;
+  final int origH;
+  final int outW;
+  final int outH;
+
+  const FilterResultData({
+    required this.origW,
+    required this.origH,
+    required this.outW,
+    required this.outH,
+  });
 }
 
 class _FilterIsolateParams {
@@ -379,25 +460,40 @@ class _FilterIsolateParams {
   final String outputPath;
   final PerspectiveFilter filter;
   final int quality;
+  final int quarterTurns;
 
   const _FilterIsolateParams({
     required this.inputPath,
     required this.outputPath,
     required this.filter,
     required this.quality,
+    this.quarterTurns = 0,
   });
 }
 
-void _filterIsolateWorker(_FilterIsolateParams params) {
+FilterResultData? _filterIsolateWorker(_FilterIsolateParams params) {
   final inFile = File(params.inputPath);
-  if (!inFile.existsSync()) return;
+  if (!inFile.existsSync()) return null;
   final bytes = inFile.readAsBytesSync();
   final decoded = img.decodeImage(bytes);
-  if (decoded == null) return;
+  if (decoded == null) return null;
 
-  final filtered = PerspectiveCropper.applyFilter(decoded, params.filter);
+  var working = decoded;
+  if (params.quarterTurns % 4 != 0) {
+    final angle = (params.quarterTurns % 4) * 90;
+    working = img.copyRotate(working, angle: angle);
+  }
+
+  final filtered = PerspectiveCropper.applyFilter(working, params.filter);
   final encoded = img.encodeJpg(filtered, quality: params.quality);
   File(params.outputPath).writeAsBytesSync(encoded, flush: true);
+
+  return FilterResultData(
+    origW: decoded.width,
+    origH: decoded.height,
+    outW: filtered.width,
+    outH: filtered.height,
+  );
 }
 
 class _PerspectiveIsolateParams {
@@ -408,4 +504,40 @@ class _PerspectiveIsolateParams {
     required this.options,
     required this.outputDirPath,
   });
+}
+
+/// Helper providing real-time hardware-accelerated ColorFilter matrices for document filters
+class DocumentFilterHelper {
+  DocumentFilterHelper._();
+
+  static ColorFilter? getColorFilter(PerspectiveFilter filter) {
+    switch (filter) {
+      case PerspectiveFilter.none:
+        return null;
+
+      case PerspectiveFilter.grayscale:
+        return const ColorFilter.matrix(<double>[
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0,      0,      0,      1, 0,
+        ]);
+
+      case PerspectiveFilter.documentBw:
+        return const ColorFilter.matrix(<double>[
+          0.8504, 2.8608, 0.2888, 0, -540.0,
+          0.8504, 2.8608, 0.2888, 0, -540.0,
+          0.8504, 2.8608, 0.2888, 0, -540.0,
+          0,      0,      0,      1, 0,
+        ]);
+
+      case PerspectiveFilter.enhanced:
+        return const ColorFilter.matrix(<double>[
+          1.3976, -0.1341, -0.0135, 0, -24.0,
+          -0.0399, 1.3034, -0.0135, 0, -24.0,
+          -0.0399, -0.1341, 1.4240, 0, -24.0,
+          0,       0,       0,      1, 0,
+        ]);
+    }
+  }
 }

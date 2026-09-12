@@ -200,7 +200,7 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
                 ],
               ),
               Slider(
-                value: _quality,
+                value: _quality.clamp(20, 100),
                 min: 20,
                 max: 100,
                 divisions: 16,

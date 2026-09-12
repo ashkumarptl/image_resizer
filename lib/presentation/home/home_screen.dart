@@ -10,7 +10,6 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../data/repositories/usage_limit_repository.dart';
 import '../batch/batch_screen.dart';
-import '../perspective_crop/perspective_crop_screen.dart';
 import '../photo_stamp/photo_stamp_screen.dart';
 import '../result/result_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
@@ -87,20 +86,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PhotoStampScreen(initialImage: file),
-      ),
-    );
-  }
-
-  Future<void> _handlePerspectiveCropTool() async {
-    final canAccess = await checkFeatureAccess(context, ref);
-    if (!canAccess || !mounted) return;
-
-    final file = await _pickImage(title: 'Select Document / Photo to Deskew');
-    if (file == null || !mounted) return;
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PerspectiveCropScreen(initialImage: file),
       ),
     );
   }
@@ -861,17 +846,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   accentColor: const Color(0xFF6366F1),
                   isDark: isDark,
                   onTap: _handlePhotoStampTool,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _QuickUtilityTile(
-                  title: 'Deskew Doc',
-                  subtitle: 'Straighten ID',
-                  icon: Icons.crop_rotate_rounded,
-                  accentColor: const Color(0xFFEA580C),
-                  isDark: isDark,
-                  onTap: _handlePerspectiveCropTool,
                 ),
               ),
             ],

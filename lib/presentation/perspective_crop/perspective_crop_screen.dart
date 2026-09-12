@@ -36,7 +36,6 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
   late NormalizedPoint _bottomLeft;
 
   PerspectiveCropPreset _selectedPreset = PerspectiveCropPreset.auto;
-  PerspectiveFilter _selectedFilter = PerspectiveFilter.none;
   bool _isProcessing = false;
 
   @override
@@ -179,7 +178,6 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
         bottomRight: _bottomRight,
         bottomLeft: _bottomLeft,
         preset: _selectedPreset,
-        filter: _selectedFilter,
         quarterTurns: _quarterTurns,
         quality: 92,
       );
@@ -314,7 +312,6 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
             child: PerspectiveCropCanvas(
               imageFile: _currentImage,
               quarterTurns: _quarterTurns,
-              filter: _selectedFilter,
               topLeft: _topLeft,
               topRight: _topRight,
               bottomRight: _bottomRight,
@@ -415,31 +412,6 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
       );
     }).toList();
 
-    final filterChips = PerspectiveFilter.values.map((filter) {
-      final isSelected = _selectedFilter == filter;
-      return Padding(
-        padding: EdgeInsets.only(right: isWide ? 0 : 6),
-        child: ChoiceChip(
-          label: Text(filter.label),
-          selected: isSelected,
-          selectedColor: AppColors.secondary.withValues(alpha: 0.2),
-          labelStyle: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected
-                ? AppColors.secondary
-                : (isDark ? Colors.white70 : Colors.black87),
-          ),
-          onSelected: (selected) {
-            if (selected) {
-              HapticFeedback.selectionClick();
-              setState(() => _selectedFilter = filter);
-            }
-          },
-        ),
-      );
-    }).toList();
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -467,35 +439,6 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(children: ratioChips),
-                ),
-              ),
-            ],
-          ),
-        const SizedBox(height: 12),
-
-        // Filters / Enhancement
-        Text(
-          'Document Filter:',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-          ),
-        ),
-        const SizedBox(height: 6),
-        if (isWide)
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: filterChips,
-          )
-        else
-          Row(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(children: filterChips),
                 ),
               ),
             ],

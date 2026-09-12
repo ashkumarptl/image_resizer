@@ -534,12 +534,41 @@ void main() {
       }
     });
 
-    testWidgets('Renders Quick KB preset chips and updates target KB on tap',
+    testWidgets('Defaults to no active tool and opens compress on toolbar tap',
         (tester) async {
       await tester.runAsync(() async {
         await tester.pumpWidget(
           MaterialApp(
             home: ImageStudioScreen(initialImage: testImageFile),
+          ),
+        );
+        await Future.delayed(const Duration(milliseconds: 150));
+      });
+      await tester.pump();
+
+      // Compress preset chips are NOT visible by default
+      expect(find.text('20 KB'), findsNothing);
+      expect(find.text('50 KB'), findsNothing);
+
+      // Tap COMPRESS toolbar button to toggle on
+      await tester.tap(find.text('COMPRESS'));
+      await tester.pump();
+
+      // Now preset chips are visible
+      expect(find.text('Original'), findsWidgets);
+      expect(find.text('20 KB'), findsOneWidget);
+      expect(find.text('50 KB'), findsWidgets);
+    });
+
+    testWidgets('Renders Quick KB preset chips and updates target KB on tap',
+        (tester) async {
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ImageStudioScreen(
+              initialImage: testImageFile,
+              initialTool: StudioActiveTool.compress,
+            ),
           ),
         );
         await Future.delayed(const Duration(milliseconds: 150));
@@ -687,7 +716,10 @@ void main() {
       await tester.runAsync(() async {
         await tester.pumpWidget(
           MaterialApp(
-            home: ImageStudioScreen(initialImage: testImageFile),
+            home: ImageStudioScreen(
+              initialImage: testImageFile,
+              initialTool: StudioActiveTool.compress,
+            ),
           ),
         );
         await Future.delayed(const Duration(milliseconds: 150));
@@ -739,6 +771,8 @@ void main() {
       expect(redoBtn.onPressed, isNull);
 
       // 4. Perform second adjustment: Rotate
+      await tester.ensureVisible(find.text('ROTATE'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('ROTATE'));
       await tester.pump();
 
@@ -774,7 +808,10 @@ void main() {
       await tester.runAsync(() async {
         await tester.pumpWidget(
           MaterialApp(
-            home: ImageStudioScreen(initialImage: testImageFile),
+            home: ImageStudioScreen(
+              initialImage: testImageFile,
+              initialTool: StudioActiveTool.compress,
+            ),
           ),
         );
         await Future.delayed(const Duration(milliseconds: 250));

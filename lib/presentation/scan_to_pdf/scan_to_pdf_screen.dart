@@ -22,11 +22,7 @@ class ScanToPdfScreen extends ConsumerStatefulWidget {
   final bool isTab;
   final List<ScanProject>? initialProjects;
 
-  const ScanToPdfScreen({
-    super.key,
-    this.isTab = false,
-    this.initialProjects,
-  });
+  const ScanToPdfScreen({super.key, this.isTab = false, this.initialProjects});
 
   @override
   ConsumerState<ScanToPdfScreen> createState() => _ScanToPdfScreenState();
@@ -66,7 +62,9 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
     }
     switch (_sortBy) {
       case 'name_asc':
-        list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        list.sort(
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
         break;
       case 'size_desc':
         list.sort((a, b) => b.pdfSizeBytes.compareTo(a.pdfSizeBytes));
@@ -125,11 +123,14 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
         await _loadProjects();
 
         if (mounted) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ScanProjectDetailScreen(initialProject: project),
-            ),
-          ).then((_) => _loadProjects());
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      ScanProjectDetailScreen(initialProject: project),
+                ),
+              )
+              .then((_) => _loadProjects());
         }
       }
     } catch (e) {
@@ -175,11 +176,14 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
 
       if (mounted) {
         HapticFeedback.mediumImpact();
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ScanProjectDetailScreen(initialProject: project),
-          ),
-        ).then((_) => _loadProjects());
+        Navigator.of(context)
+            .push(
+              MaterialPageRoute(
+                builder: (_) =>
+                    ScanProjectDetailScreen(initialProject: project),
+              ),
+            )
+            .then((_) => _loadProjects());
       }
     } catch (e) {
       debugPrint('[ScanToPdfScreen] Gallery to PDF error: $e');
@@ -296,68 +300,38 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
     return Scaffold(
       key: const ValueKey("scan_to_pdf_scaffold"),
       appBar: AppBar(
-        toolbarHeight: context.isLargeTablet ? 84 : (context.isMediumOrWider ? 72 : null),
+        toolbarHeight: context.isLargeTablet
+            ? 84
+            : (context.isMediumOrWider ? 72 : null),
         automaticallyImplyLeading: !widget.isTab,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Scan to PDF',
-              style: TextStyle(
-                fontSize: context.adaptiveFontSize(18, tabletSize: 24, largeTabletSize: 28),
-                fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-              ),
+        title: Text(
+          'Scan to PDF',
+          style: TextStyle(
+            fontSize: context.adaptiveFontSize(
+              20,
+              tabletSize: 24,
+              largeTabletSize: 28,
             ),
-            const SizedBox(height: 2),
-            Text(
-              'Auto-deskew, enhance & convert to PDF',
-              style: TextStyle(
-                fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15.5),
-                fontWeight: FontWeight.normal,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-              ),
-            ),
-          ],
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.4,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
+          ),
         ),
         actions: [
-          // Offline Status Badge
-          Container(
-            margin: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 18 : 12),
-            padding: EdgeInsets.symmetric(
-              horizontal: context.isLargeTablet ? 14 : 10,
-              vertical: context.isLargeTablet ? 6 : 4,
+          IconButton(
+            icon: Icon(
+              Icons.info_outline_rounded,
+              size: context.adaptiveIconSize(
+                22,
+                tabletSize: 26,
+                largeTabletSize: 30,
+              ),
             ),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.success.withValues(alpha: 0.16)
-                  : AppColors.successContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: context.isLargeTablet ? 10 : 7,
-                  height: context.isLargeTablet ? 10 : 7,
-                  decoration: const BoxDecoration(
-                    color: AppColors.success,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                SizedBox(width: context.isLargeTablet ? 8 : 5),
-                Text(
-                  'Offline',
-                  style: TextStyle(
-                    fontSize: context.adaptiveFontSize(12, tabletSize: 13.5, largeTabletSize: 15.5),
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.secondaryLight : AppColors.success,
-                  ),
-                ),
-              ],
-            ),
+            tooltip: 'Scanning Tips',
+            onPressed: () => _showTipsBottomSheet(context),
           ),
-          const SizedBox(width: 4),
           Consumer(
             builder: (context, ref, child) {
               final authState = ref.watch(authStateProvider);
@@ -370,14 +344,24 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                       tooltip: 'Account (${user.displayName ?? 'Signed in'})',
                       onPressed: () => showAccountBottomSheet(context),
                       icon: CircleAvatar(
-                        radius: context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 14),
+                        radius: context.isLargeTablet
+                            ? 24
+                            : (context.isMediumOrWider ? 20 : 14),
                         backgroundColor: AppColors.primaryContainerLight,
-                        backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                        backgroundImage: photoUrl != null
+                            ? NetworkImage(photoUrl)
+                            : null,
                         child: photoUrl == null
                             ? Text(
-                                displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                                displayName.isNotEmpty
+                                    ? displayName[0].toUpperCase()
+                                    : 'U',
                                 style: TextStyle(
-                                  fontSize: context.adaptiveFontSize(12, tabletSize: 16, largeTabletSize: 19),
+                                  fontSize: context.adaptiveFontSize(
+                                    12,
+                                    tabletSize: 16,
+                                    largeTabletSize: 19,
+                                  ),
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryDark,
                                 ),
@@ -389,7 +373,11 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                     return IconButton(
                       icon: Icon(
                         Icons.account_circle_outlined,
-                        size: context.adaptiveIconSize(24, tabletSize: 32, largeTabletSize: 38),
+                        size: context.adaptiveIconSize(
+                          24,
+                          tabletSize: 32,
+                          largeTabletSize: 38,
+                        ),
                       ),
                       tooltip: 'Sign In / Account',
                       onPressed: () => showAccountBottomSheet(context),
@@ -412,252 +400,310 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
               );
             },
           ),
+          const SizedBox(width: 4),
         ],
       ),
+      floatingActionButtonLocation: isWide
+          ? FloatingActionButtonLocation.endFloat
+          : FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Padding(
         padding: EdgeInsets.only(
           bottom: fabBottomPadding,
-          right: isWide ? (context.adaptiveMargin > 16 ? context.adaptiveMargin - 16 : 0) : 0,
+          right: isWide
+              ? (context.adaptiveMargin > 16 ? context.adaptiveMargin - 16 : 0)
+              : 0,
         ),
-        child: _buildNewScanFab(context),
+        child: _buildFloatingActions(context, isDark),
       ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadProjects,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: AdaptivePageContainer(
-              padding: EdgeInsets.zero,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Quick Action Cards ("Scan Document" and "Import Images")
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                    child: _buildQuickActionCards(context, isDark),
+          child: _projects.isEmpty
+              ? SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: AdaptivePageContainer(
+                    child: _buildEmptyState(context, isDark),
                   ),
-                  const SizedBox(height: 16),
+                )
+              : SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: AdaptivePageContainer(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Search & Filter Bar
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.adaptiveMargin,
+                          ),
+                          child: _buildSearchAndFilterBar(context, isDark),
+                        ),
+                        const SizedBox(height: 18),
 
-                  // 2. Search & Filter Bar
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                    child: _buildSearchAndFilterBar(context, isDark),
-                  ),
-                  const SizedBox(height: 20),
+                        // Documents Section
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.adaptiveMargin,
+                          ),
+                          child: _buildProjectsSection(context, isDark),
+                        ),
 
-                  // 3. Documents & Projects Section
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                    child: _buildProjectsSection(context, isDark),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 4. Features Row
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                    child: _buildFeatureChips(isDark),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 5. Tips Card
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                    child: _buildTipsCard(context, isDark),
-                  ),
-
-                  const SizedBox(height: 120),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureChips(bool isDark) {
-    final chips = [
-      ('⚡ Auto Boundary', Colors.amber),
-      ('🌓 Shadow Clean', Colors.teal),
-      ('📑 Multi-Page PDF', const Color(0xFF6366F1)),
-      ('🔒 100% Offline', Colors.green),
-    ];
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: chips.map((item) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isDark ? AppColors.borderDark : AppColors.borderLight,
-            ),
-          ),
-          child: Text(
-            item.$1,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildNewScanFab(BuildContext context) {
-    final fabSize = context.adaptiveIconSize(68, tabletSize: 84, largeTabletSize: 96);
-    return SizedBox(
-      width: fabSize,
-      height: fabSize,
-      child: FloatingActionButton(
-        onPressed: _isProcessing ? null : _handleScanWithCamera,
-        backgroundColor: AppColors.primary,
-        elevation: 6,
-        shape: const CircleBorder(),
-        child: _isProcessing
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: Colors.white,
-                ),
-              )
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.camera_alt_rounded,
-                    size: context.adaptiveIconSize(25, tabletSize: 32, largeTabletSize: 38),
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'New Scan',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: context.adaptiveFontSize(10.5, tabletSize: 13.5, largeTabletSize: 15.5),
-                      fontWeight: FontWeight.bold,
-                      height: 1.1,
+                        const SizedBox(height: 120),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+        ),
       ),
     );
   }
 
-  Widget _buildQuickActionCards(BuildContext context, bool isDark) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildActionCard(
-            context: context,
-            isDark: isDark,
-            icon: Icons.photo_camera_rounded,
-            iconBg: isDark ? AppColors.primaryContainerDark : AppColors.primaryContainerLight,
-            iconColor: isDark ? AppColors.primaryLight : AppColors.primary,
-            title: 'Scan\nDocument',
-            onTap: _isProcessing ? null : _handleScanWithCamera,
+  Widget _buildFloatingActions(BuildContext context, bool isDark) {
+    final pillHeight = context.adaptiveIconSize(
+      52,
+      tabletSize: 60,
+      largeTabletSize: 68,
+    );
+
+    return Container(
+      height: pillHeight,
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(pillHeight / 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.38),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Scan with Camera
+            InkWell(
+              onTap: _isProcessing ? null : _handleScanWithCamera,
+              borderRadius: BorderRadius.horizontal(
+                left: Radius.circular(pillHeight / 2),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.isLargeTablet ? 24 : 18,
+                  vertical: 10,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_isProcessing)
+                      const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    else
+                      Icon(
+                        Icons.camera_alt_rounded,
+                        size: context.adaptiveIconSize(
+                          20,
+                          tabletSize: 24,
+                          largeTabletSize: 28,
+                        ),
+                        color: Colors.white,
+                      ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Scan',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: context.adaptiveFontSize(
+                          14,
+                          tabletSize: 16,
+                          largeTabletSize: 18,
+                        ),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Vertical Divider
+            Container(
+              height: pillHeight * 0.45,
+              width: 1,
+              color: Colors.white.withValues(alpha: 0.3),
+            ),
+            // Import from Gallery
+            InkWell(
+              onTap: _isProcessing ? null : _handleImportFromGallery,
+              borderRadius: BorderRadius.horizontal(
+                right: Radius.circular(pillHeight / 2),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.isLargeTablet ? 24 : 18,
+                  vertical: 10,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.photo_library_rounded,
+                      size: context.adaptiveIconSize(
+                        20,
+                        tabletSize: 24,
+                        largeTabletSize: 28,
+                      ),
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Gallery',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: context.adaptiveFontSize(
+                          14,
+                          tabletSize: 16,
+                          largeTabletSize: 18,
+                        ),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        SizedBox(width: context.isLargeTablet ? 16 : 12),
-        Expanded(
-          child: _buildActionCard(
-            context: context,
-            isDark: isDark,
-            icon: Icons.photo_library_rounded,
-            iconBg: isDark ? AppColors.secondaryContainerDark : AppColors.secondaryContainerLight,
-            iconColor: isDark ? AppColors.secondaryLight : AppColors.secondary,
-            title: 'Import\nImages',
-            onTap: _isProcessing ? null : _handleImportFromGallery,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildActionCard({
-    required BuildContext context,
-    required bool isDark,
-    required IconData icon,
-    required Color iconBg,
-    required Color iconColor,
-    required String title,
-    required VoidCallback? onTap,
-  }) {
-    final cardRadius = context.isLargeTablet ? 20.0 : 16.0;
-    final iconBoxSize = context.adaptiveIconSize(44, tabletSize: 58, largeTabletSize: 68);
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(cardRadius),
-        child: Ink(
-          padding: EdgeInsets.symmetric(
-            horizontal: context.isLargeTablet ? 20 : (context.isMediumOrWider ? 16 : 14),
-            vertical: context.isLargeTablet ? 20 : (context.isMediumOrWider ? 16 : 14),
-          ),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(cardRadius),
-            border: Border.all(
-              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+  Widget _buildEmptyState(BuildContext context, bool isDark) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: context.isLargeTablet ? 88 : 76,
+              height: context.isLargeTablet ? 88 : 76,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.primary.withValues(alpha: 0.15)
+                    : AppColors.primaryContainerLight,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.document_scanner_rounded,
+                size: context.adaptiveIconSize(
+                  38,
+                  tabletSize: 46,
+                  largeTabletSize: 52,
+                ),
+                color: isDark ? AppColors.primaryLight : AppColors.primary,
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: iconBoxSize,
-                height: iconBoxSize,
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : 12),
+            const SizedBox(height: 20),
+            Text(
+              'No Documents Yet',
+              style: TextStyle(
+                fontSize: context.adaptiveFontSize(
+                  18,
+                  tabletSize: 22,
+                  largeTabletSize: 24,
                 ),
-                child: Center(
-                  child: Icon(
-                    icon,
-                    color: iconColor,
-                    size: context.adaptiveIconSize(22, tabletSize: 30, largeTabletSize: 36),
+                fontWeight: FontWeight.bold,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: Text(
+                'Scan physical documents with your camera or import images to convert them into crisp PDFs.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: context.adaptiveFontSize(
+                    13,
+                    tabletSize: 15,
+                    largeTabletSize: 16.5,
+                  ),
+                  height: 1.45,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12,
+              runSpacing: 10,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isProcessing ? null : _handleScanWithCamera,
+                  icon: const Icon(Icons.camera_alt_rounded, size: 18),
+                  label: const Text('Scan Document'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
                   ),
                 ),
-              ),
-              SizedBox(width: context.isLargeTablet ? 16 : 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: context.adaptiveFontSize(13.5, tabletSize: 17, largeTabletSize: 20),
-                    fontWeight: FontWeight.bold,
-                    height: 1.25,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                OutlinedButton.icon(
+                  onPressed: _isProcessing ? null : _handleImportFromGallery,
+                  icon: const Icon(Icons.photo_library_outlined, size: 18),
+                  label: const Text('Import Images'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: isDark
+                        ? Colors.white
+                        : AppColors.textPrimaryLight,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    side: BorderSide(
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.borderLight,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildSearchAndFilterBar(BuildContext context, bool isDark) {
-    final barHeight = context.isLargeTablet ? 58.0 : (context.isMediumOrWider ? 52.0 : 46.0);
+    final barHeight = context.isLargeTablet
+        ? 58.0
+        : (context.isMediumOrWider ? 52.0 : 46.0);
     final barRadius = context.isLargeTablet ? 18.0 : 14.0;
 
     return Row(
@@ -666,7 +712,9 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
           child: Container(
             height: barHeight,
             decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+              color: isDark
+                  ? AppColors.surfaceVariantDark
+                  : AppColors.surfaceVariantLight,
               borderRadius: BorderRadius.circular(barRadius),
               border: Border.all(
                 color: isDark ? AppColors.borderDark : AppColors.borderLight,
@@ -680,8 +728,14 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                 });
               },
               style: TextStyle(
-                fontSize: context.adaptiveFontSize(13.5, tabletSize: 16.5, largeTabletSize: 18.5),
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                fontSize: context.adaptiveFontSize(
+                  13.5,
+                  tabletSize: 16.5,
+                  largeTabletSize: 18.5,
+                ),
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
               decoration: InputDecoration(
                 isDense: true,
@@ -689,21 +743,39 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                 border: InputBorder.none,
                 prefixIcon: Icon(
                   Icons.search_rounded,
-                  size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  size: context.adaptiveIconSize(
+                    20,
+                    tabletSize: 24,
+                    largeTabletSize: 28,
+                  ),
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
                 hintText: 'Search documents, notes, etc...',
                 hintStyle: TextStyle(
-                  fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  fontSize: context.adaptiveFontSize(
+                    13,
+                    tabletSize: 15.5,
+                    largeTabletSize: 17.5,
+                  ),
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: Icon(
                           Icons.close_rounded,
-                          size: context.adaptiveIconSize(18, tabletSize: 22, largeTabletSize: 26),
+                          size: context.adaptiveIconSize(
+                            18,
+                            tabletSize: 22,
+                            largeTabletSize: 26,
+                          ),
                         ),
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                         onPressed: () {
                           _searchController.clear();
                           setState(() {
@@ -726,7 +798,9 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
               width: barHeight,
               height: barHeight,
               decoration: BoxDecoration(
-                color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+                color: isDark
+                    ? AppColors.surfaceVariantDark
+                    : AppColors.surfaceVariantLight,
                 borderRadius: BorderRadius.circular(barRadius),
                 border: Border.all(
                   color: _sortBy != 'date_desc'
@@ -737,10 +811,16 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
               child: Center(
                 child: Icon(
                   Icons.tune_rounded,
-                  size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
+                  size: context.adaptiveIconSize(
+                    20,
+                    tabletSize: 24,
+                    largeTabletSize: 28,
+                  ),
                   color: _sortBy != 'date_desc'
                       ? (isDark ? AppColors.primaryLight : AppColors.primary)
-                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                      : (isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight),
                 ),
               ),
             ),
@@ -788,7 +868,9 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -856,11 +938,17 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             color: isSelected
                 ? (isDark ? AppColors.primaryLight : AppColors.primary)
-                : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                : (isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight),
           ),
         ),
         trailing: isSelected
-            ? Icon(Icons.check_rounded, color: isDark ? AppColors.primaryLight : AppColors.primary, size: 20)
+            ? Icon(
+                Icons.check_rounded,
+                color: isDark ? AppColors.primaryLight : AppColors.primary,
+                size: 20,
+              )
             : null,
         onTap: onTap,
       ),
@@ -883,7 +971,9 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
           Icon(
             Icons.search_off_rounded,
             size: 40,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
           const SizedBox(height: 10),
           Text(
@@ -891,7 +981,9 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              color: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
             ),
           ),
           const SizedBox(height: 4),
@@ -900,7 +992,9 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
         ],
@@ -919,145 +1013,61 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
           children: [
             Expanded(
               child: Text(
-                'Documents & Projects',
+                'Documents',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: context.adaptiveFontSize(
+                    18,
+                    tabletSize: 22,
+                    largeTabletSize: 26,
+                  ),
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  letterSpacing: -0.3,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              '${filtered.length} ${filtered.length == 1 ? 'doc' : 'docs'}',
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w500,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.surfaceVariantDark
+                    : AppColors.surfaceVariantLight,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${filtered.length} ${filtered.length == 1 ? 'doc' : 'docs'}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
 
-        if (_projects.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark ? AppColors.borderDark : AppColors.borderLight,
-              ),
-            ),
-            child: Center(
-              child: Column(
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.document_scanner_rounded,
-                      size: 28,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    'No scan projects yet',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Turn physical documents, receipts & forms into crisp, multi-page PDF files.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.4,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _isProcessing ? null : _handleScanWithCamera,
-                          icon: _isProcessing
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.camera_alt_rounded, size: 18),
-                          label: Text(
-                            _isProcessing ? 'Processing...' : 'Scan with Camera',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      OutlinedButton.icon(
-                        onPressed: _isProcessing ? null : _handleImportFromGallery,
-                        icon: const Icon(Icons.photo_library_outlined, size: 18),
-                        label: const Text(
-                          'Gallery',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: isDark ? Colors.white : AppColors.textPrimaryLight,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          side: BorderSide(
-                            color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          )
-        else if (filtered.isEmpty)
+        if (filtered.isEmpty)
           _buildNoSearchResultsState(isDark)
         else if (context.isMediumOrWider)
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: context.responsiveValue(compact: 1, medium: 2, expanded: 2, large: 3),
-              mainAxisExtent: context.isLargeTablet ? 154 : 142,
+              crossAxisCount: context.responsiveValue(
+                compact: 1,
+                medium: 2,
+                expanded: 2,
+                large: 3,
+              ),
+              mainAxisExtent: context.isLargeTablet ? 128 : 112,
               crossAxisSpacing: context.isMediumOrWider ? 16 : 12,
               mainAxisSpacing: context.isMediumOrWider ? 16 : 12,
             ),
@@ -1116,46 +1126,53 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
     }
   }
 
-  Widget _buildProjectCard(BuildContext context, ScanProject project, bool isDark) {
+  Widget _buildProjectCard(
+    BuildContext context,
+    ScanProject project,
+    bool isDark,
+  ) {
     final sizeStr = _formatBytes(project.pdfSizeBytes);
     final dateStr = DateFormat('d MMM yyyy').format(project.updatedAt);
     final isSaved = _savedPdfPaths.contains(project.id);
-    final coverFile = project.coverImagePath != null ? File(project.coverImagePath!) : null;
+    final coverFile = project.coverImagePath != null
+        ? File(project.coverImagePath!)
+        : null;
 
-    final qualityLabel = PdfQualityPreset.fromString(project.pdfQuality).label.split(' ').first;
-    final (qualityBg, qualityText) = switch (project.pdfQuality) {
-      'high' => (
-        isDark ? AppColors.error.withValues(alpha: 0.20) : AppColors.errorContainer,
-        isDark ? const Color(0xFFFCA5A5) : AppColors.error,
-      ),
-      'low' => (
-        isDark ? AppColors.warning.withValues(alpha: 0.20) : AppColors.warningContainer,
-        isDark ? const Color(0xFFFDBA74) : AppColors.warning,
-      ),
-      _ => (
-        isDark ? AppColors.secondaryContainerDark : AppColors.secondaryContainerLight,
-        isDark ? AppColors.secondaryLight : AppColors.secondaryDark,
-      ),
-    };
-
-    final coverWidth = context.adaptiveIconSize(52, tabletSize: 66, largeTabletSize: 76);
-    final coverHeight = context.adaptiveIconSize(68, tabletSize: 86, largeTabletSize: 100);
-    final iconActionSize = context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28);
-    final actionBoxSize = context.isLargeTablet ? 48.0 : (context.isMediumOrWider ? 42.0 : 36.0);
+    final coverWidth = context.adaptiveIconSize(
+      52,
+      tabletSize: 66,
+      largeTabletSize: 76,
+    );
+    final coverHeight = context.adaptiveIconSize(
+      68,
+      tabletSize: 86,
+      largeTabletSize: 100,
+    );
+    final iconActionSize = context.adaptiveIconSize(
+      22,
+      tabletSize: 26,
+      largeTabletSize: 30,
+    );
+    final actionBoxSize = context.isLargeTablet
+        ? 48.0
+        : (context.isMediumOrWider ? 42.0 : 36.0);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ScanProjectDetailScreen(initialProject: project),
-            ),
-          ).then((_) => _loadProjects());
+          Navigator.of(context)
+              .push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      ScanProjectDetailScreen(initialProject: project),
+                ),
+              )
+              .then((_) => _loadProjects());
         },
         borderRadius: BorderRadius.circular(16),
         child: Ink(
-          padding: EdgeInsets.all(context.isMediumOrWider ? 16 : 12),
+          padding: EdgeInsets.all(context.isMediumOrWider ? 14 : 12),
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
             borderRadius: BorderRadius.circular(16),
@@ -1165,8 +1182,8 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -1179,10 +1196,14 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                   width: coverWidth,
                   height: coverHeight,
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+                    color: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.surfaceVariantLight,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.borderLight,
                     ),
                   ),
                   child: coverFile != null && coverFile.existsSync()
@@ -1193,17 +1214,25 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                           errorBuilder: (context, error, stackTrace) => Icon(
                             Icons.picture_as_pdf_rounded,
                             color: AppColors.primary,
-                            size: context.adaptiveIconSize(28, tabletSize: 34, largeTabletSize: 40),
+                            size: context.adaptiveIconSize(
+                              28,
+                              tabletSize: 34,
+                              largeTabletSize: 40,
+                            ),
                           ),
                         )
                       : Icon(
                           Icons.picture_as_pdf_rounded,
                           color: AppColors.primary,
-                          size: context.adaptiveIconSize(28, tabletSize: 34, largeTabletSize: 40),
+                          size: context.adaptiveIconSize(
+                            28,
+                            tabletSize: 34,
+                            largeTabletSize: 40,
+                          ),
                         ),
                 ),
               ),
-              SizedBox(width: context.isMediumOrWider ? 16 : 12),
+              SizedBox(width: context.isMediumOrWider ? 14 : 12),
 
               // Info
               Expanded(
@@ -1214,69 +1243,99 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                     Text(
                       project.name,
                       style: TextStyle(
-                        fontSize: context.adaptiveFontSize(15.5, tabletSize: 18.5, largeTabletSize: 21),
+                        fontSize: context.adaptiveFontSize(
+                          15.5,
+                          tabletSize: 18.5,
+                          largeTabletSize: 21,
+                        ),
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: context.isMediumOrWider ? 7 : 5),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const NeverScrollableScrollPhysics(),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: context.isMediumOrWider ? 9 : 7,
-                              vertical: context.isMediumOrWider ? 4 : 2.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.primaryContainerDark
-                                  : AppColors.primaryContainerLight,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              '${project.pageCount} ${project.pageCount == 1 ? 'Page' : 'Pages'}',
-                              style: TextStyle(
-                                fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15),
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.primaryContainerDark
+                                : AppColors.primaryContainerLight,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${project.pageCount} ${project.pageCount == 1 ? 'Page' : 'Pages'}',
+                            style: TextStyle(
+                              fontSize: context.adaptiveFontSize(
+                                11,
+                                tabletSize: 13,
+                                largeTabletSize: 14.5,
                               ),
+                              fontWeight: FontWeight.bold,
+                              color: isDark
+                                  ? AppColors.primaryLight
+                                  : AppColors.primaryDark,
                             ),
                           ),
-                          SizedBox(width: context.isMediumOrWider ? 8 : 6),
+                        ),
+                        if (isSaved) ...[
+                          const SizedBox(width: 6),
                           Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: context.isMediumOrWider ? 9 : 7,
-                              vertical: context.isMediumOrWider ? 4 : 2.5,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: qualityBg,
+                              color: AppColors.success.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: Text(
-                              qualityLabel,
-                              style: TextStyle(
-                                fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15),
-                                fontWeight: FontWeight.bold,
-                                color: qualityText,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 11,
+                                  color: AppColors.success,
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  'Saved',
+                                  style: TextStyle(
+                                    fontSize: context.adaptiveFontSize(
+                                      10.5,
+                                      tabletSize: 12,
+                                      largeTabletSize: 13.5,
+                                    ),
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.success,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
-                      ),
+                      ],
                     ),
-                    SizedBox(height: context.isMediumOrWider ? 7 : 5),
+                    const SizedBox(height: 5),
                     Text(
                       '$dateStr  •  $sizeStr',
                       style: TextStyle(
-                        fontSize: context.adaptiveFontSize(11.5, tabletSize: 14, largeTabletSize: 16),
-                        fontWeight: FontWeight.w500,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        fontSize: context.adaptiveFontSize(
+                          11.5,
+                          tabletSize: 14,
+                          largeTabletSize: 16,
+                        ),
+                        fontWeight: FontWeight.normal,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1286,68 +1345,93 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
               ),
               const SizedBox(width: 4),
 
-              // Quick Actions
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      isSaved ? Icons.check_circle_rounded : Icons.download_rounded,
-                      size: iconActionSize,
-                      color: isSaved ? AppColors.success : null,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                    constraints: BoxConstraints(minWidth: actionBoxSize, minHeight: actionBoxSize),
-                    padding: const EdgeInsets.all(6),
-                    onPressed: () => _handleSaveProjectPdf(project),
-                    tooltip: isSaved ? 'Saved to Downloads' : 'Save PDF to Downloads',
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.share_outlined, size: iconActionSize),
-                    visualDensity: VisualDensity.compact,
-                    constraints: BoxConstraints(minWidth: actionBoxSize, minHeight: actionBoxSize),
-                    padding: const EdgeInsets.all(6),
-                    onPressed: () => _handleShareProjectPdf(project),
-                    tooltip: 'Share PDF',
-                  ),
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.more_vert_rounded,
-                      size: iconActionSize,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                    ),
-                    constraints: BoxConstraints(minWidth: actionBoxSize * 0.8, minHeight: actionBoxSize),
-                    padding: const EdgeInsets.all(4),
-                    tooltip: 'More options',
-                    onSelected: (val) {
-                      if (val == 'rename') {
-                        _handleRenameProject(project);
-                      } else if (val == 'delete') {
-                        _handleDeleteProject(project);
-                      }
-                    },
-                    itemBuilder: (ctx) => [
-                      const PopupMenuItem(
-                        value: 'rename',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_outlined, size: 18),
-                            SizedBox(width: 10),
-                            Text('Rename Document'),
-                          ],
+              // Single clean 3-dot popup menu
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert_rounded,
+                  size: iconActionSize,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+                constraints: BoxConstraints(
+                  minWidth: actionBoxSize * 0.8,
+                  minHeight: actionBoxSize,
+                ),
+                padding: const EdgeInsets.all(4),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                tooltip: 'More options',
+                onSelected: (val) {
+                  if (val == 'save') {
+                    _handleSaveProjectPdf(project);
+                  } else if (val == 'share') {
+                    _handleShareProjectPdf(project);
+                  } else if (val == 'rename') {
+                    _handleRenameProject(project);
+                  } else if (val == 'delete') {
+                    _handleDeleteProject(project);
+                  }
+                },
+                itemBuilder: (ctx) => [
+                  PopupMenuItem(
+                    value: 'save',
+                    child: Row(
+                      children: [
+                        Icon(
+                          isSaved
+                              ? Icons.check_circle_rounded
+                              : Icons.download_rounded,
+                          size: 18,
+                          color: isSaved ? AppColors.success : null,
                         ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
-                            SizedBox(width: 10),
-                            Text('Delete', style: TextStyle(color: AppColors.error)),
-                          ],
+                        const SizedBox(width: 10),
+                        Text(
+                          isSaved
+                              ? 'Saved to Downloads'
+                              : 'Save PDF to Downloads',
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'share',
+                    child: Row(
+                      children: [
+                        Icon(Icons.share_outlined, size: 18),
+                        SizedBox(width: 10),
+                        Text('Share PDF'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'rename',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18),
+                        SizedBox(width: 10),
+                        Text('Rename Document'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
+                          color: AppColors.error,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          'Delete',
+                          style: TextStyle(color: AppColors.error),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1358,73 +1442,110 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
     );
   }
 
-  Widget _buildTipsCard(BuildContext context, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.lightbulb_outline_rounded,
-                size: 20,
-                color: Colors.amber,
+  void _showTipsBottomSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Material(
+          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isDark ? AppColors.borderDark : AppColors.borderLight,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Tips for Best PDF Scans',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 38,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.lightbulb_outline_rounded,
+                      size: 22,
+                      color: Colors.amber,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Tips for Best PDF Scans',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildTipRow(
+                  isDark,
+                  '📄',
+                  'Contrast Background',
+                  'Place white paper on a darker background for instant edge locking.',
+                ),
+                const SizedBox(height: 12),
+                _buildTipRow(
+                  isDark,
+                  '💡',
+                  'Good Lighting',
+                  'Avoid direct flash; ambient lighting prevents reflections and shadows.',
+                ),
+                const SizedBox(height: 12),
+                _buildTipRow(
+                  isDark,
+                  '📐',
+                  'CamScanner Page Editor',
+                  'Tap any document to replace blurry pages, rotate, or re-crop corners.',
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Got it',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          _buildTipRow(
-            isDark,
-            '📄',
-            'Contrast Background',
-            'Place white paper on a darker background for instant edge locking.',
-          ),
-          const SizedBox(height: 8),
-          _buildTipRow(
-            isDark,
-            '💡',
-            'Good Lighting',
-            'Avoid direct flash; ambient lighting prevents reflections and shadows.',
-          ),
-          const SizedBox(height: 8),
-          _buildTipRow(
-            isDark,
-            '📐',
-            'CamScanner Page Editor',
-            'Tap any document to replace blurry pages, rotate, or re-crop corners.',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildTipRow(
-    bool isDark,
-    String emoji,
-    String title,
-    String detail,
-  ) {
+  Widget _buildTipRow(bool isDark, String emoji, String title, String detail) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1436,7 +1557,9 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
               style: TextStyle(
                 fontSize: 12,
                 height: 1.4,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
               children: [
                 TextSpan(

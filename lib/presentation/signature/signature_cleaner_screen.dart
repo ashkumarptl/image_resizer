@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_cropper/image_cropper.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/extensions/file_size_extension.dart';
 import '../../core/layout/adaptive_layout.dart';
@@ -25,13 +24,11 @@ class SignatureCleanerScreen extends StatefulWidget {
 }
 
 class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
-  late File _currentImage;
   late int _originalSizeBytes;
 
   // Processing & Adjustment state
   double _threshold = 0.65;
   int _targetSizeKB = 19;
-  int _quarterTurns = 0;
   SignatureInkColor _inkColor = SignatureInkColor.darkNavy;
 
   // Live preview state
@@ -46,14 +43,11 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   bool get _hasChanges =>
       _threshold != 0.65 ||
       _targetSizeKB != 19 ||
-      _quarterTurns != 0 ||
-      _inkColor != SignatureInkColor.darkNavy ||
-      _currentImage.path != widget.initialImage.path;
+      _inkColor != SignatureInkColor.darkNavy;
 
   @override
   void initState() {
     super.initState();
-    _currentImage = widget.initialImage;
     _originalSizeBytes = widget.initialImage.lengthSync();
     _triggerPreviewUpdate(debounce: false);
   }
@@ -81,12 +75,11 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
 
     try {
       final options = SignatureEnhanceOptions(
-        sourcePath: _currentImage.path,
+        sourcePath: widget.initialImage.path,
         threshold: _threshold,
         targetSizeKB: _targetSizeKB,
         targetWidth: 400,
         targetHeight: 200,
-        quarterTurns: _quarterTurns,
         inkColor: _inkColor,
       );
 
@@ -104,53 +97,11 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
     }
   }
 
-  Future<void> _handleRotate() async {
-    HapticFeedback.selectionClick();
-    setState(() {
-      _quarterTurns = (_quarterTurns + 1) % 4;
-    });
-    _triggerPreviewUpdate(debounce: false);
-  }
-
-  Future<void> _handleCrop() async {
-    HapticFeedback.lightImpact();
-    try {
-      final cropped = await ImageCropper().cropImage(
-        sourcePath: _currentImage.path,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Crop Signature',
-            toolbarColor: AppColors.primary,
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.original,
-            lockAspectRatio: false,
-          ),
-          IOSUiSettings(
-            title: 'Crop Signature',
-          ),
-        ],
-      );
-
-      if (cropped != null && mounted) {
-        final newFile = File(cropped.path);
-        setState(() {
-          _currentImage = newFile;
-          _originalSizeBytes = newFile.lengthSync();
-          _quarterTurns = 0;
-        });
-        _triggerPreviewUpdate(debounce: false);
-      }
-    } catch (_) {}
-  }
-
   void _handleReset() {
     HapticFeedback.mediumImpact();
     setState(() {
-      _currentImage = widget.initialImage;
-      _originalSizeBytes = widget.initialImage.lengthSync();
       _threshold = 0.65;
       _targetSizeKB = 19;
-      _quarterTurns = 0;
       _inkColor = SignatureInkColor.darkNavy;
       _showOriginal = false;
     });
@@ -174,12 +125,11 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
 
     try {
       final options = SignatureEnhanceOptions(
-        sourcePath: _currentImage.path,
+        sourcePath: widget.initialImage.path,
         threshold: _threshold,
         targetSizeKB: _targetSizeKB,
         targetWidth: 400,
         targetHeight: 200,
-        quarterTurns: _quarterTurns,
         inkColor: _inkColor,
       );
 
@@ -280,7 +230,7 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
       ),
       child: Column(
         children: [
-          // Header: Mode Badge & Quick Toolbar (Rotate, Crop)
+          // Header: Mode Badge
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
@@ -325,30 +275,6 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                     ],
                   ),
                 ),
-                const Spacer(),
-
-                // Rotate Action Button
-                IconButton(
-                  icon: const Icon(Icons.rotate_right_rounded, size: 20),
-                  tooltip: 'Rotate 90°',
-                  visualDensity: VisualDensity.compact,
-                  style: IconButton.styleFrom(
-                    backgroundColor: isDark ? Colors.white10 : Colors.grey.shade100,
-                  ),
-                  onPressed: _handleRotate,
-                ),
-                const SizedBox(width: 6),
-
-                // Crop Action Button
-                IconButton(
-                  icon: const Icon(Icons.crop_rounded, size: 19),
-                  tooltip: 'Crop Tightly',
-                  visualDensity: VisualDensity.compact,
-                  style: IconButton.styleFrom(
-                    backgroundColor: isDark ? Colors.white10 : Colors.grey.shade100,
-                  ),
-                  onPressed: _handleCrop,
-                ),
               ],
             ),
           ),
@@ -374,24 +300,18 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                   borderRadius: BorderRadius.circular(11),
                   child: Center(
                     child: _showOriginal
-                        ? RotatedBox(
-                            quarterTurns: _quarterTurns,
-                            child: Image.file(
-                              _currentImage,
-                              fit: BoxFit.contain,
-                            ),
+                        ? Image.file(
+                            widget.initialImage,
+                            fit: BoxFit.contain,
                           )
                         : (hasPreview
                             ? Image.file(
                                 _previewImageFile!,
                                 fit: BoxFit.contain,
                               )
-                            : RotatedBox(
-                                quarterTurns: _quarterTurns,
-                                child: Image.file(
-                                  _currentImage,
-                                  fit: BoxFit.contain,
-                                ),
+                            : Image.file(
+                                widget.initialImage,
+                                fit: BoxFit.contain,
                               )),
                   ),
                 ),
@@ -431,7 +351,8 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           const Icon(Icons.bolt_rounded, size: 15, color: AppColors.primary),
                           const SizedBox(width: 4),
@@ -573,20 +494,27 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.tune_rounded, size: 18, color: AppColors.primary),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Shadow Removal Strength',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.tune_rounded, size: 18, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'Shadow Removal Strength',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -624,16 +552,17 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
             ),
             child: Slider(
-              value: _threshold,
+              value: _threshold.clamp(0.30, 0.90),
               min: 0.30,
               max: 0.90,
               divisions: 12,
               activeColor: AppColors.primary,
               onChanged: (val) {
-                if ((val * 100).round() != (_threshold * 100).round()) {
+                final normalizedVal = ((val * 100).round() / 100.0).clamp(0.30, 0.90);
+                if ((normalizedVal * 100).round() != (_threshold * 100).round()) {
                   HapticFeedback.selectionClick();
                 }
-                setState(() => _threshold = val);
+                setState(() => _threshold = normalizedVal);
                 _triggerPreviewUpdate();
               },
             ),

@@ -57,17 +57,11 @@ void main() {
       expect(find.text('A4 Document'), findsOneWidget);
       expect(find.text('ID Card'), findsOneWidget);
 
-      // Verify Filter chips
-      expect(find.text('Original'), findsOneWidget);
-      expect(find.text('Doc B&W'), findsOneWidget);
-      expect(find.text('Grayscale'), findsOneWidget);
-      expect(find.text('Vibrant'), findsOneWidget);
-
       // Verify Primary Action Button
       expect(find.text('Apply Perspective Crop'), findsOneWidget);
     });
 
-    testWidgets('Tapping presets and filters updates active selection', (tester) async {
+    testWidgets('Tapping presets updates active selection and corners', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
@@ -100,26 +94,6 @@ void main() {
       canvas = tester.widget<PerspectiveCropCanvas>(find.byType(PerspectiveCropCanvas));
       expect(canvas.topLeft.x, equals(0.0));
       expect(canvas.bottomRight.x, equals(1.0));
-
-      // Tap Doc B&W filter chip
-      await tester.tap(find.text('Doc B&W'));
-      await tester.pumpAndSettle();
-      expect(find.byType(ColorFiltered), findsWidgets);
-
-      // Tap Grayscale filter chip
-      await tester.tap(find.text('Grayscale'));
-      await tester.pumpAndSettle();
-      expect(find.byType(ColorFiltered), findsWidgets);
-
-      // Tap Vibrant filter chip
-      await tester.tap(find.text('Vibrant'));
-      await tester.pumpAndSettle();
-      expect(find.byType(ColorFiltered), findsWidgets);
-
-      // Tap Original filter chip
-      await tester.tap(find.text('Original'));
-      await tester.pumpAndSettle();
-      expect(find.byType(ColorFiltered), findsNothing);
 
       // Tap Rotate 90° button
       await tester.tap(find.byTooltip('Rotate 90°'));

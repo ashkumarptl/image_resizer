@@ -356,7 +356,7 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
               ],
             ),
             Slider(
-              value: _quality,
+              value: _quality.clamp(10, 100),
               min: 10,
               max: 100,
               divisions: 18,

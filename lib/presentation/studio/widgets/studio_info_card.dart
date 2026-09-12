@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import '../../../../core/constants/app_colors.dart';
@@ -48,28 +47,28 @@ class StudioInfoCard extends StatelessWidget {
     final isFormatConverted = targetExt.isNotEmpty && originalExt.isNotEmpty && targetExt != originalExt;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDark ? AppColors.borderDark : AppColors.borderLight,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black38 : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 1. Photo Thumbnail or Fallback Icon
-          _buildThumbnail(originalExt),
-          const SizedBox(width: 12),
+          // 1. Compact File Type / Photo Icon Badge
+          _buildCompactBadge(originalExt),
+          const SizedBox(width: 10),
 
           // 2. Structured Metadata
           Expanded(
@@ -86,7 +85,7 @@ class StudioInfoCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13.5,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w700,
                           color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                           letterSpacing: -0.2,
@@ -97,23 +96,27 @@ class StudioInfoCard extends StatelessWidget {
                     _buildFormatBadge(originalExt, targetExt, isFormatConverted),
                   ],
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
 
                 // Original Specs (Dimensions & File Size)
                 Text(
-                  '$width × $height px   •   ${fileSizeBytes.toReadableFileSize()}${dpi != null ? '   •   $dpi DPI' : ''}',
+                  (width > 0 && height > 0)
+                      ? '$width × $height px   •   ${fileSizeBytes.toReadableFileSize()}${dpi != null ? '   •   $dpi DPI' : ''}'
+                      : '${fileSizeBytes.toReadableFileSize()}${dpi != null ? '   •   $dpi DPI' : ''}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                   ),
                 ),
-                const SizedBox(height: 5),
 
-                // Live Output & Status Row
-                _buildStatusRow(),
+                // Live Output & Status Row (Shown when calculating or estimate available)
+                if (isCalculating || estimatedSizeBytes != null || (targetSummary != null && targetSummary!.isNotEmpty)) ...[
+                  const SizedBox(height: 4),
+                  _buildStatusRow(),
+                ],
               ],
             ),
           ),
@@ -122,44 +125,22 @@ class StudioInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildThumbnail(String originalExt) {
-    final file = File(filePath);
-    final exists = file.existsSync();
-
+  Widget _buildCompactBadge(String originalExt) {
     return Container(
-      width: 50,
-      height: 50,
+      width: 34,
+      height: 34,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        color: AppColors.primary.withValues(alpha: isDark ? 0.18 : 0.1),
+        borderRadius: BorderRadius.circular(9),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-          width: 1,
+          color: AppColors.primary.withValues(alpha: 0.25),
+          width: 0.8,
         ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(9),
-        child: exists
-            ? Image.file(
-                file,
-                width: 50,
-                height: 50,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _buildFallbackIcon(),
-              )
-            : _buildFallbackIcon(),
-      ),
-    );
-  }
-
-  Widget _buildFallbackIcon() {
-    return Container(
-      width: 50,
-      height: 50,
-      color: AppColors.primary.withValues(alpha: 0.1),
       child: const Icon(
-        Icons.image_outlined,
+        Icons.photo_outlined,
         color: AppColors.primary,
-        size: 24,
+        size: 18,
       ),
     );
   }

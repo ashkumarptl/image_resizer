@@ -13,6 +13,7 @@ import '../../services/crashlytics_service.dart';
 import '../../services/image_service/dpi_service.dart';
 import '../../services/image_service/heic_converter.dart';
 import '../../services/image_service/image_processor.dart';
+import '../document_filter/document_filter_screen.dart';
 import '../perspective_crop/perspective_crop_screen.dart';
 import '../result/result_screen.dart';
 import '../widgets/discard_changes_sheet.dart';
@@ -37,7 +38,7 @@ class ImageStudioScreen extends StatefulWidget {
   const ImageStudioScreen({
     super.key,
     required this.initialImage,
-    this.initialTool = StudioActiveTool.compress,
+    this.initialTool = StudioActiveTool.none,
     this.returnResultDirectly = false,
     this.allowRePick = true,
   });
@@ -51,7 +52,6 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   int _originalWidth = 0;
   int _originalHeight = 0;
   int _fileSizeBytes = 0;
-  bool _isLoadingInfo = true;
   bool _isProcessing = false;
 
   // 1. Orientation & Transform State
@@ -62,6 +62,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   // 2. Crop & Cutout State
   bool _hasCropped = false;
   bool _hasRemovedBg = false;
+  bool _hasAppliedFilter = false;
 
   // 3. Resize State
   ResizeSheetOption _resizeOption = ResizeSheetOption.none;
@@ -328,9 +329,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             _targetHeight = (_originalHeight * 0.5).round();
             _fileSizeBytes = _currentImage.existsSync() ? _currentImage.lengthSync() : 0;
             _imageDpi = detectedDpi;
-            _isLoadingInfo = false;
           });
-          _triggerPreviewUpdate(debounce: false);
+          if (_hasUnsavedChanges) {
+            _triggerPreviewUpdate(debounce: false);
+          }
           if (_history.isEmpty) {
             _recordHistory();
           }
@@ -339,9 +341,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         if (mounted) {
           setState(() {
             _imageDpi = detectedDpi;
-            _isLoadingInfo = false;
           });
-          _triggerPreviewUpdate(debounce: false);
+          if (_hasUnsavedChanges) {
+            _triggerPreviewUpdate(debounce: false);
+          }
           if (_history.isEmpty) {
             _recordHistory();
           }
@@ -353,9 +356,6 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         stack,
         reason: 'Failed to read image metadata in ImageStudioScreen',
       );
-      if (mounted) {
-        setState(() => _isLoadingInfo = false);
-      }
     }
   }
 
@@ -376,7 +376,6 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _quarterTurns = 0;
         _flipHorizontal = false;
         _flipVertical = false;
-        _isLoadingInfo = true;
       });
       await _loadImageMetadata();
     }
@@ -466,8 +465,34 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
     if (choice == 'perspective') {
       await _handlePerspectiveCrop();
-    } else {
+    } else if (choice == 'standard') {
       await _handleStandardCrop();
+    }
+  }
+
+
+
+  Future<void> _handleDocumentFilter() async {
+    final filteredFile = await Navigator.of(context).push<File>(
+      MaterialPageRoute(
+        builder: (_) => DocumentFilterScreen(
+          initialImage: _currentImage,
+          returnFilteredFile: true,
+        ),
+      ),
+    );
+
+    if (filteredFile != null && mounted) {
+      setState(() {
+        _currentImage = filteredFile;
+        _fileSizeBytes = filteredFile.lengthSync();
+        _hasAppliedFilter = true;
+        _showOriginal = false;
+        _previewImageFile = null;
+        _previewResult = null;
+      });
+      await _loadImageMetadata();
+      _recordHistory();
     }
   }
 
@@ -492,7 +517,6 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _showOriginal = false;
         _previewImageFile = null;
         _previewResult = null;
-        _isLoadingInfo = true;
       });
       await _loadImageMetadata();
       _recordHistory();
@@ -543,7 +567,6 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           _showOriginal = false;
           _previewImageFile = null;
           _previewResult = null;
-          _isLoadingInfo = true;
         });
         await _loadImageMetadata();
         _recordHistory();
@@ -579,7 +602,6 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _showOriginal = false;
         _previewImageFile = null;
         _previewResult = null;
-        _isLoadingInfo = true;
       });
       await _loadImageMetadata();
       _recordHistory();
@@ -902,6 +924,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _flipVertical ||
         _hasCropped ||
         _hasRemovedBg ||
+        _hasAppliedFilter ||
         _resizeOption != ResizeSheetOption.none ||
         _compressionMode != CompressionSheetMode.none ||
         _quality != 85;
@@ -920,8 +943,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isTablet = context.isMediumOrWider;
     final isPortrait = context.isPortrait;
-    final appBarBg = isDark ? AppColors.surfaceDark : AppColors.primary;
-    const appBarFg = Colors.white;
+    final appBarBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final appBarFg = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
 
     return PopScope(
       canPop: !_hasUnsavedChanges,
@@ -931,11 +954,18 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         appBar: AppBar(
           backgroundColor: appBarBg,
           foregroundColor: appBarFg,
-          iconTheme: const IconThemeData(color: appBarFg),
-          actionsIconTheme: const IconThemeData(color: appBarFg),
-          systemOverlayStyle: SystemUiOverlayStyle.light,
+          iconTheme: IconThemeData(color: appBarFg),
+          actionsIconTheme: IconThemeData(color: appBarFg),
+          systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
           elevation: 0,
           titleSpacing: 4,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(
+              height: 1,
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            ),
+          ),
           leading: BackButton(
             color: appBarFg,
             onPressed: () async {
@@ -950,11 +980,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              'Compress & Resize',
+              'Edit Studio',
               style: (Theme.of(context).appBarTheme.titleTextStyle ?? const TextStyle()).copyWith(
                 color: appBarFg,
                 fontWeight: FontWeight.bold,
-                fontSize: 19,
+                fontSize: 18,
               ),
             ),
           ),
@@ -965,7 +995,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               constraints: const BoxConstraints(minWidth: 36, minHeight: 44),
               icon: const Icon(Icons.undo_rounded, size: 22),
               color: appBarFg,
-              disabledColor: appBarFg.withValues(alpha: 0.35),
+              disabledColor: appBarFg.withValues(alpha: 0.25),
               tooltip: 'Undo',
               onPressed: (_isProcessing || !_canUndo) ? null : _undo,
             ),
@@ -975,7 +1005,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               constraints: const BoxConstraints(minWidth: 36, minHeight: 44),
               icon: const Icon(Icons.redo_rounded, size: 22),
               color: appBarFg,
-              disabledColor: appBarFg.withValues(alpha: 0.35),
+              disabledColor: appBarFg.withValues(alpha: 0.25),
               tooltip: 'Redo',
               onPressed: (_isProcessing || !_canRedo) ? null : _redo,
             ),
@@ -985,7 +1015,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               constraints: const BoxConstraints(minWidth: 36, minHeight: 44),
               icon: const Icon(Icons.refresh_rounded, size: 22),
               color: appBarFg,
-              disabledColor: appBarFg.withValues(alpha: 0.35),
+              disabledColor: appBarFg.withValues(alpha: 0.25),
               tooltip: 'Reset Adjustments',
               onPressed: (_isProcessing || !_hasUnsavedChanges) ? null : _resetAllAdjustments,
             ),
@@ -993,21 +1023,21 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               IconButton(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 44),
-                icon: const Icon(Icons.photo_library_outlined, size: 22),
+                icon: const Icon(Icons.photo_library_outlined, size: 21),
                 color: appBarFg,
                 tooltip: 'Change Image',
                 onPressed: _isProcessing ? null : _handleRePickImage,
               ),
             Padding(
-              padding: const EdgeInsets.only(right: 10, left: 2),
+              padding: const EdgeInsets.only(right: 10, left: 4),
               child: _isProcessing
-                  ? const Center(
+                  ? Center(
                       child: SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(appBarFg),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                         ),
                       ),
                     )
@@ -1015,8 +1045,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
                       style: IconButton.styleFrom(
                         padding: EdgeInsets.zero,
-                        backgroundColor: isDark ? AppColors.primary : Colors.white,
-                        foregroundColor: isDark ? Colors.white : AppColors.primary,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 2,
+                        shadowColor: AppColors.primary.withValues(alpha: 0.4),
                       ),
                       icon: const Icon(Icons.check_rounded, size: 22),
                       tooltip: _compressionMode == CompressionSheetMode.targetSize
@@ -1030,80 +1062,13 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           ],
         ),
         body: SafeArea(
-          child: _isLoadingInfo
-              ? Center(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 32),
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 20,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: const BoxDecoration(
-                            gradient: AppColors.primaryGradient,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.photo_size_select_actual_outlined,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Loading High-Res Photo',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Analyzing resolution in background isolate...',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: const SizedBox(
-                            height: 6,
-                            child: LinearProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : isTablet
-                  ? (isPortrait
-                      ? _buildTabletPortraitLayout(isDark)
-                      : _buildTabletLandscapeLayout(isDark))
-                  : _buildMobileLayout(isDark),
+          child: isTablet
+              ? (isPortrait
+                  ? _buildTabletPortraitLayout(isDark)
+                  : _buildTabletLandscapeLayout(isDark))
+              : _buildMobileLayout(isDark),
         ),
-        bottomNavigationBar: _isLoadingInfo || (isTablet && isPortrait)
+        bottomNavigationBar: (isTablet && isPortrait)
             ? null
             : StudioBottomToolbar(
                 activeTool: _activeTool,
@@ -1111,9 +1076,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 hasFlipped: _flipHorizontal || _flipVertical,
                 hasCropped: _hasCropped,
                 hasRemovedBg: _hasRemovedBg,
+                hasAppliedFilter: _hasAppliedFilter,
                 onRotate: _handleRotate,
                 onFlip: _handleFlip,
                 onCrop: _handleCrop,
+                onDocFilter: _handleDocumentFilter,
                 onBgRemover: _handleBgRemover,
                 onCompress: _handleCompressToolbar,
                 onCompressLongPress: _openCompressSheet,
@@ -1127,7 +1094,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   Widget _buildMobileLayout(bool isDark) {
     return Column(
       children: [
-        // 1. Top File Info Card
+        // 1. Top File Info HUD
         StudioInfoCard(
           filePath: _currentImage.path,
           width: _originalWidth,
@@ -1151,11 +1118,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           targetDpi: _targetDpi,
         ),
 
-        // Quick KB Preset Chips (Fastest Workflow for Android users, shown only when Compress is active)
-        if (_activeTool == StudioActiveTool.compress)
-          _buildQuickKbPresetRow(isDark),
-
-        // 2. Large Central Image Preview (Dominant Viewport)
+        // 2. Large Central Image Preview (Dominant Viewport - Maximized Height)
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -1163,9 +1126,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           ),
         ),
 
-        // 3. Thumb-Zone Quick Controls Deck (Bottom 40% Area)
-        _buildThumbQuickDeck(isDark),
-        const SizedBox(height: 6),
+        // 3. Contextual Quick KB Presets (Docked directly above bottom toolbar when Compress is active)
+        if (_activeTool == StudioActiveTool.compress)
+          _buildQuickKbPresetRow(isDark),
+
+        const SizedBox(height: 4),
       ],
     );
   }
@@ -1369,126 +1334,6 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     );
   }
 
-  Widget _buildThumbQuickDeck(bool isDark) {
-    final hasChanges = _hasUnsavedChanges;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: [
-            // 1. Target KB Quick Pill
-            _buildThumbChip(
-              icon: Icons.compress_rounded,
-              label: _compressionMode == CompressionSheetMode.targetSize
-                  ? '< $_selectedTargetSizeKB KB'
-                  : (_compressionMode == CompressionSheetMode.none
-                      ? 'Original Size'
-                      : '${_quality.round()}% Qual'),
-              isActive: _activeTool == StudioActiveTool.compress,
-              isDark: isDark,
-              onTap: _openCompressSheet,
-            ),
-            const SizedBox(width: 8),
-
-            // 2. Resize Dimensions Quick Pill
-            _buildThumbChip(
-              icon: Icons.open_in_full_rounded,
-              label: _resizeOption == ResizeSheetOption.exactPixels
-                  ? '$_targetWidth×$_targetHeight'
-                  : _resizeOption == ResizeSheetOption.percentage
-                      ? '$_selectedPercentage%'
-                      : 'Original Res',
-              isActive: _activeTool == StudioActiveTool.resize || _resizeOption != ResizeSheetOption.none,
-              isDark: isDark,
-              onTap: _handleResize,
-            ),
-            const SizedBox(width: 8),
-
-            // 3. Format Quick Pill
-            _buildThumbChip(
-              icon: Icons.tune_rounded,
-              label: _outputFormat.toUpperCase(),
-              isActive: _activeTool == StudioActiveTool.format,
-              isDark: isDark,
-              onTap: _handleFormat,
-            ),
-
-            if (hasChanges) ...[
-              const SizedBox(width: 8),
-              // 4. Reset Adjustments Quick Pill (thumb-accessible)
-              _buildThumbChip(
-                icon: Icons.replay_rounded,
-                label: 'Reset',
-                isActive: false,
-                isDark: isDark,
-                accentColor: AppColors.warning,
-                onTap: _resetAllAdjustments,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildThumbChip({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required bool isDark,
-    Color? accentColor,
-    required VoidCallback onTap,
-  }) {
-    final activeColor = accentColor ?? AppColors.primary;
-    return Material(
-      color: isActive
-          ? activeColor.withValues(alpha: 0.14)
-          : (isDark ? AppColors.surfaceDark : Colors.white),
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isActive
-                  ? activeColor
-                  : (isDark ? AppColors.borderDark : AppColors.borderLight),
-              width: isActive ? 1.5 : 1.0,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 15,
-                color: isActive
-                    ? activeColor
-                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
-                  color: isActive
-                      ? activeColor
-                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildTabletPortraitLayout(bool isDark) {
     return Column(
@@ -1691,6 +1536,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     final isSelected = _activeTool == tool ||
         (tool == StudioActiveTool.bgRemover &&
             (_activeTool == StudioActiveTool.crop ||
+                _activeTool == StudioActiveTool.docFilter ||
+                _activeTool == StudioActiveTool.tools ||
                 _activeTool == StudioActiveTool.rotate ||
                 _activeTool == StudioActiveTool.flip));
 
@@ -1756,6 +1603,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         return _buildTabletFormatInspector(isDark);
       case StudioActiveTool.bgRemover:
       case StudioActiveTool.crop:
+      case StudioActiveTool.docFilter:
+      case StudioActiveTool.tools:
       case StudioActiveTool.rotate:
       case StudioActiveTool.flip:
         return _buildTabletToolsInspector(isDark);
@@ -1915,7 +1764,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             ],
           ),
           Slider(
-            value: _quality,
+            value: _quality.clamp(10, 100),
             min: 10,
             max: 100,
             divisions: 18,
@@ -2500,7 +2349,70 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 3. Quick Transform Controls (Rotate, Flip H, Flip V with theme-matching active states)
+        // 3. Document Scanner Filter (Themed card action button)
+        Material(
+          color: isDark ? AppColors.surfaceVariantDark.withValues(alpha: 0.45) : AppColors.surfaceVariantLight,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: _handleDocumentFilter,
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 1.0,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4F46E5).withValues(alpha: isDark ? 0.22 : 0.10),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.document_scanner_rounded, size: 18, color: Color(0xFF4F46E5)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Document Scanner Filter',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      ),
+                    ),
+                  ),
+                  if (_hasAppliedFilter)
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.success.withValues(alpha: 0.22) : AppColors.successContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Applied',
+                        style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 13,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 4. Quick Transform Controls (Rotate, Flip H, Flip V with theme-matching active states)
         Row(
           children: [
             _buildTabletTransformAction(
@@ -2685,30 +2597,42 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       return Image.file(
         _currentImage,
         key: const ValueKey('canvas_original_image'),
+        gaplessPlayback: true,
         fit: BoxFit.contain,
       );
     }
+
+    final File imageToShow;
+    final bool applyTransform;
 
     if (_previewImageFile != null && _previewImageFile!.existsSync()) {
-      return Image.file(
-        _previewImageFile!,
-        key: ValueKey(_previewImageFile!.path),
-        fit: BoxFit.contain,
+      imageToShow = _previewImageFile!;
+      applyTransform = false;
+    } else {
+      imageToShow = _currentImage;
+      applyTransform = true;
+    }
+
+    Widget imageWidget = Image.file(
+      imageToShow,
+      key: const ValueKey('studio_canvas_display_image'),
+      gaplessPlayback: true,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+    );
+
+    if (applyTransform && (_quarterTurns != 0 || _flipHorizontal || _flipVertical)) {
+      imageWidget = Transform.flip(
+        flipX: _flipHorizontal,
+        flipY: _flipVertical,
+        child: RotatedBox(
+          quarterTurns: _quarterTurns,
+          child: imageWidget,
+        ),
       );
     }
 
-    return Transform.flip(
-      flipX: _flipHorizontal,
-      flipY: _flipVertical,
-      child: RotatedBox(
-        quarterTurns: _quarterTurns,
-        child: Image.file(
-          _currentImage,
-          key: const ValueKey('canvas_fallback_image'),
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
+    return imageWidget;
   }
 
   Widget _buildImagePreviewCanvas(bool isDark, {bool isTablet = false}) {

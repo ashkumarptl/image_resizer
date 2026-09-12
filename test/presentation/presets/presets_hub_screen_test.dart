@@ -178,6 +178,7 @@ void main() {
     // Verify Exam Document Tools header and cards exist
     expect(find.text('Signature B&W Cleaner'), findsOneWidget);
     expect(find.text('Name & Date Photo Stamp'), findsOneWidget);
+    expect(find.text('Document Scanner Filter'), findsOneWidget);
     expect(find.text('Perspective Crop & Deskew'), findsOneWidget);
   });
 }

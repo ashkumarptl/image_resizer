@@ -10,6 +10,7 @@ import '../../core/layout/adaptive_layout.dart';
 import '../../data/models/image_preset.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/preset_favorites_repository.dart';
+import '../document_filter/document_filter_screen.dart';
 import '../perspective_crop/perspective_crop_screen.dart';
 import '../photo_stamp/photo_stamp_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
@@ -171,6 +172,20 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PerspectiveCropScreen(initialImage: file),
+      ),
+    );
+  }
+
+  Future<void> _handleDocumentFilterTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
+    final file = await _pickImage(title: 'Select Document to Scan & Filter');
+    if (file == null || !mounted) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DocumentFilterScreen(initialImage: file),
       ),
     );
   }
@@ -791,9 +806,9 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
     bool isDark,
   ) {
     final isPinned = favoriteIds.contains(preset.id);
-    final emojiBoxSize = context.adaptiveIconSize(44, tabletSize: 56, largeTabletSize: 68);
-    final starIconSize = context.adaptiveIconSize(24, tabletSize: 30, largeTabletSize: 36);
-    final starBtnBox = context.isLargeTablet ? 52.0 : (context.isMediumOrWider ? 44.0 : 36.0);
+    final emojiBoxSize = context.adaptiveIconSize(44, tabletSize: 54, largeTabletSize: 64);
+    final starIconSize = context.adaptiveIconSize(22, tabletSize: 26, largeTabletSize: 30);
+    final starBtnBox = context.isLargeTablet ? 46.0 : (context.isMediumOrWider ? 40.0 : 36.0);
 
     return Material(
       color: Colors.transparent,
@@ -804,31 +819,24 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
         },
         borderRadius: AppRadii.cardRadius,
         child: Ink(
-          padding: EdgeInsets.all(context.isLargeTablet ? 20 : (context.isMediumOrWider ? 16 : 14)),
+          padding: EdgeInsets.symmetric(
+            horizontal: context.isLargeTablet ? 18 : (context.isMediumOrWider ? 16 : 14),
+            vertical: context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12),
+          ),
           decoration: BoxDecoration(
-            color: isDark
-                ? AppColors.surfaceDark
-                : AppColors.surfaceLight,
+            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
             borderRadius: AppRadii.cardRadius,
             border: Border.all(
               color: isPinned
-                  ? const Color(
-                      0xFFF59E0B,
-                    ).withValues(alpha: 0.6)
-                  : (isDark
-                        ? AppColors.borderDark
-                        : AppColors.borderLight),
-              width: isPinned ? 1.5 : 1,
+                  ? const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.45 : 0.35)
+                  : (isDark ? AppColors.borderDark : AppColors.borderLight),
+              width: isPinned ? 1.2 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: isPinned
-                    ? const Color(
-                        0xFFF59E0B,
-                      ).withValues(alpha: 0.08)
-                    : Colors.black.withValues(
-                        alpha: isDark ? 0.2 : 0.03,
-                      ),
+                color: Colors.black.withValues(
+                  alpha: isDark ? 0.2 : 0.03,
+                ),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -836,136 +844,158 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
           ),
           child: Row(
             children: [
+              // Emoji Thumbnail
               Container(
                 width: emojiBoxSize,
                 height: emojiBoxSize,
                 decoration: BoxDecoration(
                   color: isPinned
-                      ? const Color(
-                          0xFFF59E0B,
-                        ).withValues(alpha: 0.15)
-                      : AppColors.primaryContainerLight,
-                  borderRadius: AppRadii.cardInnerRadius,
+                      ? const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.16 : 0.1)
+                      : (isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.primaryContainerLight.withValues(alpha: 0.5)),
+                  borderRadius: BorderRadius.circular(context.isLargeTablet ? 14 : 12),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   preset.iconEmoji,
                   style: TextStyle(
-                    fontSize: context.adaptiveFontSize(22, tabletSize: 28, largeTabletSize: 34),
+                    fontSize: context.adaptiveFontSize(22, tabletSize: 26, largeTabletSize: 32),
                   ),
                 ),
               ),
               SizedBox(width: context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12)),
+
+              // Content details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Text(
+                      preset.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: context.adaptiveFontSize(14.5, tabletSize: 17.5, largeTabletSize: 20),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.15,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      preset.description,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: context.adaptiveFontSize(12, tabletSize: 14, largeTabletSize: 16),
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    // Specs Pills
                     Row(
                       children: [
-                        Expanded(
-                          child: Text(
-                            preset.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: context.adaptiveFontSize(14.5, tabletSize: 18, largeTabletSize: 21.5),
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textPrimaryLight,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
                         Container(
                           padding: EdgeInsets.symmetric(
-                            horizontal: context.isLargeTablet ? 12 : (context.isMediumOrWider ? 9 : 7),
-                            vertical: context.isLargeTablet ? 5 : (context.isMediumOrWider ? 3.5 : 2),
+                            horizontal: context.isLargeTablet ? 8 : 6,
+                            vertical: context.isLargeTablet ? 3 : 2,
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(
-                              alpha: 0.1,
+                              alpha: isDark ? 0.18 : 0.08,
                             ),
                             borderRadius: AppRadii.badgeRadius,
                           ),
                           child: Text(
                             preset.badgeText,
                             style: TextStyle(
-                              fontSize: context.adaptiveFontSize(10.5, tabletSize: 13, largeTabletSize: 15.5),
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
+                              fontSize: context.adaptiveFontSize(10.5, tabletSize: 12.5, largeTabletSize: 14.5),
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.primaryLight : AppColors.primary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.isLargeTablet ? 7 : 5,
+                            vertical: context.isLargeTablet ? 3 : 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.06)
+                                : Colors.black.withValues(alpha: 0.04),
+                            borderRadius: AppRadii.badgeRadius,
+                          ),
+                          child: Text(
+                            preset.outputFormat.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: context.adaptiveFontSize(10, tabletSize: 12, largeTabletSize: 13.5),
+                              fontWeight: FontWeight.w500,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      preset.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: context.adaptiveFontSize(11.5, tabletSize: 14.5, largeTabletSize: 16.5),
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                      ),
-                    ),
                   ],
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
 
-              // Star / Pin Button
-              IconButton(
-                icon: Icon(
-                  isPinned
-                      ? Icons.star_rounded
-                      : Icons.star_outline_rounded,
-                  color: isPinned
-                      ? const Color(0xFFF59E0B)
-                      : (isDark
-                            ? Colors.white38
-                            : Colors.black38),
-                  size: starIconSize,
-                ),
-                tooltip: isPinned
-                    ? 'Unpin Preset'
-                    : 'Pin to Home ⭐',
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(
-                  minWidth: starBtnBox,
-                  minHeight: starBtnBox,
-                ),
-                onPressed: () {
-                  HapticFeedback.selectionClick();
-                  ref
-                      .read(favoritePresetIdsProvider.notifier)
-                      .toggleFavorite(preset.id);
-                  ScaffoldMessenger.of(
-                    context,
-                  ).clearSnackBars();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        isPinned
-                            ? 'Unpinned "${preset.name}"'
-                            : 'Pinned "${preset.name}" to Home Screen ⭐',
+              // Star / Pin Action Button
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    ref
+                        .read(favoritePresetIdsProvider.notifier)
+                        .toggleFavorite(preset.id);
+                    ScaffoldMessenger.of(context).clearSnackBars();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isPinned
+                              ? 'Unpinned "${preset.name}"'
+                              : 'Pinned "${preset.name}" to Home Screen ⭐',
+                        ),
+                        duration: const Duration(milliseconds: 1400),
+                        behavior: SnackBarBehavior.floating,
                       ),
-                      duration: const Duration(
-                        milliseconds: 1400,
-                      ),
-                      behavior: SnackBarBehavior.floating,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Ink(
+                    width: starBtnBox,
+                    height: starBtnBox,
+                    decoration: BoxDecoration(
+                      color: isPinned
+                          ? const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.2 : 0.12)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  );
-                },
-              ),
-
-              const Icon(
-                Icons.arrow_forward_ios,
-                size: 12,
-                color: Colors.grey,
+                    child: Icon(
+                      isPinned
+                          ? Icons.star_rounded
+                          : Icons.star_outline_rounded,
+                      color: isPinned
+                          ? const Color(0xFFF59E0B)
+                          : (isDark
+                              ? Colors.white38
+                              : Colors.black26),
+                      size: starIconSize,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1057,117 +1087,82 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
             if (context.isMediumOrWider) ...[
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final is3Cols = context.isLandscape && constraints.maxWidth >= 900;
-                    if (is3Cols) {
-                      return IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: _buildToolCard(
-                                context: context,
-                                isDark: isDark,
-                                title: 'Signature B&W Cleaner',
-                                subtitle: 'Shadow Removal & Pure B&W',
-                                icon: Icons.draw_rounded,
-                                accentColor: Colors.teal,
-                                badges: const ['< 20 KB', '400×200 px', 'Monochrome'],
-                                description:
-                                    'Converts paper signatures into crisp digital monochrome. Removes shadows, paper grain, and yellow tint.',
-                                onTap: _handleSignatureTool,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildToolCard(
-                                context: context,
-                                isDark: isDark,
-                                title: 'Name & Date Photo Stamp',
-                                subtitle: 'Mandatory for SSC & UPSC Notices',
-                                icon: Icons.badge_outlined,
-                                accentColor: Colors.deepOrange,
-                                badges: const ['< 50 KB', 'Custom DOP', 'White Footer'],
-                                description:
-                                    'Superimposes candidate name & Date of Photo (DOP) on passport photos with strict size compression.',
-                                onTap: _handlePhotoStampTool,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildToolCard(
-                                context: context,
-                                isDark: isDark,
-                                title: 'Perspective Crop & Deskew',
-                                subtitle: '4-Point Keystone Document Straightener',
-                                icon: Icons.crop_rotate_rounded,
-                                accentColor: AppColors.primary,
-                                badges: const ['A4 & ID Cards', 'Auto-Deskew', 'Flat Scan'],
-                                description:
-                                    'Straightens camera photos of angled documents and certificates into flat, scanner-grade digital scans.',
-                                onTap: _handlePerspectiveCropTool,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    } else {
-                      return Column(
+                child: Column(
+                  children: [
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          IntrinsicHeight(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: _buildToolCard(
-                                    context: context,
-                                    isDark: isDark,
-                                    title: 'Signature B&W Cleaner',
-                                    subtitle: 'Shadow Removal & Pure B&W',
-                                    icon: Icons.draw_rounded,
-                                    accentColor: Colors.teal,
-                                    badges: const ['< 20 KB', '400×200 px'],
-                                    description:
-                                        'Converts paper signatures into crisp digital monochrome.',
-                                    onTap: _handleSignatureTool,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildToolCard(
-                                    context: context,
-                                    isDark: isDark,
-                                    title: 'Name & Date Photo Stamp',
-                                    subtitle: 'SSC & UPSC Notices',
-                                    icon: Icons.badge_outlined,
-                                    accentColor: Colors.deepOrange,
-                                    badges: const ['< 50 KB', 'Custom DOP'],
-                                    description:
-                                        'Superimposes candidate name & DOP on photos.',
-                                    onTap: _handlePhotoStampTool,
-                                  ),
-                                ),
-                              ],
+                          Expanded(
+                            child: _buildToolCard(
+                              context: context,
+                              isDark: isDark,
+                              title: 'Signature B&W Cleaner',
+                              subtitle: 'Shadow Removal & Pure B&W',
+                              icon: Icons.draw_rounded,
+                              accentColor: Colors.teal,
+                              badges: const ['< 20 KB', '400×200 px', 'Monochrome'],
+                              description:
+                                  'Converts paper signatures into crisp digital monochrome. Removes shadows, paper grain, and yellow tint.',
+                              onTap: _handleSignatureTool,
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          _buildToolCard(
-                            context: context,
-                            isDark: isDark,
-                            title: 'Perspective Crop & Deskew',
-                            subtitle: '4-Point Keystone Document Straightener',
-                            icon: Icons.crop_rotate_rounded,
-                            accentColor: AppColors.primary,
-                            badges: const ['A4 & ID Cards', 'Auto-Deskew', 'Flat Scan'],
-                            description:
-                                'Straightens camera photos of angled documents and certificates into flat, scanner-grade digital scans.',
-                            onTap: _handlePerspectiveCropTool,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildToolCard(
+                              context: context,
+                              isDark: isDark,
+                              title: 'Name & Date Photo Stamp',
+                              subtitle: 'Mandatory for SSC & UPSC Notices',
+                              icon: Icons.badge_outlined,
+                              accentColor: Colors.deepOrange,
+                              badges: const ['< 50 KB', 'Custom DOP', 'White Footer'],
+                              description:
+                                  'Superimposes candidate name & Date of Photo (DOP) on passport photos with strict size compression.',
+                              onTap: _handlePhotoStampTool,
+                            ),
                           ),
                         ],
-                      );
-                    }
-                  },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: _buildToolCard(
+                              context: context,
+                              isDark: isDark,
+                              title: 'Document Scanner Filter',
+                              subtitle: 'Doc B&W, Grayscale & Shadow Removal',
+                              icon: Icons.document_scanner_rounded,
+                              accentColor: const Color(0xFF4F46E5),
+                              badges: const ['Doc B&W', 'Shadow Clean', 'Grayscale', 'Vibrant'],
+                              description:
+                                  'Converts document photos into clean, high-contrast digital scans without needing keystone crop.',
+                              onTap: _handleDocumentFilterTool,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildToolCard(
+                              context: context,
+                              isDark: isDark,
+                              title: 'Perspective Crop & Deskew',
+                              subtitle: '4-Point Keystone Document Straightener',
+                              icon: Icons.crop_rotate_rounded,
+                              accentColor: AppColors.primary,
+                              badges: const ['A4 & ID Cards', 'Auto-Deskew', '4-Corner Flat'],
+                              description:
+                                  'Straightens camera photos of angled documents, receipts, and certificates into flat digital rectangles.',
+                              onTap: _handlePerspectiveCropTool,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ] else ...[
@@ -1183,7 +1178,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                   accentColor: Colors.teal,
                   badges: const ['< 20 KB', '400×200 px', 'Monochrome'],
                   description:
-                      'Converts paper signatures into crisp digital monochrome. Removes shadows, paper grain, and yellow tint.',
+                    'Converts paper signatures into crisp digital monochrome. Removes shadows, paper grain, and yellow tint.',
                   onTap: _handleSignatureTool,
                 ),
               ),
@@ -1207,7 +1202,25 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Tool 3: Perspective Crop & Deskew
+              // Tool 3: Document Scanner Filter (Dedicated)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+                child: _buildToolCard(
+                  context: context,
+                  isDark: isDark,
+                  title: 'Document Scanner Filter',
+                  subtitle: 'Doc B&W, Grayscale & Shadow Removal',
+                  icon: Icons.document_scanner_rounded,
+                  accentColor: const Color(0xFF4F46E5),
+                  badges: const ['Doc B&W', 'Shadow Clean', 'Grayscale', 'Vibrant'],
+                  description:
+                      'Converts document photos into clean, high-contrast digital scans without needing keystone crop.',
+                  onTap: _handleDocumentFilterTool,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Tool 4: Perspective Crop & Deskew
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
                 child: _buildToolCard(
@@ -1217,9 +1230,9 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                   subtitle: '4-Point Keystone Document Straightener',
                   icon: Icons.crop_rotate_rounded,
                   accentColor: AppColors.primary,
-                  badges: const ['A4 & ID Cards', 'Auto-Deskew', 'Flat Scan'],
+                  badges: const ['A4 & ID Cards', 'Auto-Deskew', '4-Corner Flat'],
                   description:
-                      'Straightens camera photos of angled documents and certificates into flat, scanner-grade digital scans.',
+                      'Straightens camera photos of angled documents, receipts, and certificates into flat digital rectangles.',
                   onTap: _handlePerspectiveCropTool,
                 ),
               ),
