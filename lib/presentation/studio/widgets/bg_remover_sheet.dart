@@ -137,8 +137,7 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mq = MediaQuery.of(context);
-    final maxHeight = mq.size.height * 0.88;
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.88;
 
     return Container(
       constraints: BoxConstraints(maxHeight: maxHeight),

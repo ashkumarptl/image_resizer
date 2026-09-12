@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -276,9 +277,26 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isWide = context.isMediumOrWider;
 
+    final safeBottom = math.max(
+      MediaQuery.paddingOf(context).bottom,
+      MediaQuery.viewPaddingOf(context).bottom,
+    );
+    final double bottomMargin;
+    if (safeBottom >= 36) {
+      bottomMargin = safeBottom + 12.0;
+    } else if (safeBottom > 0) {
+      bottomMargin = safeBottom + 8.0;
+    } else {
+      bottomMargin = 16.0;
+    }
+    final double fabBottomPadding = (widget.isTab && !isWide)
+        ? (bottomMargin - 8.0)
+        : 24.0;
+
     return Scaffold(
       key: const ValueKey("scan_to_pdf_scaffold"),
       appBar: AppBar(
+        toolbarHeight: context.isLargeTablet ? 84 : (context.isMediumOrWider ? 72 : null),
         automaticallyImplyLeading: !widget.isTab,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,6 +304,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
             Text(
               'Scan to PDF',
               style: TextStyle(
+                fontSize: context.adaptiveFontSize(18, tabletSize: 24, largeTabletSize: 28),
                 fontWeight: FontWeight.bold,
                 color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
               ),
@@ -294,7 +313,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
             Text(
               'Auto-deskew, enhance & convert to PDF',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15.5),
                 fontWeight: FontWeight.normal,
                 color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
               ),
@@ -304,8 +323,11 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
         actions: [
           // Offline Status Badge
           Container(
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            margin: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 18 : 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.isLargeTablet ? 14 : 10,
+              vertical: context.isLargeTablet ? 6 : 4,
+            ),
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.success.withValues(alpha: 0.16)
@@ -316,18 +338,18 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 7,
-                  height: 7,
+                  width: context.isLargeTablet ? 10 : 7,
+                  height: context.isLargeTablet ? 10 : 7,
                   decoration: const BoxDecoration(
                     color: AppColors.success,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 5),
+                SizedBox(width: context.isLargeTablet ? 8 : 5),
                 Text(
                   'Offline',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: context.adaptiveFontSize(12, tabletSize: 13.5, largeTabletSize: 15.5),
                     fontWeight: FontWeight.w600,
                     color: isDark ? AppColors.secondaryLight : AppColors.success,
                   ),
@@ -348,14 +370,14 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                       tooltip: 'Account (${user.displayName ?? 'Signed in'})',
                       onPressed: () => showAccountBottomSheet(context),
                       icon: CircleAvatar(
-                        radius: 14,
+                        radius: context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 14),
                         backgroundColor: AppColors.primaryContainerLight,
                         backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
                         child: photoUrl == null
                             ? Text(
                                 displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
-                                style: const TextStyle(
-                                  fontSize: 12,
+                                style: TextStyle(
+                                  fontSize: context.adaptiveFontSize(12, tabletSize: 16, largeTabletSize: 19),
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryDark,
                                 ),
@@ -365,7 +387,10 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                     );
                   } else {
                     return IconButton(
-                      icon: const Icon(Icons.account_circle_outlined),
+                      icon: Icon(
+                        Icons.account_circle_outlined,
+                        size: context.adaptiveIconSize(24, tabletSize: 32, largeTabletSize: 38),
+                      ),
                       tooltip: 'Sign In / Account',
                       onPressed: () => showAccountBottomSheet(context),
                     );
@@ -391,7 +416,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
       ),
       floatingActionButton: Padding(
         padding: EdgeInsets.only(
-          bottom: (widget.isTab && !isWide) ? 96 : 24,
+          bottom: fabBottomPadding,
           right: isWide ? (context.adaptiveMargin > 16 ? context.adaptiveMargin - 16 : 0) : 0,
         ),
         child: _buildNewScanFab(context),
@@ -486,54 +511,45 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
   }
 
   Widget _buildNewScanFab(BuildContext context) {
-    return Container(
-      width: 68,
-      height: 68,
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.38),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _isProcessing ? null : _handleScanWithCamera,
-          customBorder: const CircleBorder(),
-          child: Center(
-            child: _isProcessing
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.camera_alt_rounded, size: 25, color: Colors.white),
-                      SizedBox(height: 2),
-                      Text(
-                        'New Scan',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          height: 1.1,
-                        ),
-                      ),
-                    ],
+    final fabSize = context.adaptiveIconSize(68, tabletSize: 84, largeTabletSize: 96);
+    return SizedBox(
+      width: fabSize,
+      height: fabSize,
+      child: FloatingActionButton(
+        onPressed: _isProcessing ? null : _handleScanWithCamera,
+        backgroundColor: AppColors.primary,
+        elevation: 6,
+        shape: const CircleBorder(),
+        child: _isProcessing
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Colors.white,
+                ),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.camera_alt_rounded,
+                    size: context.adaptiveIconSize(25, tabletSize: 32, largeTabletSize: 38),
+                    color: Colors.white,
                   ),
-          ),
-        ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'New Scan',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: context.adaptiveFontSize(10.5, tabletSize: 13.5, largeTabletSize: 15.5),
+                      fontWeight: FontWeight.bold,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -543,6 +559,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
       children: [
         Expanded(
           child: _buildActionCard(
+            context: context,
             isDark: isDark,
             icon: Icons.photo_camera_rounded,
             iconBg: isDark ? AppColors.primaryContainerDark : AppColors.primaryContainerLight,
@@ -551,9 +568,10 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
             onTap: _isProcessing ? null : _handleScanWithCamera,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: context.isLargeTablet ? 16 : 12),
         Expanded(
           child: _buildActionCard(
+            context: context,
             isDark: isDark,
             icon: Icons.photo_library_rounded,
             iconBg: isDark ? AppColors.secondaryContainerDark : AppColors.secondaryContainerLight,
@@ -567,6 +585,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
   }
 
   Widget _buildActionCard({
+    required BuildContext context,
     required bool isDark,
     required IconData icon,
     required Color iconBg,
@@ -574,16 +593,22 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
     required String title,
     required VoidCallback? onTap,
   }) {
+    final cardRadius = context.isLargeTablet ? 20.0 : 16.0;
+    final iconBoxSize = context.adaptiveIconSize(44, tabletSize: 58, largeTabletSize: 68);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(cardRadius),
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          padding: EdgeInsets.symmetric(
+            horizontal: context.isLargeTablet ? 20 : (context.isMediumOrWider ? 16 : 14),
+            vertical: context.isLargeTablet ? 20 : (context.isMediumOrWider ? 16 : 14),
+          ),
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(cardRadius),
             border: Border.all(
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
             ),
@@ -598,22 +623,26 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: iconBoxSize,
+                height: iconBoxSize,
                 decoration: BoxDecoration(
                   color: iconBg,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : 12),
                 ),
                 child: Center(
-                  child: Icon(icon, color: iconColor, size: 22),
+                  child: Icon(
+                    icon,
+                    color: iconColor,
+                    size: context.adaptiveIconSize(22, tabletSize: 30, largeTabletSize: 36),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: context.isLargeTablet ? 16 : 12),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 13.5,
+                    fontSize: context.adaptiveFontSize(13.5, tabletSize: 17, largeTabletSize: 20),
                     fontWeight: FontWeight.bold,
                     height: 1.25,
                     color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
@@ -628,14 +657,17 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
   }
 
   Widget _buildSearchAndFilterBar(BuildContext context, bool isDark) {
+    final barHeight = context.isLargeTablet ? 58.0 : (context.isMediumOrWider ? 52.0 : 46.0);
+    final barRadius = context.isLargeTablet ? 18.0 : 14.0;
+
     return Row(
       children: [
         Expanded(
           child: Container(
-            height: 46,
+            height: barHeight,
             decoration: BoxDecoration(
               color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(barRadius),
               border: Border.all(
                 color: isDark ? AppColors.borderDark : AppColors.borderLight,
               ),
@@ -648,7 +680,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                 });
               },
               style: TextStyle(
-                fontSize: 13.5,
+                fontSize: context.adaptiveFontSize(13.5, tabletSize: 16.5, largeTabletSize: 18.5),
                 color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
               ),
               decoration: InputDecoration(
@@ -657,17 +689,20 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                 border: InputBorder.none,
                 prefixIcon: Icon(
                   Icons.search_rounded,
-                  size: 20,
+                  size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
                   color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                 ),
                 hintText: 'Search documents, notes, etc...',
                 hintStyle: TextStyle(
-                  fontSize: 13,
+                  fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
                   color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                 ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          size: context.adaptiveIconSize(18, tabletSize: 22, largeTabletSize: 26),
+                        ),
                         color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                         onPressed: () {
                           _searchController.clear();
@@ -686,13 +721,13 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
           color: Colors.transparent,
           child: InkWell(
             onTap: () => _showFilterBottomSheet(context),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(barRadius),
             child: Ink(
-              width: 46,
-              height: 46,
+              width: barHeight,
+              height: barHeight,
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(barRadius),
                 border: Border.all(
                   color: _sortBy != 'date_desc'
                       ? (isDark ? AppColors.primaryLight : AppColors.primary)
@@ -702,7 +737,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
               child: Center(
                 child: Icon(
                   Icons.tune_rounded,
-                  size: 20,
+                  size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
                   color: _sortBy != 'date_desc'
                       ? (isDark ? AppColors.primaryLight : AppColors.primary)
                       : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
@@ -1022,9 +1057,9 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: context.responsiveValue(compact: 1, medium: 2, expanded: 2, large: 3),
-              mainAxisExtent: 122,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+              mainAxisExtent: context.isLargeTablet ? 154 : 142,
+              crossAxisSpacing: context.isMediumOrWider ? 16 : 12,
+              mainAxisSpacing: context.isMediumOrWider ? 16 : 12,
             ),
             itemCount: filtered.length,
             itemBuilder: (context, index) {
@@ -1103,6 +1138,11 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
       ),
     };
 
+    final coverWidth = context.adaptiveIconSize(52, tabletSize: 66, largeTabletSize: 76);
+    final coverHeight = context.adaptiveIconSize(68, tabletSize: 86, largeTabletSize: 100);
+    final iconActionSize = context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28);
+    final actionBoxSize = context.isLargeTablet ? 48.0 : (context.isMediumOrWider ? 42.0 : 36.0);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1115,7 +1155,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
         },
         borderRadius: BorderRadius.circular(16),
         child: Ink(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(context.isMediumOrWider ? 16 : 12),
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
             borderRadius: BorderRadius.circular(16),
@@ -1136,8 +1176,8 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
-                  width: 52,
-                  height: 68,
+                  width: coverWidth,
+                  height: coverHeight,
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
                     borderRadius: BorderRadius.circular(10),
@@ -1150,16 +1190,20 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                           coverFile,
                           fit: BoxFit.cover,
                           cacheWidth: 160,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
+                          errorBuilder: (context, error, stackTrace) => Icon(
                             Icons.picture_as_pdf_rounded,
                             color: AppColors.primary,
-                            size: 28,
+                            size: context.adaptiveIconSize(28, tabletSize: 34, largeTabletSize: 40),
                           ),
                         )
-                      : const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary, size: 28),
+                      : Icon(
+                          Icons.picture_as_pdf_rounded,
+                          color: AppColors.primary,
+                          size: context.adaptiveIconSize(28, tabletSize: 34, largeTabletSize: 40),
+                        ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: context.isMediumOrWider ? 16 : 12),
 
               // Info
               Expanded(
@@ -1170,57 +1214,67 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                     Text(
                       project.name,
                       style: TextStyle(
-                        fontSize: 15.5,
+                        fontSize: context.adaptiveFontSize(15.5, tabletSize: 18.5, largeTabletSize: 21),
                         fontWeight: FontWeight.bold,
                         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 5),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.primaryContainerDark
-                                : AppColors.primaryContainerLight,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '${project.pageCount} ${project.pageCount == 1 ? 'Page' : 'Pages'}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
+                    SizedBox(height: context.isMediumOrWider ? 7 : 5),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const NeverScrollableScrollPhysics(),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.isMediumOrWider ? 9 : 7,
+                              vertical: context.isMediumOrWider ? 4 : 2.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.primaryContainerDark
+                                  : AppColors.primaryContainerLight,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '${project.pageCount} ${project.pageCount == 1 ? 'Page' : 'Pages'}',
+                              style: TextStyle(
+                                fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15),
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
+                              ),
                             ),
                           ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                          decoration: BoxDecoration(
-                            color: qualityBg,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            qualityLabel,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: qualityText,
+                          SizedBox(width: context.isMediumOrWider ? 8 : 6),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.isMediumOrWider ? 9 : 7,
+                              vertical: context.isMediumOrWider ? 4 : 2.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: qualityBg,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              qualityLabel,
+                              style: TextStyle(
+                                fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15),
+                                fontWeight: FontWeight.bold,
+                                color: qualityText,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 5),
+                    SizedBox(height: context.isMediumOrWider ? 7 : 5),
                     Text(
                       '$dateStr  •  $sizeStr',
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: context.adaptiveFontSize(11.5, tabletSize: 14, largeTabletSize: 16),
                         fontWeight: FontWeight.w500,
                         color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                       ),
@@ -1232,26 +1286,26 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
               ),
               const SizedBox(width: 4),
 
-              // Quick Actions (compact to avoid overflow on smaller screens)
+              // Quick Actions
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
                     icon: Icon(
                       isSaved ? Icons.check_circle_rounded : Icons.download_rounded,
-                      size: 20,
+                      size: iconActionSize,
                       color: isSaved ? AppColors.success : null,
                     ),
                     visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    constraints: BoxConstraints(minWidth: actionBoxSize, minHeight: actionBoxSize),
                     padding: const EdgeInsets.all(6),
                     onPressed: () => _handleSaveProjectPdf(project),
                     tooltip: isSaved ? 'Saved to Downloads' : 'Save PDF to Downloads',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.share_outlined, size: 19),
+                    icon: Icon(Icons.share_outlined, size: iconActionSize),
                     visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    constraints: BoxConstraints(minWidth: actionBoxSize, minHeight: actionBoxSize),
                     padding: const EdgeInsets.all(6),
                     onPressed: () => _handleShareProjectPdf(project),
                     tooltip: 'Share PDF',
@@ -1259,10 +1313,10 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert_rounded,
-                      size: 20,
+                      size: iconActionSize,
                       color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                     ),
-                    constraints: const BoxConstraints(minWidth: 30, minHeight: 36),
+                    constraints: BoxConstraints(minWidth: actionBoxSize * 0.8, minHeight: actionBoxSize),
                     padding: const EdgeInsets.all(4),
                     tooltip: 'More options',
                     onSelected: (val) {

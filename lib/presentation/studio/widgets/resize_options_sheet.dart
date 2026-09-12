@@ -444,17 +444,16 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mq = MediaQuery.of(context);
-    final keyboardInset = mq.viewInsets.bottom;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
     // viewPadding.bottom = system nav bar height (gesture pill or 3-button bar).
     // When keyboard is open, viewInsets already includes the nav bar so we use
     // max() to avoid double-counting. When keyboard is closed, viewPadding gives
     // us the raw nav bar clearance we need.
-    final navBarInset = mq.viewPadding.bottom;
+    final navBarInset = MediaQuery.viewPaddingOf(context).bottom;
     final bottomPadding = keyboardInset > 0
         ? keyboardInset           // keyboard open: it covers the nav bar too
         : navBarInset;            // keyboard closed: just clear the nav bar
-    final maxHeight = mq.size.height * 0.88;
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.88;
 
     return Container(
       constraints: BoxConstraints(maxHeight: maxHeight),

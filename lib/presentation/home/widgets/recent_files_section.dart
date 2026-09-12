@@ -28,7 +28,8 @@ class RecentFilesSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final displayItems = historyItems.length > 6 ? historyItems.sublist(0, 6) : historyItems;
+    final maxItems = context.isLargeTablet ? 10 : (context.isMediumOrWider ? 8 : 6);
+    final displayItems = historyItems.length > maxItems ? historyItems.sublist(0, maxItems) : historyItems;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +45,7 @@ class RecentFilesSection extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: context.adaptiveFontSize(16, tabletSize: 22, largeTabletSize: 26),
                     fontWeight: FontWeight.bold,
                     color: isDark
                         ? AppColors.textPrimaryDark
@@ -63,7 +64,7 @@ class RecentFilesSection extends StatelessWidget {
                 child: Text(
                   'Clear',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: context.adaptiveFontSize(13, tabletSize: 16, largeTabletSize: 18),
                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                   ),
                 ),
@@ -76,18 +77,19 @@ class RecentFilesSection extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: horizontalMargin),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // 2-column grid is only used when the container has at least 600px width.
-              // On smaller screens or mobile landscape, a single column is used to prevent cramped overflow.
-              final useGrid = constraints.maxWidth >= 600;
+              // 2-column grid is only used on wide displays with at least 720px available width (e.g. landscape tablets / desktop).
+              // On portrait screens (including 800x1280 tablets where content width is ~664px), a single column is used.
+              final useGrid = constraints.maxWidth >= 720.0;
+              final gridExtent = context.isLargeTablet ? 104.0 : (context.isMediumOrWider ? 92.0 : 78.0);
               if (useGrid) {
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 12,
-                    mainAxisExtent: 74,
+                    mainAxisSpacing: context.isLargeTablet ? 14 : (context.isMediumOrWider ? 12 : 10),
+                    crossAxisSpacing: context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12),
+                    mainAxisExtent: gridExtent,
                   ),
                   itemCount: displayItems.length,
                   itemBuilder: (context, index) => _buildItemTile(context, displayItems[index], isDark),
@@ -96,7 +98,7 @@ class RecentFilesSection extends StatelessWidget {
               return ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: displayItems.length > 5 ? 5 : displayItems.length,
+                itemCount: displayItems.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, index) => _buildItemTile(context, displayItems[index], isDark),
               );
@@ -115,17 +117,19 @@ class RecentFilesSection extends StatelessWidget {
         ? thumbFile
         : (fullFile.existsSync() ? fullFile : null);
     final timeAgo = _formatTimeAgo(item.processedAt);
+    final thumbSize = context.isLargeTablet ? 64.0 : (context.isMediumOrWider ? 56.0 : 48.0);
+    final brokenIconSize = context.adaptiveIconSize(20, tabletSize: 26, largeTabletSize: 28);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () => onItemTap(item),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12)),
         child: Ink(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all(context.isLargeTablet ? 12 : (context.isMediumOrWider ? 12 : 10)),
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12)),
             border: Border.all(
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
             ),
@@ -133,61 +137,69 @@ class RecentFilesSection extends StatelessWidget {
           child: Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(context.isLargeTablet ? 12 : (context.isMediumOrWider ? 10 : 8)),
                 child: displayFile != null
                     ? Image.file(
                         displayFile,
-                        width: 44,
-                        height: 44,
-                        cacheWidth: 120,
-                        cacheHeight: 120,
+                        width: thumbSize,
+                        height: thumbSize,
+                        cacheWidth: 160,
+                        cacheHeight: 160,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
-                          width: 44,
-                          height: 44,
+                          width: thumbSize,
+                          height: thumbSize,
                           color: isDark
                               ? AppColors.surfaceVariantDark
                               : AppColors.surfaceVariantLight,
-                          child: const Icon(Icons.broken_image, size: 20),
+                          child: Icon(Icons.broken_image, size: brokenIconSize),
                         ),
                       )
                     : Container(
-                        width: 44,
-                        height: 44,
+                        width: thumbSize,
+                        height: thumbSize,
                         color: isDark
                             ? AppColors.surfaceVariantDark
                             : AppColors.surfaceVariantLight,
-                        child: const Icon(Icons.broken_image, size: 20),
+                        child: Icon(Icons.broken_image, size: brokenIconSize),
                       ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: context.isLargeTablet ? 14 : 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      '${item.width}x${item.height} · ${item.format.toUpperCase()}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${item.width}x${item.height} · ${item.format.toUpperCase()}',
+                        maxLines: 1,
+                        softWrap: false,
+                        style: TextStyle(
+                          fontSize: context.adaptiveFontSize(13, tabletSize: 14.5, largeTabletSize: 15.5),
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${item.originalSizeBytes.toReadableFileSize()} ➔ ${item.outputSizeBytes.toReadableFileSize()}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.success,
+                    const SizedBox(height: 3),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${item.originalSizeBytes.toReadableFileSize()} ➔ ${item.outputSizeBytes.toReadableFileSize()}',
+                        maxLines: 1,
+                        softWrap: false,
+                        style: TextStyle(
+                          fontSize: context.adaptiveFontSize(12, tabletSize: 13.0, largeTabletSize: 14.0),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.success,
+                        ),
                       ),
                     ),
                   ],
@@ -197,7 +209,7 @@ class RecentFilesSection extends StatelessWidget {
               Text(
                 timeAgo,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: context.adaptiveFontSize(11, tabletSize: 12.0, largeTabletSize: 12.5),
                   color: isDark
                       ? AppColors.textSecondaryDark
                       : AppColors.textSecondaryLight,

@@ -235,8 +235,12 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final avatarRadius = context.isLargeTablet ? 24.0 : (context.isMediumOrWider ? 20.0 : 14.0);
+    final avatarFontSize = context.isLargeTablet ? 18.0 : (context.isMediumOrWider ? 15.0 : 12.0);
+
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: context.isLargeTablet ? 84 : (context.isMediumOrWider ? 72 : null),
         automaticallyImplyLeading: !widget.isTab,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +249,10 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
               _selectedTabIndex == 0
                   ? 'Exam Document Tools'
                   : 'Govt & Exam Presets',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: context.adaptiveFontSize(20, tabletSize: 26, largeTabletSize: 28),
+              ),
             ),
             const SizedBox(height: 2),
             Text(
@@ -253,7 +260,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                   ? 'Specialized utilities for Govt & Exam portals'
                   : 'Exact dimensions & strict KB limits for forms',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: context.adaptiveFontSize(11, tabletSize: 14, largeTabletSize: 15.5),
                 fontWeight: FontWeight.normal,
                 color: isDark
                     ? AppColors.textSecondaryDark
@@ -275,7 +282,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                       tooltip: 'Account (${user.displayName ?? 'Signed in'})',
                       onPressed: () => showAccountBottomSheet(context),
                       icon: CircleAvatar(
-                        radius: 14,
+                        radius: avatarRadius,
                         backgroundColor: AppColors.primaryContainerLight,
                         backgroundImage: photoUrl != null
                             ? NetworkImage(photoUrl)
@@ -285,8 +292,8 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                                 displayName.isNotEmpty
                                     ? displayName[0].toUpperCase()
                                     : 'U',
-                                style: const TextStyle(
-                                  fontSize: 12,
+                                style: TextStyle(
+                                  fontSize: avatarFontSize,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryDark,
                                 ),
@@ -296,7 +303,10 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                     );
                   } else {
                     return IconButton(
-                      icon: const Icon(Icons.account_circle_outlined),
+                      icon: Icon(
+                        Icons.account_circle_outlined,
+                        size: context.adaptiveIconSize(24, tabletSize: 32, largeTabletSize: 36),
+                      ),
                       tooltip: 'Sign In / Account',
                       onPressed: () => showAccountBottomSheet(context),
                     );
@@ -311,7 +321,10 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                   ),
                 ),
                 error: (err, stack) => IconButton(
-                  icon: const Icon(Icons.account_circle_outlined),
+                  icon: Icon(
+                    Icons.account_circle_outlined,
+                    size: context.adaptiveIconSize(24, tabletSize: 32, largeTabletSize: 36),
+                  ),
                   tooltip: 'Sign In / Account',
                   onPressed: () => showAccountBottomSheet(context),
                 ),
@@ -325,18 +338,23 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
           children: [
             // Top Tab Switcher (Exam Tools vs Presets)
             Padding(
-              padding: EdgeInsets.fromLTRB(context.adaptiveMargin, 12, context.adaptiveMargin, 8),
+              padding: EdgeInsets.fromLTRB(
+                context.adaptiveMargin,
+                context.isMediumOrWider ? 16 : 12,
+                context.adaptiveMargin,
+                context.isMediumOrWider ? 12 : 8,
+              ),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
+                  constraints: BoxConstraints(maxWidth: context.isLargeTablet ? 560 : 480),
                   child: Container(
-                    height: 44,
+                    height: context.isLargeTablet ? 54 : (context.isMediumOrWider ? 48 : 44),
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.surfaceDark
                           : AppColors.surfaceLight,
-                      borderRadius: BorderRadius.circular(22),
+                      borderRadius: BorderRadius.circular(27),
                       border: Border.all(
                         color: isDark
                             ? AppColors.borderDark
@@ -400,7 +418,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(22),
         ),
         alignment: Alignment.center,
         child: Row(
@@ -408,7 +426,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
           children: [
             Icon(
               icon,
-              size: 16,
+              size: context.adaptiveIconSize(16, tabletSize: 20, largeTabletSize: 22),
               color: isSelected
                   ? Colors.white
                   : (isDark
@@ -419,7 +437,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: context.adaptiveFontSize(13, tabletSize: 16, largeTabletSize: 17.5),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
                     ? Colors.white
@@ -446,12 +464,12 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
         children: [
           // 1. Sticky Search Bar
           Padding(
-            padding: EdgeInsets.fromLTRB(context.adaptiveMargin, 6, context.adaptiveMargin, 6),
+            padding: EdgeInsets.fromLTRB(context.adaptiveMargin, 8, context.adaptiveMargin, 8),
             child: Container(
-              height: 36,
+              height: context.isLargeTablet ? 58 : (context.isMediumOrWider ? 48 : 38),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceDark : Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : 12),
                 border: Border.all(
                   color: isDark ? AppColors.borderDark : AppColors.borderLight,
                 ),
@@ -466,7 +484,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
               child: TextField(
                 controller: _searchController,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: context.adaptiveFontSize(13, tabletSize: 16, largeTabletSize: 18.5),
                   color: isDark
                       ? AppColors.textPrimaryDark
                       : AppColors.textPrimaryLight,
@@ -475,19 +493,22 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                 decoration: InputDecoration(
                   hintText: 'Search UPSC, SSC, GATE, NEET, 50 KB...',
                   hintStyle: TextStyle(
-                    fontSize: 13,
+                    fontSize: context.adaptiveFontSize(13, tabletSize: 16, largeTabletSize: 18.5),
                     color: isDark
                         ? AppColors.textSecondaryDark
                         : AppColors.textSecondaryLight,
                   ),
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.search_rounded,
-                    size: 20,
+                    size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
                     color: AppColors.primary,
                   ),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.close_rounded, size: 18),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            size: context.adaptiveIconSize(18, tabletSize: 22, largeTabletSize: 26),
+                          ),
                           onPressed: () {
                             HapticFeedback.selectionClick();
                             _searchController.clear();
@@ -496,7 +517,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                         )
                       : null,
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 18 : (context.isMediumOrWider ? 14 : 12)),
                 ),
               ),
             ),
@@ -504,13 +525,13 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
 
           // 2. Category Filter Chips Bar
           Container(
-            height: 44,
+            height: context.isLargeTablet ? 52 : (context.isMediumOrWider ? 48 : 44),
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
               itemCount: _categories.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => SizedBox(width: context.isLargeTablet ? 12 : (context.isMediumOrWider ? 10 : 8)),
               itemBuilder: (context, index) {
                 final category = _categories[index];
                 final isSelected = category == _selectedCategory;
@@ -529,7 +550,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                   ),
                   checkmarkColor: AppColors.primary,
                   labelStyle: TextStyle(
-                    fontSize: 12,
+                    fontSize: context.adaptiveFontSize(12, tabletSize: 14.5, largeTabletSize: 16),
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     color: isSelected
                         ? (isDark ? AppColors.primaryLight : AppColors.primary)
@@ -541,7 +562,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                       ? AppColors.surfaceVariantDark
                       : AppColors.surfaceVariantLight,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(context.isLargeTablet ? 14 : 10),
                     side: BorderSide(
                       color: isSelected
                           ? AppColors.primary
@@ -550,9 +571,9 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                                 : AppColors.borderLight),
                     ),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 2,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.isLargeTablet ? 14 : (context.isMediumOrWider ? 12 : 10),
+                    vertical: context.isLargeTablet ? 4 : 2,
                   ),
                 );
               },
@@ -565,16 +586,16 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
               padding: EdgeInsets.fromLTRB(context.adaptiveMargin, 8, context.adaptiveMargin, 4),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.star_rounded,
-                    size: 14,
-                    color: Color(0xFFF59E0B),
+                    size: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 20),
+                    color: const Color(0xFFF59E0B),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     'Pinned Presets',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: context.adaptiveFontSize(11, tabletSize: 14, largeTabletSize: 15.5),
                       fontWeight: FontWeight.bold,
                       color: isDark
                           ? AppColors.textPrimaryDark
@@ -585,7 +606,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                   Text(
                     'Shown on Home Screen',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: context.adaptiveFontSize(10, tabletSize: 12.5, largeTabletSize: 14),
                       color: isDark
                           ? AppColors.textSecondaryDark
                           : AppColors.textSecondaryLight,
@@ -595,7 +616,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
               ),
             ),
             SizedBox(
-              height: 38,
+              height: context.isLargeTablet ? 48 : (context.isMediumOrWider ? 44 : 38),
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
@@ -603,16 +624,18 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                     .where((p) => favoriteIds.contains(p.id))
                     .map(
                       (p) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                        padding: EdgeInsets.only(right: context.isMediumOrWider ? 10 : 8),
                         child: ActionChip(
                           avatar: Text(
                             p.iconEmoji,
-                            style: const TextStyle(fontSize: 12),
+                            style: TextStyle(
+                              fontSize: context.adaptiveFontSize(12, tabletSize: 15, largeTabletSize: 17),
+                            ),
                           ),
                           label: Text(
                             p.name,
-                            style: const TextStyle(
-                              fontSize: 11,
+                            style: TextStyle(
+                              fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -623,7 +646,10 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                             color: Color(0xFFF59E0B),
                             width: 1,
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.isMediumOrWider ? 8 : 4,
+                            vertical: context.isMediumOrWider ? 4 : 0,
+                          ),
                           onPressed: () => _handleSelectPreset(context, ref, p),
                         ),
                       ),
@@ -701,15 +727,15 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                         return GridView.builder(
                           padding: EdgeInsets.fromLTRB(
                             context.adaptiveMargin,
-                            12,
+                            context.isMediumOrWider ? 16 : 12,
                             context.adaptiveMargin,
                             100,
                           ),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            crossAxisSpacing: 14,
-                            mainAxisSpacing: 10,
-                            mainAxisExtent: 94,
+                            crossAxisSpacing: context.isLargeTablet ? 20 : (context.isMediumOrWider ? 16 : 14),
+                            mainAxisSpacing: context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 10),
+                            mainAxisExtent: context.isLargeTablet ? 142 : (context.isMediumOrWider ? 114 : 94),
                           ),
                           itemCount: presets.length,
                           itemBuilder: (context, index) {
@@ -765,6 +791,9 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
     bool isDark,
   ) {
     final isPinned = favoriteIds.contains(preset.id);
+    final emojiBoxSize = context.adaptiveIconSize(44, tabletSize: 56, largeTabletSize: 68);
+    final starIconSize = context.adaptiveIconSize(24, tabletSize: 30, largeTabletSize: 36);
+    final starBtnBox = context.isLargeTablet ? 52.0 : (context.isMediumOrWider ? 44.0 : 36.0);
 
     return Material(
       color: Colors.transparent,
@@ -775,7 +804,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
         },
         borderRadius: AppRadii.cardRadius,
         child: Ink(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(context.isLargeTablet ? 20 : (context.isMediumOrWider ? 16 : 14)),
           decoration: BoxDecoration(
             color: isDark
                 ? AppColors.surfaceDark
@@ -808,8 +837,8 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: emojiBoxSize,
+                height: emojiBoxSize,
                 decoration: BoxDecoration(
                   color: isPinned
                       ? const Color(
@@ -821,10 +850,12 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                 alignment: Alignment.center,
                 child: Text(
                   preset.iconEmoji,
-                  style: const TextStyle(fontSize: 22),
+                  style: TextStyle(
+                    fontSize: context.adaptiveFontSize(22, tabletSize: 28, largeTabletSize: 34),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -838,7 +869,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 14.5,
+                              fontSize: context.adaptiveFontSize(14.5, tabletSize: 18, largeTabletSize: 21.5),
                               fontWeight: FontWeight.bold,
                               color: isDark
                                   ? AppColors.textPrimaryDark
@@ -848,9 +879,9 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                         ),
                         const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 2,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.isLargeTablet ? 12 : (context.isMediumOrWider ? 9 : 7),
+                            vertical: context.isLargeTablet ? 5 : (context.isMediumOrWider ? 3.5 : 2),
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(
@@ -860,8 +891,8 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                           ),
                           child: Text(
                             preset.badgeText,
-                            style: const TextStyle(
-                              fontSize: 10.5,
+                            style: TextStyle(
+                              fontSize: context.adaptiveFontSize(10.5, tabletSize: 13, largeTabletSize: 15.5),
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
                             ),
@@ -875,7 +906,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: context.adaptiveFontSize(11.5, tabletSize: 14.5, largeTabletSize: 16.5),
                         color: isDark
                             ? AppColors.textSecondaryDark
                             : AppColors.textSecondaryLight,
@@ -897,15 +928,15 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                       : (isDark
                             ? Colors.white38
                             : Colors.black38),
-                  size: 24,
+                  size: starIconSize,
                 ),
                 tooltip: isPinned
                     ? 'Unpin Preset'
                     : 'Pin to Home ⭐',
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 36,
-                  minHeight: 36,
+                constraints: BoxConstraints(
+                  minWidth: starBtnBox,
+                  minHeight: starBtnBox,
                 ),
                 onPressed: () {
                   HapticFeedback.selectionClick();
@@ -955,12 +986,15 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.isLargeTablet ? 24 : (context.isMediumOrWider ? 18 : 14),
+                  vertical: context.isLargeTablet ? 18 : (context.isMediumOrWider ? 14 : 10),
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.surfaceDark
                       : AppColors.primaryContainerLight.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(context.isLargeTablet ? 18 : 14),
                   border: Border.all(
                     color: isDark
                         ? AppColors.borderDark
@@ -970,22 +1004,22 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                 child: Row(
                   children: [
                     Container(
-                      width: 34,
-                      height: 34,
+                      width: context.adaptiveIconSize(34, tabletSize: 46, largeTabletSize: 58),
+                      height: context.adaptiveIconSize(34, tabletSize: 46, largeTabletSize: 58),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(
                           alpha: isDark ? 0.25 : 0.12,
                         ),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(context.isLargeTablet ? 14 : 10),
                       ),
                       alignment: Alignment.center,
                       child: Icon(
                         Icons.verified_outlined,
-                        size: 18,
+                        size: context.adaptiveIconSize(18, tabletSize: 24, largeTabletSize: 30),
                         color: isDark ? AppColors.primaryLight : AppColors.primary,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: context.isMediumOrWider ? 16 : 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -993,7 +1027,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                           Text(
                             'Exam Document Tools',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: context.adaptiveFontSize(13, tabletSize: 17, largeTabletSize: 21),
                               fontWeight: FontWeight.w700,
                               color: isDark
                                   ? AppColors.textPrimaryDark
@@ -1004,7 +1038,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                           Text(
                             'Specialized utilities for SSC, UPSC, IBPS, Vyapam & State PSC portals',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: context.adaptiveFontSize(11, tabletSize: 14, largeTabletSize: 16.5),
                               color: isDark
                                   ? AppColors.textSecondaryDark
                                   : AppColors.textSecondaryLight,
@@ -1025,7 +1059,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                 padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final is3Cols = constraints.maxWidth >= 960;
+                    final is3Cols = context.isLandscape && constraints.maxWidth >= 900;
                     if (is3Cols) {
                       return IntrinsicHeight(
                         child: Row(
@@ -1213,14 +1247,19 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                     ),
                     child: ExpansionTile(
                     initiallyExpanded: false,
-                    tilePadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 2,
+                    tilePadding: EdgeInsets.symmetric(
+                      horizontal: context.isMediumOrWider ? 18 : 14,
+                      vertical: context.isMediumOrWider ? 6 : 2,
                     ),
-                    childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                    childrenPadding: EdgeInsets.fromLTRB(
+                      context.isMediumOrWider ? 18 : 14,
+                      0,
+                      context.isMediumOrWider ? 18 : 14,
+                      context.isMediumOrWider ? 18 : 14,
+                    ),
                     leading: Container(
-                      width: 34,
-                      height: 34,
+                      width: context.adaptiveIconSize(34, tabletSize: 46, largeTabletSize: 52),
+                      height: context.adaptiveIconSize(34, tabletSize: 46, largeTabletSize: 52),
                       decoration: BoxDecoration(
                         color: Colors.blue.withValues(
                           alpha: isDark ? 0.2 : 0.1,
@@ -1229,14 +1268,14 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                       ),
                       child: Icon(
                         Icons.info_outline_rounded,
-                        size: 18,
+                        size: context.adaptiveIconSize(18, tabletSize: 24, largeTabletSize: 28),
                         color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
                       ),
                     ),
                     title: Text(
                       'Exam Upload Guidelines',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: context.adaptiveFontSize(13, tabletSize: 17, largeTabletSize: 19),
                         fontWeight: FontWeight.w600,
                         color: isDark
                             ? AppColors.textPrimaryDark
@@ -1246,7 +1285,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                     subtitle: Text(
                       'Common specifications for photo, sign & date',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: context.adaptiveFontSize(11, tabletSize: 14, largeTabletSize: 15.5),
                         color: isDark
                             ? AppColors.textSecondaryDark
                             : AppColors.textSecondaryLight,
@@ -1255,6 +1294,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                     children: [
                       const Divider(height: 16),
                       _buildGuidelineRow(
+                        context,
                         isDark,
                         Icons.portrait_rounded,
                         'Passport Photo',
@@ -1262,6 +1302,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                       ),
                       const SizedBox(height: 8),
                       _buildGuidelineRow(
+                        context,
                         isDark,
                         Icons.draw_rounded,
                         'Signature',
@@ -1269,23 +1310,29 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                       ),
                       const SizedBox(height: 8),
                       _buildGuidelineRow(
+                        context,
                         isDark,
                         Icons.calendar_today_rounded,
                         'Photo Date (DOP)',
                         'Must not be older than 3 months from notification date.',
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: context.isMediumOrWider ? 18 : 14),
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           onPressed: () => setState(() => _selectedTabIndex = 1),
-                          icon: const Icon(Icons.tune_rounded, size: 16),
-                          label: const Text(
+                          icon: Icon(
+                            Icons.tune_rounded,
+                            size: context.adaptiveIconSize(16, tabletSize: 20, largeTabletSize: 22),
+                          ),
+                          label: Text(
                             'Browse All Govt & Exam Presets',
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(
+                              fontSize: context.adaptiveFontSize(12, tabletSize: 15, largeTabletSize: 16.5),
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: EdgeInsets.symmetric(vertical: context.isMediumOrWider ? 14 : 10),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -1317,18 +1364,22 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
     required String description,
     required VoidCallback onTap,
   }) {
+    final iconBoxSize = context.adaptiveIconSize(40, tabletSize: 52, largeTabletSize: 68);
+    final iconActionSize = context.adaptiveIconSize(20, tabletSize: 28, largeTabletSize: 36);
+    final arrowCircleSize = context.adaptiveIconSize(30, tabletSize: 38, largeTabletSize: 46);
+
     return Material(
       color: isDark ? AppColors.surfaceDark : Colors.white,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
       child: InkWell(
         onTap: () {
           HapticFeedback.lightImpact();
           onTap();
         },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
             border: Border.all(
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
             ),
@@ -1340,27 +1391,27 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
               ),
             ],
           ),
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(context.isLargeTablet ? 24 : (context.isMediumOrWider ? 18 : 14)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: iconBoxSize,
+                    height: iconBoxSize,
                     decoration: BoxDecoration(
                       color: accentColor.withValues(alpha: isDark ? 0.22 : 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : 12),
                     ),
                     alignment: Alignment.center,
                     child: Icon(
                       icon,
-                      size: 20,
+                      size: iconActionSize,
                       color: accentColor,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: context.isMediumOrWider ? 16 : 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1368,7 +1419,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                         Text(
                           title,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: context.adaptiveFontSize(14, tabletSize: 18, largeTabletSize: 22),
                             fontWeight: FontWeight.w700,
                             color: isDark
                                 ? AppColors.textPrimaryDark
@@ -1379,7 +1430,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                         Text(
                           subtitle,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: context.adaptiveFontSize(11, tabletSize: 14, largeTabletSize: 16.5),
                             color: isDark
                                 ? AppColors.textSecondaryDark
                                 : AppColors.textSecondaryLight,
@@ -1390,43 +1441,46 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                     ),
                   ),
                   Container(
-                    width: 30,
-                    height: 30,
+                    width: arrowCircleSize,
+                    height: arrowCircleSize,
                     decoration: BoxDecoration(
                       color: accentColor.withValues(alpha: isDark ? 0.18 : 0.08),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.arrow_forward_rounded,
-                      size: 15,
+                      size: context.adaptiveIconSize(15, tabletSize: 20, largeTabletSize: 26),
                       color: accentColor,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: context.isLargeTablet ? 16 : (context.isMediumOrWider ? 12 : 8)),
               Text(
                 description,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: context.adaptiveFontSize(12, tabletSize: 15, largeTabletSize: 17.0),
                   height: 1.35,
                   color: isDark
                       ? AppColors.textSecondaryDark
                       : AppColors.textSecondaryLight,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: context.isLargeTablet ? 16 : (context.isMediumOrWider ? 12 : 8)),
               Wrap(
-                spacing: 6,
-                runSpacing: 4,
+                spacing: context.isMediumOrWider ? 8 : 6,
+                runSpacing: context.isMediumOrWider ? 6 : 4,
                 children: badges.map((badge) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.isLargeTablet ? 12 : (context.isMediumOrWider ? 9 : 7),
+                      vertical: context.isLargeTablet ? 6 : (context.isMediumOrWider ? 4 : 3),
+                    ),
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.surfaceLight.withValues(alpha: 0.06)
                           : AppColors.backgroundLight,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(context.isLargeTablet ? 8 : 6),
                       border: Border.all(
                         color: isDark
                             ? AppColors.borderDark.withValues(alpha: 0.6)
@@ -1436,7 +1490,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                     child: Text(
                       badge,
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: context.adaptiveFontSize(10.5, tabletSize: 13, largeTabletSize: 15.5),
                         fontWeight: FontWeight.w600,
                         color: isDark
                             ? AppColors.textPrimaryDark.withValues(alpha: 0.85)
@@ -1454,6 +1508,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
   }
 
   Widget _buildGuidelineRow(
+    BuildContext context,
     bool isDark,
     IconData icon,
     String title,
@@ -1464,17 +1519,17 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
       children: [
         Icon(
           icon,
-          size: 16,
+          size: context.adaptiveIconSize(16, tabletSize: 20, largeTabletSize: 22),
           color: isDark
               ? AppColors.textSecondaryDark
               : AppColors.textSecondaryLight,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: context.isMediumOrWider ? 10 : 8),
         Expanded(
           child: RichText(
             text: TextSpan(
               style: TextStyle(
-                fontSize: 12,
+                fontSize: context.adaptiveFontSize(12, tabletSize: 15, largeTabletSize: 16.5),
                 height: 1.4,
                 color: isDark
                     ? AppColors.textPrimaryDark

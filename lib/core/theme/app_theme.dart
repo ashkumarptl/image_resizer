@@ -228,20 +228,20 @@ class AppTheme {
         ),
         selectedIconTheme: const IconThemeData(
           color: AppColors.primaryDark,
-          size: 24,
+          size: 30,
         ),
         unselectedIconTheme: const IconThemeData(
           color: AppColors.textSecondaryLight,
-          size: 24,
+          size: 30,
         ),
         selectedLabelTextStyle: GoogleFonts.outfit(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+          fontSize: 14.5,
+          fontWeight: FontWeight.w700,
           color: AppColors.primaryDark,
         ),
         unselectedLabelTextStyle: GoogleFonts.outfit(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
           color: AppColors.textSecondaryLight,
         ),
         labelType: NavigationRailLabelType.all,
@@ -434,20 +434,20 @@ class AppTheme {
         ),
         selectedIconTheme: const IconThemeData(
           color: AppColors.primaryLight,
-          size: 24,
+          size: 30,
         ),
         unselectedIconTheme: const IconThemeData(
           color: AppColors.textSecondaryDark,
-          size: 24,
+          size: 30,
         ),
         selectedLabelTextStyle: GoogleFonts.outfit(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+          fontSize: 14.5,
+          fontWeight: FontWeight.w700,
           color: AppColors.primaryLight,
         ),
         unselectedLabelTextStyle: GoogleFonts.outfit(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
           color: AppColors.textSecondaryDark,
         ),
         labelType: NavigationRailLabelType.all,

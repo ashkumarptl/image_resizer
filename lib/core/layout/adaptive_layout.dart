@@ -49,6 +49,24 @@ extension AdaptiveLayoutExtension on BuildContext {
   /// Screen height of current context.
   double get screenHeight => screenSize.height;
 
+  /// Screen orientation of current context.
+  Orientation get orientation => MediaQuery.orientationOf(this);
+
+  /// Whether device is currently in portrait orientation.
+  bool get isPortrait => orientation == Orientation.portrait;
+
+  /// Whether device is currently in landscape orientation.
+  bool get isLandscape => orientation == Orientation.landscape;
+
+  /// Safe area padding (status bar, notches, home indicator).
+  EdgeInsets get screenPadding => MediaQuery.paddingOf(this);
+
+  /// View padding of current context.
+  EdgeInsets get screenViewPadding => MediaQuery.viewPaddingOf(this);
+
+  /// View insets (e.g. on-screen keyboard).
+  EdgeInsets get screenViewInsets => MediaQuery.viewInsetsOf(this);
+
   /// Material 3 Window Size Class calculated from current width.
   WindowSizeClass get windowSizeClass {
     final width = screenWidth;
@@ -85,6 +103,16 @@ extension AdaptiveLayoutExtension on BuildContext {
 
   /// Whether current layout is Expanded or wider (≥ 840dp).
   bool get isExpandedOrWider => screenWidth >= M3Breakpoints.mediumMaxWidth;
+
+  /// Whether current layout is a large tablet or wider (e.g. 10–13" tablets like iPad Pro, Galaxy Tab).
+  /// Accurately detects tablets in both portrait and landscape by checking:
+  /// - shortest side >= 720dp (standard 10"+ tablet), OR
+  /// - width >= 800dp, OR
+  /// - tall medium display (width >= 600dp and height >= 1000dp).
+  bool get isLargeTablet =>
+      screenSize.shortestSide >= 720.0 ||
+      screenWidth >= 840.0 ||
+      (isMediumOrWider && screenHeight >= 1000.0);
 
   /// Returns a responsive value depending on the active Window Size Class.
   T responsiveValue<T>({
@@ -123,6 +151,64 @@ extension AdaptiveLayoutExtension on BuildContext {
         expanded: 4,
         large: 5,
       );
+
+  /// Scales font size for tablets and larger displays (≥600dp) to maintain readability
+  /// at greater viewing distances (16-22 inches vs 10-12 inches on phones).
+  ///
+  /// - Large Tablets / Expanded (≥840dp or shortestSide ≥720dp): scales by ~55% (min 16sp) or uses [largeTabletSize].
+  /// - Medium Tablets (600–839dp): scales by ~32% (min 14sp) or uses [tabletSize].
+  /// - Desktop / Extra Large (≥1200dp): scales by ~60% (min 16sp) or uses [desktopSize].
+  double adaptiveFontSize(
+    double compactSize, {
+    double? tabletSize,
+    double? largeTabletSize,
+    double? desktopSize,
+  }) {
+    if (isLarge || isExtraLarge) {
+      return desktopSize ?? largeTabletSize ?? (tabletSize != null ? (tabletSize * 1.25).roundToDouble() : (compactSize * 1.60));
+    } else if (isLargeTablet || isExpanded) {
+      // Large tablets (10–13" tablets like iPad Pro, Galaxy Tab in portrait/landscape)
+      if (largeTabletSize != null) return largeTabletSize;
+      if (tabletSize != null) {
+        return (tabletSize * 1.22).roundToDouble();
+      }
+      final scaled = compactSize * 1.55;
+      return compactSize < 16.0 ? scaled.clamp(16.0, double.infinity) : scaled;
+    } else if (isMediumOrWider) {
+      if (tabletSize != null) return tabletSize;
+      // On medium tablets (7-8" mini tablets, foldable fold states)
+      final scaled = compactSize * 1.32;
+      return compactSize < 14.0 ? scaled.clamp(14.0, double.infinity) : scaled;
+    }
+    return compactSize;
+  }
+
+  /// Scales icon size for tablets and larger displays (≥600dp) to maintain visual hierarchy
+  /// and tap target comfort.
+  ///
+  /// - Large Tablets / Expanded (≥840dp or shortestSide ≥720dp): scales by ~55% or uses [largeTabletSize].
+  /// - Medium Tablets (600–839dp): scales by ~36% or uses [tabletSize].
+  /// - Desktop / Extra Large (≥1200dp): scales by ~65% or uses [desktopSize].
+  double adaptiveIconSize(
+    double compactSize, {
+    double? tabletSize,
+    double? largeTabletSize,
+    double? desktopSize,
+  }) {
+    if (isLarge || isExtraLarge) {
+      return desktopSize ?? largeTabletSize ?? (tabletSize != null ? (tabletSize * 1.28).roundToDouble() : (compactSize * 1.65));
+    } else if (isLargeTablet || isExpanded) {
+      // Large tablets (10–13" tablets)
+      if (largeTabletSize != null) return largeTabletSize;
+      if (tabletSize != null) {
+        return (tabletSize * 1.25).roundToDouble();
+      }
+      return compactSize * 1.55;
+    } else if (isMediumOrWider) {
+      return tabletSize ?? (compactSize * 1.36);
+    }
+    return compactSize;
+  }
 }
 
 /// A container that applies Material 3 margins and centers content
@@ -229,7 +315,7 @@ class AdaptiveSupportingPane extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+        final isLandscape = context.isLandscape;
         final isWide = constraints.maxWidth >= breakpoint && (!requireLandscape || isLandscape);
 
         if (isWide) {

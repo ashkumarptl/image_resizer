@@ -1092,6 +1092,7 @@ class _ScanProjectDetailScreenState
               ],
             )
           : AppBar(
+              toolbarHeight: context.isLargeTablet ? 84 : (context.isMediumOrWider ? 72 : null),
               title: InkWell(
                 onTap: _handleRename,
                 borderRadius: BorderRadius.circular(8),
@@ -1103,19 +1104,25 @@ class _ScanProjectDetailScreenState
                       Flexible(
                         child: Text(
                           _project.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: context.adaptiveFontSize(17, tabletSize: 22, largeTabletSize: 26),
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
+                      Icon(Icons.edit_outlined, size: context.adaptiveIconSize(16, tabletSize: 20, largeTabletSize: 24), color: Colors.grey),
                     ],
                   ),
                 ),
               ),
               actions: [
                 IconButton(
-                  icon: Icon(_isGridView ? Icons.view_agenda_rounded : Icons.grid_view_rounded),
+                  icon: Icon(
+                    _isGridView ? Icons.view_agenda_rounded : Icons.grid_view_rounded,
+                    size: context.adaptiveIconSize(22, tabletSize: 26, largeTabletSize: 30),
+                  ),
                   tooltip: _isGridView ? 'List View' : 'Grid View',
                   onPressed: () {
                     HapticFeedback.selectionClick();
@@ -1123,12 +1130,18 @@ class _ScanProjectDetailScreenState
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.share_rounded),
+                  icon: Icon(
+                    Icons.share_rounded,
+                    size: context.adaptiveIconSize(22, tabletSize: 26, largeTabletSize: 30),
+                  ),
                   tooltip: 'Share PDF',
                   onPressed: _handleSharePdf,
                 ),
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert_rounded),
+                  icon: Icon(
+                    Icons.more_vert_rounded,
+                    size: context.adaptiveIconSize(22, tabletSize: 26, largeTabletSize: 30),
+                  ),
                   onSelected: (val) {
                     if (val == 'rename') _handleRename();
                     if (val == 'quality') _handleSelectPdfQuality();
@@ -1185,7 +1198,10 @@ class _ScanProjectDetailScreenState
           children: [
             // Metadata banner with Target Size selector chip
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: context.adaptiveMargin,
+                vertical: context.isLargeTablet ? 14 : (context.isMediumOrWider ? 10 : 8),
+              ),
               color: isDark
                   ? AppColors.surfaceDark.withValues(alpha: 0.6)
                   : Colors.grey.shade100,
@@ -1202,15 +1218,18 @@ class _ScanProjectDetailScreenState
                           children: [
                             // Page count badge
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: context.isLargeTablet ? 12 : 8,
+                                vertical: context.isLargeTablet ? 6 : 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 '${_project.pageCount} ${_project.pageCount == 1 ? 'PAGE' : 'PAGES'}',
-                                style: const TextStyle(
-                                  fontSize: 11,
+                                style: TextStyle(
+                                  fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15.5),
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primary,
                                 ),
@@ -1225,7 +1244,10 @@ class _ScanProjectDetailScreenState
                                 onTap: _handleSelectPdfQuality,
                                 borderRadius: BorderRadius.circular(6),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: context.isLargeTablet ? 12 : 8,
+                                    vertical: context.isLargeTablet ? 6 : 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF10B981).withValues(alpha: 0.14),
                                     borderRadius: BorderRadius.circular(6),
@@ -1237,17 +1259,21 @@ class _ScanProjectDetailScreenState
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.tune_rounded, size: 11, color: Color(0xFF10B981)),
+                                      Icon(
+                                        Icons.tune_rounded,
+                                        size: context.adaptiveIconSize(11, tabletSize: 14, largeTabletSize: 16),
+                                        color: const Color(0xFF10B981),
+                                      ),
                                       const SizedBox(width: 4),
                                       Flexible(
                                         child: Text(
                                           currentQuality.label,
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
-                                          style: const TextStyle(
-                                            fontSize: 11,
+                                          style: TextStyle(
+                                            fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15.5),
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF059669),
+                                            color: const Color(0xFF059669),
                                           ),
                                         ),
                                       ),
@@ -1258,42 +1284,39 @@ class _ScanProjectDetailScreenState
                             ),
                             const SizedBox(width: 8),
 
-                            Text(
-                              sizeStr,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            // File size
+                            if (_project.pdfSizeBytes > 0)
+                              Text(
+                                sizeStr,
+                                style: TextStyle(
+                                  fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15.5),
+                                  color: isDark ? Colors.white54 : Colors.black45,
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),
 
-                      // Reorder guidance hint
-                      if (hasReorderHint) ...[
-                        const SizedBox(width: 8),
+                      // Reorder hint
+                      if (hasReorderHint && showHintText)
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.touch_app_outlined,
-                              size: 13,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              Icons.touch_app_rounded,
+                              size: context.adaptiveIconSize(13, tabletSize: 16, largeTabletSize: 18),
+                              color: isDark ? Colors.white38 : Colors.black38,
                             ),
-                            if (showHintText) ...[
-                              const SizedBox(width: 3),
-                              Text(
-                                showFullHint ? 'Hold & drag to reorder' : 'Drag to reorder',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                                ),
+                            const SizedBox(width: 4),
+                            Text(
+                              showFullHint ? 'Hold & drag to reorder' : 'Hold to reorder',
+                              style: TextStyle(
+                                fontSize: context.adaptiveFontSize(10.5, tabletSize: 13, largeTabletSize: 14.5),
+                                color: isDark ? Colors.white38 : Colors.black38,
                               ),
-                            ],
+                            ),
                           ],
                         ),
-                      ],
                     ],
                   );
                 },
@@ -1305,35 +1328,48 @@ class _ScanProjectDetailScreenState
             else
               const Divider(height: 1),
 
-            // Pages List or Grid
+            // Page List / Grid
             Expanded(
               child: _project.pagePaths.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.photo_library_outlined, size: 54, color: Colors.grey.shade400),
-                          const SizedBox(height: 12),
-                          const Text('No pages left in document'),
+                          Icon(
+                            Icons.picture_as_pdf_outlined,
+                            size: context.adaptiveIconSize(64, tabletSize: 80, largeTabletSize: 96),
+                            color: isDark ? Colors.white24 : Colors.black12,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No pages yet',
+                            style: TextStyle(
+                              fontSize: context.adaptiveFontSize(16, tabletSize: 20, largeTabletSize: 24),
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white54 : Colors.black45,
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          ElevatedButton.icon(
-                            onPressed: _handleAddPages,
-                            icon: const Icon(Icons.add_rounded),
-                            label: const Text('Add Pages'),
+                          Text(
+                            'Tap "Add Pages" to scan or import documents',
+                            style: TextStyle(
+                              fontSize: context.adaptiveFontSize(13, tabletSize: 16, largeTabletSize: 18),
+                              color: isDark ? Colors.white38 : Colors.black38,
+                            ),
                           ),
                         ],
                       ),
                     )
-                  : _isGridView
+                  : (_isGridView
                       ? _buildGridView(context, isDark)
-                      : _buildListView(context, isDark),
+                      : _buildListView(context, isDark)),
             ),
           ],
         ),
       ),
       bottomNavigationBar: _isSelectionMode
           ? _buildSelectionBottomBar(context, isDark)
-          : _buildBottomBar(context, isDark),
+          : _buildStandardBottomBar(context, isDark),
     );
   }
 
@@ -1393,10 +1429,12 @@ class _ScanProjectDetailScreenState
       key: const ValueKey('grid_view_smooth_grid'),
       padding: EdgeInsets.fromLTRB(context.adaptiveMargin, 16, context.adaptiveMargin, 100),
       itemCount: _project.pagePaths.length,
-      crossAxisCount: context.responsiveValue(compact: 2, medium: 3, expanded: 4, large: 5),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 0.68,
+      crossAxisCount: context.isLargeTablet
+          ? (context.isLandscape ? 4 : 2)
+          : (context.isMediumOrWider ? (context.isLandscape ? 3 : 2) : 2),
+      crossAxisSpacing: context.isLargeTablet ? 20 : 12,
+      mainAxisSpacing: context.isLargeTablet ? 20 : 12,
+      childAspectRatio: context.isLargeTablet ? 0.72 : 0.68,
       itemKeyBuilder: (index) => ValueKey('grid_page_${_project.pagePaths[index]}'),
       selectedIndexes: _selectedPageIndices,
       enableMultiSelection: true,
@@ -1473,11 +1511,11 @@ class _ScanProjectDetailScreenState
                     : const Center(child: Icon(Icons.broken_image, size: 28, color: Colors.grey)),
                 if (isSelected || _isSelectionMode || isFeedback)
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: context.isLargeTablet ? 12 : 8,
+                    right: context.isLargeTablet ? 12 : 8,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.all(4),
+                      padding: EdgeInsets.all(context.isLargeTablet ? 6 : 4),
                       decoration: BoxDecoration(
                         color: (isSelected || isFeedback)
                             ? AppColors.primary
@@ -1496,23 +1534,26 @@ class _ScanProjectDetailScreenState
                         ],
                       ),
                       child: (isSelected || isFeedback)
-                          ? const Icon(
+                          ? Icon(
                               Icons.check_rounded,
-                              size: 14,
+                              size: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 22),
                               color: Colors.white,
                             )
-                          : const SizedBox(width: 14, height: 14),
+                          : SizedBox(
+                              width: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 22),
+                              height: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 22),
+                            ),
                     ),
                   ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: context.isLargeTablet ? 10 : 6),
         Text(
           (index + 1).toString().padLeft(2, '0'),
           style: TextStyle(
-            fontSize: 13,
+            fontSize: context.adaptiveFontSize(13, tabletSize: 16.5, largeTabletSize: 18.5),
             fontWeight: FontWeight.bold,
             color: highlight
                 ? AppColors.primary
@@ -1631,13 +1672,15 @@ class _ScanProjectDetailScreenState
     );
   }
 
-  Widget _buildBottomBar(BuildContext context, bool isDark) {
+  Widget _buildStandardBottomBar(BuildContext context, bool isDark) {
+    final isLarge = context.isLargeTablet;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
-        16,
-        12,
-        16,
-        MediaQuery.paddingOf(context).bottom + 12,
+        isLarge ? 24 : 16,
+        isLarge ? 18 : 12,
+        isLarge ? 24 : 16,
+        MediaQuery.paddingOf(context).bottom + (isLarge ? 18 : 12),
       ),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
@@ -1660,27 +1703,33 @@ class _ScanProjectDetailScreenState
           alignment: Alignment.center,
           heightFactor: 1.0,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
+            constraints: BoxConstraints(maxWidth: isLarge ? 900 : 800),
             child: Row(
               children: [
                 // Add Page Button
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _isLoading ? null : _handleAddPages,
-                    icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
-                    label: const Text(
+                    icon: Icon(
+                      Icons.add_photo_alternate_outlined,
+                      size: context.adaptiveIconSize(18, tabletSize: 22, largeTabletSize: 26),
+                    ),
+                    label: Text(
                       'Add Pages',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
+                      ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: isLarge ? 18 : 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: isLarge ? 16 : 10),
 
                 // Save PDF Button
                 Expanded(
@@ -1690,14 +1739,14 @@ class _ScanProjectDetailScreenState
                         : (_isPdfSaved ? null : _handleSavePdf),
                     icon: Icon(
                       _isPdfSaved ? Icons.check_circle_rounded : Icons.download_rounded,
-                      size: 18,
+                      size: context.adaptiveIconSize(18, tabletSize: 22, largeTabletSize: 26),
                       color: _isPdfSaved ? AppColors.success : Colors.white,
                     ),
                     label: Text(
                       _isPdfSaved ? 'Saved ✓' : 'Save PDF',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
                         color: _isPdfSaved ? AppColors.success : Colors.white,
                       ),
                     ),
@@ -1706,9 +1755,9 @@ class _ScanProjectDetailScreenState
                           ? AppColors.success.withValues(alpha: 0.15)
                           : const Color(0xFF6366F1),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: isLarge ? 18 : 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
                       ),
                       elevation: 0,
                     ),
@@ -1724,13 +1773,14 @@ class _ScanProjectDetailScreenState
 
   Widget _buildSelectionBottomBar(BuildContext context, bool isDark) {
     final count = _selectedPageIndices.length;
+    final isLarge = context.isLargeTablet;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
-        16,
-        12,
-        16,
-        MediaQuery.paddingOf(context).bottom + 12,
+        isLarge ? 24 : 16,
+        isLarge ? 18 : 12,
+        isLarge ? 24 : 16,
+        MediaQuery.paddingOf(context).bottom + (isLarge ? 18 : 12),
       ),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
@@ -1753,81 +1803,97 @@ class _ScanProjectDetailScreenState
           alignment: Alignment.center,
           heightFactor: 1.0,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
+            constraints: BoxConstraints(maxWidth: isLarge ? 900 : 800),
             child: Row(
               children: [
                 // Share Selected Button
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _isLoading ? null : _handleShareSelectedPages,
-                  icon: const Icon(Icons.share_rounded, size: 17),
-                  label: Text(
-                    'Share ($count)',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _handleShareSelectedPages,
+                    icon: Icon(
+                      Icons.share_rounded,
+                      size: context.adaptiveIconSize(17, tabletSize: 20, largeTabletSize: 24),
+                    ),
+                    label: Text(
+                      'Share ($count)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: isLarge ? 18 : 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
+                SizedBox(width: isLarge ? 12 : 8),
 
-              // Save to Device Button
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _handleSaveSelectedPagesToDevice,
-                  icon: const Icon(Icons.download_rounded, size: 17),
-                  label: const Text(
-                    'Save to Device',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                // Save to Device Button
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _handleSaveSelectedPagesToDevice,
+                    icon: Icon(
+                      Icons.download_rounded,
+                      size: context.adaptiveIconSize(17, tabletSize: 20, largeTabletSize: 24),
                     ),
-                    elevation: 0,
+                    label: Text(
+                      'Save to Device',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6366F1),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: isLarge ? 18 : 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
+                      ),
+                      elevation: 0,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 6),
+                SizedBox(width: isLarge ? 10 : 6),
 
-              // Print Selected Icon Button
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withValues(alpha: isDark ? 0.2 : 0.08),
-                  borderRadius: BorderRadius.circular(12),
+                // Print Selected Icon Button
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6366F1).withValues(alpha: isDark ? 0.2 : 0.08),
+                    borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
+                  ),
+                  child: IconButton(
+                    iconSize: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
+                    padding: EdgeInsets.all(isLarge ? 14 : 8),
+                    icon: const Icon(Icons.print_rounded, color: Color(0xFF6366F1)),
+                    tooltip: 'Print Selected',
+                    onPressed: _isLoading ? null : _handlePrintSelectedPages,
+                  ),
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.print_rounded, color: Color(0xFF6366F1), size: 20),
-                  tooltip: 'Print Selected',
-                  onPressed: _isLoading ? null : _handlePrintSelectedPages,
-                ),
-              ),
-              const SizedBox(width: 6),
+                SizedBox(width: isLarge ? 10 : 6),
 
-              // Delete Selected Icon Button
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: isDark ? 0.2 : 0.08),
-                  borderRadius: BorderRadius.circular(12),
+                // Delete Selected Icon Button
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: isDark ? 0.2 : 0.08),
+                    borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
+                  ),
+                  child: IconButton(
+                    iconSize: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
+                    padding: EdgeInsets.all(isLarge ? 14 : 8),
+                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    tooltip: 'Delete Selected',
+                    onPressed: _isLoading ? null : _handleDeleteSelectedPages,
+                  ),
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
-                  tooltip: 'Delete Selected',
-                  onPressed: _isLoading ? null : _handleDeleteSelectedPages,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'widgets/image_source_picker_sheet.dart';
 import '../core/constants/app_colors.dart';
 import '../core/layout/adaptive_layout.dart';
@@ -253,27 +254,47 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
                       constraints: BoxConstraints(minHeight: railConstraints.maxHeight),
                       child: IntrinsicHeight(
                         child: NavigationRail(
+                          minWidth: isShort ? 64.0 : (context.screenWidth >= 1000 ? 104.0 : 88.0),
+                          groupAlignment: isShort ? -1.0 : (context.isLargeTablet ? -0.4 : -0.6),
                           selectedIndex: currentIndex,
                           onDestinationSelected: (index) {
                             ref.read(navigationIndexProvider.notifier).state = index;
                           },
                           labelType: NavigationRailLabelType.all,
+                          selectedIconTheme: IconThemeData(
+                            size: context.isLargeTablet ? 34.0 : 28.0,
+                            color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
+                          ),
+                          unselectedIconTheme: IconThemeData(
+                            size: context.isLargeTablet ? 34.0 : 28.0,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
+                          selectedLabelTextStyle: GoogleFonts.outfit(
+                            fontSize: context.isLargeTablet ? 15.0 : 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
+                          ),
+                          unselectedLabelTextStyle: GoogleFonts.outfit(
+                            fontSize: context.isLargeTablet ? 14.0 : 13.0,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
                           leading: Padding(
                             padding: EdgeInsets.only(
-                              top: isShort ? 4 : 8,
-                              bottom: isShort ? 8 : 20,
+                              top: isShort ? 4 : (context.isLargeTablet ? 14 : 10),
+                              bottom: isShort ? 8 : (context.isLargeTablet ? 24 : 18),
                             ),
                             child: Container(
-                              width: isShort ? 36 : 44,
-                              height: isShort ? 36 : 44,
+                              width: isShort ? 36.0 : (context.isLargeTablet ? 60.0 : 52.0),
+                              height: isShort ? 36.0 : (context.isLargeTablet ? 60.0 : 52.0),
                               decoration: BoxDecoration(
                                 gradient: AppColors.primaryGradient,
-                                borderRadius: BorderRadius.circular(isShort ? 10 : 14),
+                                borderRadius: BorderRadius.circular(isShort ? 10 : (context.isLargeTablet ? 20 : 16)),
                                 boxShadow: [
                                   BoxShadow(
                                     color: AppColors.primary.withValues(alpha: 0.25),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
                                   ),
                                 ],
                               ),
@@ -281,31 +302,35 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
                                 child: Icon(
                                   Icons.photo_size_select_large_rounded,
                                   color: Colors.white,
-                                  size: isShort ? 18 : 22,
+                                  size: isShort ? 18.0 : (context.isLargeTablet ? 36.0 : 28.0),
                                 ),
                               ),
                             ),
                           ),
-                          destinations: const [
+                          destinations: [
                             NavigationRailDestination(
-                              icon: Icon(Icons.home_outlined),
-                              selectedIcon: Icon(Icons.home_rounded),
-                              label: Text('Home'),
+                              icon: const Icon(Icons.home_outlined),
+                              selectedIcon: const Icon(Icons.home_rounded),
+                              label: const Text('Home'),
+                              padding: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 12 : 6),
                             ),
                             NavigationRailDestination(
-                              icon: Icon(Icons.picture_as_pdf_outlined),
-                              selectedIcon: Icon(Icons.picture_as_pdf_rounded),
-                              label: Text('Scan to PDF'),
+                              icon: const Icon(Icons.picture_as_pdf_outlined),
+                              selectedIcon: const Icon(Icons.picture_as_pdf_rounded),
+                              label: const Text('Scan to PDF'),
+                              padding: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 12 : 6),
                             ),
                             NavigationRailDestination(
-                              icon: Icon(Icons.draw_outlined),
-                              selectedIcon: Icon(Icons.draw_rounded),
-                              label: Text('Exam Tools'),
+                              icon: const Icon(Icons.draw_outlined),
+                              selectedIcon: const Icon(Icons.draw_rounded),
+                              label: const Text('Exam Tools'),
+                              padding: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 12 : 6),
                             ),
                             NavigationRailDestination(
-                              icon: Icon(Icons.settings_outlined),
-                              selectedIcon: Icon(Icons.settings_rounded),
-                              label: Text('Settings'),
+                              icon: const Icon(Icons.settings_outlined),
+                              selectedIcon: const Icon(Icons.settings_rounded),
+                              label: const Text('Settings'),
+                              padding: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 12 : 6),
                             ),
                           ],
                         ),

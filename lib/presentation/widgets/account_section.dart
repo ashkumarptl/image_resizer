@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/layout/adaptive_layout.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/usage_limit_repository.dart';
 
@@ -206,9 +207,11 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
     final photoUrl = user.photoURL;
     final displayName = user.displayName ?? 'Google User';
     final email = user.email ?? 'No email provided';
+    final avatarRadius = context.isLargeTablet ? 36.0 : (context.isMediumOrWider ? 32.0 : 26.0);
+    final avatarFontSize = context.isLargeTablet ? 26.0 : (context.isMediumOrWider ? 24.0 : 20.0);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(context.isMediumOrWider ? 20 : 16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
@@ -223,21 +226,21 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
             children: [
               // User Avatar
               CircleAvatar(
-                radius: 26,
+                radius: avatarRadius,
                 backgroundColor: AppColors.primaryContainerLight,
                 backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
                 child: photoUrl == null
                     ? Text(
                         displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: TextStyle(
+                          fontSize: avatarFontSize,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryDark,
                         ),
                       )
                     : null,
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: context.isMediumOrWider ? 18 : 14),
               // User Details
               Expanded(
                 child: Column(
@@ -249,7 +252,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                           child: Text(
                             displayName,
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: context.adaptiveFontSize(16, tabletSize: 20, largeTabletSize: 22),
                               fontWeight: FontWeight.bold,
                               color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                             ),
@@ -258,9 +261,9 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(
+                        Icon(
                           Icons.verified_rounded,
-                          size: 16,
+                          size: context.adaptiveIconSize(16, tabletSize: 20, largeTabletSize: 22),
                           color: AppColors.primary,
                         ),
                       ],
@@ -269,7 +272,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                     Text(
                       email,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17),
                         color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                       ),
                       maxLines: 1,
@@ -286,7 +289,10 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.isMediumOrWider ? 10 : 8,
+                  vertical: context.isMediumOrWider ? 6 : 4,
+                ),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
                   borderRadius: BorderRadius.circular(6),
@@ -294,12 +300,12 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _GoogleLogoIcon(size: 14),
+                    _GoogleLogoIcon(size: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 20)),
                     const SizedBox(width: 6),
                     Text(
                       'Google Account',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15),
                         fontWeight: FontWeight.w600,
                         color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                       ),
@@ -316,11 +322,20 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                   side: BorderSide(
                     color: isDark ? AppColors.borderDark : AppColors.borderLight,
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.isMediumOrWider ? 14 : 10,
+                    vertical: context.isMediumOrWider ? 10 : 6,
+                  ),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                icon: const Icon(Icons.logout_rounded, size: 14),
-                label: const Text('Sign Out', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                icon: Icon(Icons.logout_rounded, size: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 20)),
+                label: Text(
+                  'Sign Out',
+                  style: TextStyle(
+                    fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
               const SizedBox(width: 8),
               // Delete Account Button
@@ -329,7 +344,10 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.error,
                   side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.isMediumOrWider ? 14 : 10,
+                    vertical: context.isMediumOrWider ? 10 : 6,
+                  ),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 icon: _isLoading
@@ -338,8 +356,14 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                         height: 12,
                         child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.error),
                       )
-                    : const Icon(Icons.delete_forever_rounded, size: 14),
-                label: const Text('Delete', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                    : Icon(Icons.delete_forever_rounded, size: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 20)),
+                label: Text(
+                  'Delete',
+                  style: TextStyle(
+                    fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -355,10 +379,10 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
     final isLimitReached = !isDeveloper && usageCount >= AppConstants.maxFreeGuestUses;
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(context.isLargeTablet ? 26 : (context.isMediumOrWider ? 22 : 18)),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
         border: Border.all(
           color: isDark ? AppColors.borderDark : AppColors.borderLight,
         ),
@@ -369,14 +393,14 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(context.isLargeTablet ? 18 : (context.isMediumOrWider ? 14 : 10)),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.surfaceVariantDark : AppColors.primaryContainerLight,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: const _GoogleLogoIcon(size: 24),
+                child: _GoogleLogoIcon(size: context.adaptiveIconSize(24, tabletSize: 32, largeTabletSize: 42)),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: context.isMediumOrWider ? 18 : 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,7 +408,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                     Text(
                       'Google Account',
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: context.adaptiveFontSize(15, tabletSize: 18.5, largeTabletSize: 22.0),
                         fontWeight: FontWeight.bold,
                         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
                       ),
@@ -397,7 +421,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                               ? 'Trial completed (${AppConstants.maxFreeGuestUses}/${AppConstants.maxFreeGuestUses} used). Sign in for unlimited.'
                               : '$remaining of ${AppConstants.maxFreeGuestUses} free trials remaining. Sign in for unlimited.'),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: context.adaptiveFontSize(12, tabletSize: 15, largeTabletSize: 17.0),
                         color: isLimitReached
                             ? (isDark ? Colors.red.shade300 : AppColors.error)
                             : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
@@ -409,7 +433,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 16)),
           GoogleSignInButton(
             text: isLimitReached && !isDeveloper ? 'Sign In to Unlock Unlimited' : 'Sign In with Google',
             isLoading: _isLoading,
@@ -442,13 +466,13 @@ class GoogleSignInButton extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: isLoading ? null : onPressed,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: Ink(
           width: double.infinity,
-          height: 48,
+          height: context.isLargeTablet ? 62 : (context.isMediumOrWider ? 52 : 48),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF131314) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isDark ? const Color(0xFF8E918F) : const Color(0xFF747775),
               width: 1.0,
@@ -476,18 +500,19 @@ class GoogleSignInButton extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const _GoogleLogoIcon(size: 20),
-                        const SizedBox(width: 12),
+                        _GoogleLogoIcon(size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28)),
+                        SizedBox(width: context.isMediumOrWider ? 12 : 8),
                         Flexible(
                           child: Text(
                             text,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Roboto',
+                              fontSize: context.adaptiveFontSize(14, tabletSize: 15.5, largeTabletSize: 18),
+                              fontWeight: FontWeight.w500,
                               color: isDark ? const Color(0xFFE3E3E3) : const Color(0xFF1F1F1F),
-                              letterSpacing: 0.2,
+                              letterSpacing: 0.25,
                             ),
                           ),
                         ),

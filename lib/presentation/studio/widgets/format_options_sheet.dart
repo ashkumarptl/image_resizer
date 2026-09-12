@@ -58,12 +58,11 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final mq = MediaQuery.of(context);
-    final navBarInset = mq.viewPadding.bottom;
+    final navBarInset = MediaQuery.viewPaddingOf(context).bottom;
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: mq.size.height * 0.85,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.85,
       ),
       padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + navBarInset),
       decoration: BoxDecoration(

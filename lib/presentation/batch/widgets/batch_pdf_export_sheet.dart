@@ -209,7 +209,7 @@ class _BatchPdfExportSheetState extends State<BatchPdfExportSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Container(
       decoration: BoxDecoration(

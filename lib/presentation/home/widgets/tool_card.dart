@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_radii.dart';
+import '../../../core/layout/adaptive_layout.dart';
 import '../../widgets/bouncy_tap.dart';
 
 class ToolCard extends StatelessWidget {
@@ -24,6 +25,13 @@ class ToolCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBoxSize = context.adaptiveIconSize(42, tabletSize: 52);
+    final emojiSize = context.adaptiveFontSize(22, tabletSize: 28);
+    final badgeFontSize = context.adaptiveFontSize(9.5, tabletSize: 12);
+    final arrowBoxSize = context.adaptiveIconSize(26, tabletSize: 32);
+    final arrowIconSize = context.adaptiveIconSize(13, tabletSize: 17);
+    final titleFontSize = context.adaptiveFontSize(15, tabletSize: 18);
+    final subtitleFontSize = context.adaptiveFontSize(11, tabletSize: 13.5);
 
     return RepaintBoundary(
       child: BouncyTap(
@@ -33,7 +41,10 @@ class ToolCard extends StatelessWidget {
             onTap: onTap,
             borderRadius: AppRadii.cardRadius,
             child: Ink(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: context.isMediumOrWider ? 16 : 14,
+                vertical: context.isMediumOrWider ? 14 : 12,
+              ),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
                 borderRadius: AppRadii.cardRadius,
@@ -60,8 +71,8 @@ class ToolCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 42,
-                        height: 42,
+                        width: iconBoxSize,
+                        height: iconBoxSize,
                         decoration: BoxDecoration(
                           color: accentColor.withValues(alpha: isDark ? 0.20 : 0.10),
                           borderRadius: AppRadii.cardInnerRadius,
@@ -73,12 +84,15 @@ class ToolCard extends StatelessWidget {
                         alignment: Alignment.center,
                         child: Text(
                           iconEmoji,
-                          style: const TextStyle(fontSize: 22),
+                          style: TextStyle(fontSize: emojiSize),
                         ),
                       ),
                       if (badgeText != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.isMediumOrWider ? 9 : 7,
+                            vertical: context.isMediumOrWider ? 4 : 3,
+                          ),
                           decoration: BoxDecoration(
                             color: accentColor.withValues(alpha: isDark ? 0.20 : 0.10),
                             borderRadius: AppRadii.badgeRadius,
@@ -90,76 +104,76 @@ class ToolCard extends StatelessWidget {
                           child: Text(
                             badgeText!,
                             style: TextStyle(
-                              fontSize: 9.5,
+                              fontSize: badgeFontSize,
                               fontWeight: FontWeight.w800,
                               color: accentColor,
                               letterSpacing: 0.4,
                             ),
                           ),
                         )
-                    else
-                      Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.surfaceVariantLight,
-                          border: Border.all(
+                      else
+                        Container(
+                          width: arrowBoxSize,
+                          height: arrowBoxSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
                             color: isDark
-                                ? AppColors.borderDark
-                                : AppColors.borderLight,
-                            width: 0.8,
+                                ? AppColors.surfaceVariantDark
+                                : AppColors.surfaceVariantLight,
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.borderDark
+                                  : AppColors.borderLight,
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.arrow_outward_rounded,
+                            size: arrowIconSize,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
                           ),
                         ),
-                        child: Icon(
-                          Icons.arrow_outward_rounded,
-                          size: 13,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                  ],
-                ),
-
-                const Spacer(),
-
-                // 2. Bottom Section: Title & Subtitle
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimaryLight,
-                    letterSpacing: -0.1,
+                    ],
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11,
-                    height: 1.25,
-                    fontWeight: FontWeight.w500,
-                    color: isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight,
+
+                  const Spacer(),
+
+                  // 2. Bottom Section: Title & Subtitle
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: titleFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
+                      letterSpacing: -0.1,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: subtitleFontSize,
+                      height: 1.25,
+                      fontWeight: FontWeight.w500,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

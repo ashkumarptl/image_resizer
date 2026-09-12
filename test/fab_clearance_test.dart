@@ -1,8 +1,19 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_resizer/data/repositories/auth_repository.dart';
 import 'package:image_resizer/presentation/main_navigation_screen.dart';
 import 'package:image_resizer/presentation/widgets/floating_bottom_nav_bar.dart';
+import 'package:image_resizer/services/auth_service.dart';
+
+class MockAuthService extends AuthService {
+  @override
+  Stream<User?> get authStateChanges => Stream<User?>.value(null);
+
+  @override
+  User? get currentUser => null;
+}
 
 void main() {
   testWidgets('FAB has exact 16-24dp clearance across all insets', (tester) async {
@@ -13,8 +24,11 @@ void main() {
       tester.view.viewPadding = FakeViewPadding(bottom: inset);
 
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            authServiceProvider.overrideWithValue(MockAuthService()),
+          ],
+          child: const MaterialApp(
             home: MainNavigationScreen(),
           ),
         ),

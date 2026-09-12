@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/layout/adaptive_layout.dart';
 import '../../../data/models/image_preset.dart';
 import '../../widgets/bouncy_tap.dart';
 
@@ -20,6 +21,8 @@ class PresetCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isWide = context.isMediumOrWider;
+    final horizontalMargin = context.adaptiveMargin;
 
     // Prioritize pinned/favorite presets at the very front of the carousel
     final sortedPresets = List<ImagePreset>.from(presets);
@@ -39,21 +42,26 @@ class PresetCarousel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: horizontalMargin),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Row(
                   children: [
-                    Text(hasPinned ? '⭐ ' : '🇮🇳 ', style: const TextStyle(fontSize: 18)),
+                    Text(
+                      hasPinned ? '⭐ ' : '🇮🇳 ',
+                      style: TextStyle(
+                        fontSize: context.adaptiveFontSize(18, tabletSize: 22),
+                      ),
+                    ),
                     Flexible(
                       child: Text(
                         hasPinned ? 'Pinned & Popular' : 'Govt & Exam Presets',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: context.adaptiveFontSize(16, tabletSize: 20),
                           fontWeight: FontWeight.bold,
                           color: isDark
                               ? AppColors.textPrimaryDark
@@ -64,17 +72,20 @@ class PresetCarousel extends StatelessWidget {
                     if (hasPinned) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isWide ? 8 : 6,
+                          vertical: isWide ? 3 : 2,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           '${favoritePresetIds.length} PINNED',
-                          style: const TextStyle(
-                            fontSize: 9,
+                          style: TextStyle(
+                            fontSize: context.adaptiveFontSize(9, tabletSize: 11.5),
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFD97706),
+                            color: const Color(0xFFD97706),
                           ),
                         ),
                       ),
@@ -89,10 +100,10 @@ class PresetCarousel extends StatelessWidget {
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: const Text(
+                child: Text(
                   'See All',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: context.adaptiveFontSize(13, tabletSize: 15),
                     fontWeight: FontWeight.w600,
                     color: AppColors.primary,
                   ),
@@ -103,12 +114,12 @@ class PresetCarousel extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 108,
+          height: isWide ? 126 : 108,
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: horizontalMargin),
             scrollDirection: Axis.horizontal,
             itemCount: sortedPresets.length > 8 ? 8 : sortedPresets.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            separatorBuilder: (_, _) => SizedBox(width: isWide ? 16 : 12),
             itemBuilder: (context, index) {
               final preset = sortedPresets[index];
               final isPinned = favoritePresetIds.contains(preset.id);
@@ -139,6 +150,7 @@ class _PresetCardItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isWide = context.isMediumOrWider;
 
     return BouncyTap(
       child: Material(
@@ -147,8 +159,8 @@ class _PresetCardItem extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
           child: Ink(
-            width: 158,
-            padding: const EdgeInsets.all(12),
+            width: isWide ? 190 : 158,
+            padding: EdgeInsets.all(isWide ? 14 : 12),
             decoration: BoxDecoration(
               color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
               borderRadius: BorderRadius.circular(14),
@@ -177,13 +189,18 @@ class _PresetCardItem extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(preset.iconEmoji, style: const TextStyle(fontSize: 18)),
+                        Text(
+                          preset.iconEmoji,
+                          style: TextStyle(
+                            fontSize: context.adaptiveFontSize(18, tabletSize: 22),
+                          ),
+                        ),
                         if (isPinned) ...[
                           const SizedBox(width: 4),
-                          const Icon(
+                          Icon(
                             Icons.star_rounded,
-                            size: 16,
-                            color: Color(0xFFF59E0B),
+                            size: context.adaptiveIconSize(16, tabletSize: 20),
+                            color: const Color(0xFFF59E0B),
                           ),
                         ],
                       ],
@@ -191,7 +208,10 @@ class _PresetCardItem extends StatelessWidget {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isWide ? 8 : 6,
+                          vertical: isWide ? 3 : 2,
+                        ),
                         decoration: BoxDecoration(
                           color: isPinned
                               ? const Color(0xFFF59E0B).withValues(alpha: 0.15)
@@ -203,7 +223,7 @@ class _PresetCardItem extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: context.adaptiveFontSize(10, tabletSize: 12),
                             fontWeight: FontWeight.bold,
                             color: isPinned ? const Color(0xFFD97706) : AppColors.primaryDark,
                           ),
@@ -220,7 +240,7 @@ class _PresetCardItem extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5),
                         fontWeight: FontWeight.bold,
                         color: isDark
                             ? AppColors.textPrimaryDark
@@ -231,7 +251,7 @@ class _PresetCardItem extends StatelessWidget {
                     Text(
                       preset.outputFormat.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: context.adaptiveFontSize(10, tabletSize: 12),
                         fontWeight: FontWeight.w500,
                         color: isDark
                             ? AppColors.textSecondaryDark

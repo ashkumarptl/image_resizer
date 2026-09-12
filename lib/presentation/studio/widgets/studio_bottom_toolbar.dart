@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/layout/adaptive_layout.dart';
 
 enum StudioActiveTool {
   none,
@@ -236,7 +237,9 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
           alignment: Alignment.center,
           heightFactor: 1.0,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
+            constraints: BoxConstraints(
+              maxWidth: context.isLargeTablet ? 1000 : (context.isMediumOrWider ? 900 : 800),
+            ),
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -434,7 +437,7 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
               );
             },
             child: Container(
-              width: 30,
+              width: context.isMediumOrWider ? 44.0 : 30.0,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: isRight ? Alignment.centerLeft : Alignment.centerRight,
@@ -449,7 +452,7 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                 child: Icon(
                   isRight ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
                   color: Colors.white70,
-                  size: 18,
+                  size: context.adaptiveIconSize(18, tabletSize: 24, largeTabletSize: 26),
                 ),
               ),
             ),
@@ -472,8 +475,13 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
     const unselectedColor = Colors.white70;
     const selectedColor = Colors.white;
 
+    final minWidth = context.isLargeTablet ? 92.0 : (context.isMediumOrWider ? 80.0 : 64.0);
+    final iconSize = context.adaptiveIconSize(24, tabletSize: 30, largeTabletSize: 34);
+    final labelFontSize = context.adaptiveFontSize(10, tabletSize: 13, largeTabletSize: 14.5);
+    final badgeFontSize = context.adaptiveFontSize(8, tabletSize: 10.5, largeTabletSize: 12);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: EdgeInsets.symmetric(horizontal: context.isMediumOrWider ? 6 : 4),
       child: Material(
         color: isActive ? activeBg : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
@@ -490,8 +498,11 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
               : null,
           borderRadius: BorderRadius.circular(10),
           child: Container(
-            constraints: const BoxConstraints(minWidth: 64),
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            constraints: BoxConstraints(minWidth: minWidth),
+            padding: EdgeInsets.symmetric(
+              vertical: context.isMediumOrWider ? 12 : 8,
+              horizontal: context.isMediumOrWider ? 10 : 8,
+            ),
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.topCenter,
@@ -501,14 +512,14 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                   children: [
                     Icon(
                       icon,
-                      size: 24,
+                      size: iconSize,
                       color: isActive ? selectedColor : unselectedColor,
                     ),
-                    const SizedBox(height: 5),
+                    SizedBox(height: context.isMediumOrWider ? 7 : 5),
                     Text(
                       label,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: labelFontSize,
                         fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
                         letterSpacing: 0.5,
                         color: isActive ? selectedColor : unselectedColor,
@@ -518,10 +529,13 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                 ),
                 if (badgeText != null)
                   Positioned(
-                    top: -6,
-                    right: -4,
+                    top: context.isMediumOrWider ? -8 : -6,
+                    right: context.isMediumOrWider ? -6 : -4,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: context.isMediumOrWider ? 6 : 4,
+                        vertical: context.isMediumOrWider ? 2 : 1,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.amber.shade700,
                         borderRadius: BorderRadius.circular(4),
@@ -531,8 +545,8 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                       ),
                       child: Text(
                         badgeText,
-                        style: const TextStyle(
-                          fontSize: 8,
+                        style: TextStyle(
+                          fontSize: badgeFontSize,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           letterSpacing: 0.2,

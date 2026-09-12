@@ -639,7 +639,7 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
         left: 16,
         right: 16,
         top: 10,
-        bottom: MediaQuery.of(context).padding.bottom + 10,
+        bottom: MediaQuery.paddingOf(context).bottom + 10,
       ),
       child: barContent,
     );

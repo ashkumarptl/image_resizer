@@ -918,8 +918,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isTablet = context.screenWidth >= 600;
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final isTablet = context.isMediumOrWider;
+    final isPortrait = context.isPortrait;
     final appBarBg = isDark ? AppColors.surfaceDark : AppColors.primary;
     const appBarFg = Colors.white;
 

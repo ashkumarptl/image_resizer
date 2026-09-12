@@ -92,9 +92,8 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mq = MediaQuery.of(context);
-    final keyboardInset = mq.viewInsets.bottom;
-    final navBarInset = mq.viewPadding.bottom;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final navBarInset = MediaQuery.viewPaddingOf(context).bottom;
     final bottomPadding = keyboardInset > 0 ? keyboardInset : navBarInset;
 
     return Container(
