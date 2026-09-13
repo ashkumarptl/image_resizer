@@ -150,7 +150,11 @@ class _BatchPdfExportSheetState extends State<BatchPdfExportSheet> {
         );
       }
     } catch (e, stack) {
-      CrashlyticsService.recordNonFatalError(e, stack, reason: 'Batch PDF export save failure');
+      CrashlyticsService.recordNonFatalError(
+        e,
+        stack,
+        reason: 'Batch PDF export save failure',
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -187,10 +191,15 @@ class _BatchPdfExportSheetState extends State<BatchPdfExportSheet> {
 
       await ShareService.shareImage(
         pdfPath,
-        text: 'PDF document generated with Image Tools (${widget.imageFiles.length} pages)',
+        text:
+            'PDF document generated with Image Tools (${widget.imageFiles.length} pages)',
       );
     } catch (e, stack) {
-      CrashlyticsService.recordNonFatalError(e, stack, reason: 'Batch PDF export share failure');
+      CrashlyticsService.recordNonFatalError(
+        e,
+        stack,
+        reason: 'Batch PDF export share failure',
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -370,8 +379,8 @@ class _BatchPdfExportSheetState extends State<BatchPdfExportSheet> {
                     color: isSelected
                         ? Colors.white
                         : (isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight),
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
                   onSelected: (_isSaving || _isSharing)
@@ -400,7 +409,9 @@ class _BatchPdfExportSheetState extends State<BatchPdfExportSheet> {
 
             // Action Buttons
             GradientButton(
-              text: _isSaving ? 'Compiling & Saving...' : '💾 Save to Downloads',
+              text: _isSaving
+                  ? 'Compiling & Saving...'
+                  : '💾 Save to Downloads',
               icon: Icons.download_rounded,
               isLoading: _isSaving,
               onPressed: (_isSaving || _isSharing) ? null : _handleSaveToDevice,
@@ -421,7 +432,9 @@ class _BatchPdfExportSheetState extends State<BatchPdfExportSheet> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.share_rounded),
-                  label: Text(_isSharing ? 'Preparing PDF...' : 'Share PDF Document'),
+                  label: Text(
+                    _isSharing ? 'Preparing PDF...' : 'Share PDF Document',
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side: const BorderSide(color: AppColors.primary),

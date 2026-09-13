@@ -22,16 +22,17 @@ void main() {
       expect(authService, isA<AuthService>());
     });
 
-    test('authStateProvider and currentUserProvider work with mock service', () async {
-      final container = ProviderContainer(
-        overrides: [
-          authServiceProvider.overrideWithValue(MockAuthService()),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'authStateProvider and currentUserProvider work with mock service',
+      () async {
+        final container = ProviderContainer(
+          overrides: [authServiceProvider.overrideWithValue(MockAuthService())],
+        );
+        addTearDown(container.dispose);
 
-      final user = container.read(currentUserProvider);
-      expect(user, isNull);
-    });
+        final user = container.read(currentUserProvider);
+        expect(user, isNull);
+      },
+    );
   });
 }

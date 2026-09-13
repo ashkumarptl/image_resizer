@@ -16,11 +16,7 @@ class _FilterItem {
   final String title;
   final String? badge;
 
-  const _FilterItem({
-    required this.filter,
-    required this.title,
-    this.badge,
-  });
+  const _FilterItem({required this.filter, required this.title, this.badge});
 }
 
 class DocumentFilterScreen extends StatefulWidget {
@@ -45,10 +41,7 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
   bool _isProcessing = false;
 
   static const List<_FilterItem> _filters = [
-    _FilterItem(
-      filter: PerspectiveFilter.none,
-      title: 'Original',
-    ),
+    _FilterItem(filter: PerspectiveFilter.none, title: 'Original'),
     _FilterItem(
       filter: PerspectiveFilter.vividLight,
       title: 'Vivid Light',
@@ -59,19 +52,13 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
       title: 'Contrast B&W',
       badge: 'Pro',
     ),
-    _FilterItem(
-      filter: PerspectiveFilter.enhanced,
-      title: 'Vibrant',
-    ),
+    _FilterItem(filter: PerspectiveFilter.enhanced, title: 'Vibrant'),
     _FilterItem(
       filter: PerspectiveFilter.documentBw,
       title: 'Doc B&W',
       badge: 'AI',
     ),
-    _FilterItem(
-      filter: PerspectiveFilter.grayscale,
-      title: 'Grayscale',
-    ),
+    _FilterItem(filter: PerspectiveFilter.grayscale, title: 'Grayscale'),
   ];
 
   @override
@@ -108,7 +95,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Document straightened! Now select your preferred filter.'),
+          content: Text(
+            'Document straightened! Now select your preferred filter.',
+          ),
           backgroundColor: AppColors.primary,
           duration: Duration(seconds: 2),
         ),
@@ -135,9 +124,7 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
         Navigator.of(context).pop(File(result.outputPath));
       } else {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => ResultScreen(result: result),
-          ),
+          MaterialPageRoute(builder: (_) => ResultScreen(result: result)),
         );
       }
     } catch (e) {
@@ -173,17 +160,27 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
                   Expanded(child: _buildPreviewArea(isDark)),
                   Container(
                     width: 360,
-                    margin: const EdgeInsets.only(right: 16, top: 12, bottom: 16),
+                    margin: const EdgeInsets.only(
+                      right: 16,
+                      top: 12,
+                      bottom: 16,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                      color: isDark
+                          ? AppColors.surfaceDark
+                          : AppColors.surfaceLight,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                        color: isDark
+                            ? AppColors.borderDark
+                            : AppColors.borderLight,
                         width: 1.0,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.3 : 0.08,
+                          ),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
@@ -215,7 +212,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
   }
 
   Widget _buildPreviewArea(bool isDark) {
-    final activeFilter = _isComparing ? PerspectiveFilter.none : _selectedFilter;
+    final activeFilter = _isComparing
+        ? PerspectiveFilter.none
+        : _selectedFilter;
     final colorFilter = _getEffectiveColorFilter(activeFilter);
 
     Widget imageWidget = Image.file(
@@ -225,10 +224,7 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
     );
 
     if (colorFilter != null) {
-      imageWidget = ColorFiltered(
-        colorFilter: colorFilter,
-        child: imageWidget,
-      );
+      imageWidget = ColorFiltered(colorFilter: colorFilter, child: imageWidget);
     }
 
     return Stack(
@@ -241,13 +237,18 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
             maxScale: 4.5,
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.55 : 0.22),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.55 : 0.22,
+                        ),
                         blurRadius: 28,
                         spreadRadius: 2,
                         offset: const Offset(0, 8),
@@ -362,7 +363,10 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: _isComparing
                         ? Colors.black.withValues(alpha: 0.88)
@@ -434,14 +438,18 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    color: isDark
+                        ? AppColors.borderDark
+                        : AppColors.borderLight,
                     width: 0.8,
                   ),
                 ),
                 child: Icon(
                   icon,
                   size: 20,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
             ),
@@ -486,7 +494,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
                 Text(
@@ -531,7 +541,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
         duration: const Duration(milliseconds: 180),
         width: 86,
         decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+          color: isDark
+              ? AppColors.surfaceVariantDark
+              : AppColors.surfaceVariantLight,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected
@@ -563,7 +575,10 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
                   top: 4,
                   right: 4,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1.5,
+                    ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFFC026D3), Color(0xFF7C3AED)],
@@ -612,7 +627,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.outfit(
                       fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
                       color: Colors.white,
                     ),
                   ),
@@ -641,16 +658,10 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
     );
 
     if (colorFilter != null) {
-      thumb = ColorFiltered(
-        colorFilter: colorFilter,
-        child: thumb,
-      );
+      thumb = ColorFiltered(colorFilter: colorFilter, child: thumb);
     }
 
-    return RotatedBox(
-      quarterTurns: _quarterTurns,
-      child: thumb,
-    );
+    return RotatedBox(quarterTurns: _quarterTurns, child: thumb);
   }
 
   /// Bottom Bar with ✕, "Color Filter", and ✓
@@ -677,7 +688,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
             icon: Icon(
               Icons.close_rounded,
               size: 26,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              color: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
             ),
             tooltip: 'Cancel',
             onPressed: () => Navigator.of(context).pop(),
@@ -689,7 +702,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
             style: GoogleFonts.outfit(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              color: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
               letterSpacing: 0.2,
             ),
           ),
@@ -729,7 +744,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
                 style: GoogleFonts.outfit(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -746,7 +763,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
                     Icon(
                       Icons.crop_rotate_rounded,
                       size: 15,
-                      color: isDark ? AppColors.primaryLight : AppColors.primary,
+                      color: isDark
+                          ? AppColors.primaryLight
+                          : AppColors.primary,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -754,7 +773,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.primaryLight : AppColors.primary,
+                        color: isDark
+                            ? AppColors.primaryLight
+                            : AppColors.primary,
                       ),
                     ),
                   ],
@@ -770,7 +791,9 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
           style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
         ),
         const SizedBox(height: 10),

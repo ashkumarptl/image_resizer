@@ -21,28 +21,32 @@ void main() {
       expect(notifier.state, isFalse);
     });
 
-    test('completeOnboarding sets state to true and updates SharedPreferences',
-        () async {
-      final notifier = OnboardingNotifier();
-      await notifier.completeOnboarding();
-      expect(notifier.state, isTrue);
+    test(
+      'completeOnboarding sets state to true and updates SharedPreferences',
+      () async {
+        final notifier = OnboardingNotifier();
+        await notifier.completeOnboarding();
+        expect(notifier.state, isTrue);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getBool(kPrefOnboardingCompletedKey), isTrue);
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool(kPrefOnboardingCompletedKey), isTrue);
+      },
+    );
 
-    test('resetOnboarding resets state to false and updates SharedPreferences',
-        () async {
-      final notifier = OnboardingNotifier();
-      await notifier.completeOnboarding();
-      expect(notifier.state, isTrue);
+    test(
+      'resetOnboarding resets state to false and updates SharedPreferences',
+      () async {
+        final notifier = OnboardingNotifier();
+        await notifier.completeOnboarding();
+        expect(notifier.state, isTrue);
 
-      await notifier.resetOnboarding();
-      expect(notifier.state, isFalse);
+        await notifier.resetOnboarding();
+        expect(notifier.state, isFalse);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getBool(kPrefOnboardingCompletedKey), isFalse);
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool(kPrefOnboardingCompletedKey), isFalse);
+      },
+    );
 
     test('respects initialValue parameter', () {
       final notifier = OnboardingNotifier(initialValue: true);
@@ -105,36 +109,37 @@ void main() {
 
     Widget createWidget({bool isRevisit = false}) {
       return ProviderScope(
-        child: MaterialApp(
-          home: OnboardingScreen(isRevisit: isRevisit),
-        ),
+        child: MaterialApp(home: OnboardingScreen(isRevisit: isRevisit)),
       );
     }
 
-    testWidgets('renders Page 1 (Edit Studio) initially with Step 1 indicator',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createWidget());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'renders Page 1 (Edit Studio) initially with Step 1 indicator',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(createWidget());
+        await tester.pumpAndSettle();
 
-      // Check step indicator
-      expect(find.text('Step 1 of 3'), findsOneWidget);
+        // Check step indicator
+        expect(find.text('Step 1 of 3'), findsOneWidget);
 
-      // Check hero header
-      expect(find.text('ALL-IN-ONE EDIT STUDIO'), findsOneWidget);
-      expect(find.text('Photo & Image Studio'), findsOneWidget);
+        // Check hero header
+        expect(find.text('ALL-IN-ONE EDIT STUDIO'), findsOneWidget);
+        expect(find.text('Photo & Image Studio'), findsOneWidget);
 
-      // Check feature items
-      expect(find.text('Smart Target Size Compressor'), findsOneWidget);
-      expect(find.text('Pixel & Print DPI Resizer'), findsOneWidget);
-      expect(find.text('Multi-Format Converter'), findsOneWidget);
+        // Check feature items
+        expect(find.text('Smart Target Size Compressor'), findsOneWidget);
+        expect(find.text('Pixel & Print DPI Resizer'), findsOneWidget);
+        expect(find.text('Multi-Format Converter'), findsOneWidget);
 
-      // Check navigation buttons
-      expect(find.text('Next'), findsOneWidget);
-      expect(find.text('Skip'), findsOneWidget);
-    });
+        // Check navigation buttons
+        expect(find.text('Next'), findsOneWidget);
+        expect(find.text('Skip'), findsOneWidget);
+      },
+    );
 
-    testWidgets('navigates through all 3 pages using Next and Prev buttons',
-        (WidgetTester tester) async {
+    testWidgets('navigates through all 3 pages using Next and Prev buttons', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidget());
       await tester.pumpAndSettle();
 
@@ -175,8 +180,9 @@ void main() {
       expect(find.text('Scan to PDF Studio'), findsOneWidget);
     });
 
-    testWidgets('revisit mode shows close button and Got It on last page',
-        (WidgetTester tester) async {
+    testWidgets('revisit mode shows close button and Got It on last page', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidget(isRevisit: true));
       await tester.pumpAndSettle();
 

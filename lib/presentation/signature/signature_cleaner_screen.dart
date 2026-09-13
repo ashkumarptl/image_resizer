@@ -16,10 +16,7 @@ import '../widgets/tool_instruction_sheet.dart';
 class SignatureCleanerScreen extends StatefulWidget {
   final File initialImage;
 
-  const SignatureCleanerScreen({
-    super.key,
-    required this.initialImage,
-  });
+  const SignatureCleanerScreen({super.key, required this.initialImage});
 
   @override
   State<SignatureCleanerScreen> createState() => _SignatureCleanerScreenState();
@@ -60,13 +57,18 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
     super.dispose();
   }
 
   void _triggerPreviewUpdate({bool debounce = true}) {
     _debounceTimer?.cancel();
     if (debounce) {
-      _debounceTimer = Timer(const Duration(milliseconds: 180), _generatePreview);
+      _debounceTimer = Timer(
+        const Duration(milliseconds: 180),
+        _generatePreview,
+      );
     } else {
       _generatePreview();
     }
@@ -118,7 +120,8 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
     final shouldDiscard = await DiscardChangesSheet.show(
       context,
       title: 'Discard Signature Edits?',
-      message: 'You have customized signature enhancement settings. Are you sure you want to exit?',
+      message:
+          'You have customized signature enhancement settings. Are you sure you want to exit?',
     );
     if (shouldDiscard && mounted) {
       Navigator.of(context).pop();
@@ -143,11 +146,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ResultScreen(result: result),
-        ),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => ResultScreen(result: result)));
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessing = false);
@@ -227,7 +228,8 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   }
 
   Widget _buildPreviewCard(bool isDark, {bool isWide = false}) {
-    final hasPreview = _previewImageFile != null && _previewImageFile!.existsSync();
+    final hasPreview =
+        _previewImageFile != null && _previewImageFile!.existsSync();
 
     return Container(
       decoration: BoxDecoration(
@@ -238,7 +240,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black38 : Colors.black.withValues(alpha: 0.04),
+            color: isDark
+                ? Colors.black38
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -253,7 +257,10 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
               children: [
                 // Status Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3.5,
+                  ),
                   decoration: BoxDecoration(
                     color: _showOriginal
                         ? Colors.amber.withValues(alpha: 0.15)
@@ -270,10 +277,14 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        _showOriginal ? Icons.image_outlined : Icons.auto_fix_high_rounded,
+                        _showOriginal
+                            ? Icons.image_outlined
+                            : Icons.auto_fix_high_rounded,
                         size: 13,
                         color: _showOriginal
-                            ? (isDark ? Colors.amber.shade300 : Colors.amber.shade900)
+                            ? (isDark
+                                  ? Colors.amber.shade300
+                                  : Colors.amber.shade900)
                             : AppColors.primary,
                       ),
                       const SizedBox(width: 4),
@@ -283,7 +294,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                           fontSize: 10.5,
                           fontWeight: FontWeight.w800,
                           color: _showOriginal
-                              ? (isDark ? Colors.amber.shade300 : Colors.amber.shade900)
+                              ? (isDark
+                                    ? Colors.amber.shade300
+                                    : Colors.amber.shade900)
                               : AppColors.primary,
                           letterSpacing: 0.3,
                         ),
@@ -301,12 +314,10 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
             width: double.infinity,
             margin: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: Colors.white, // Signatures always preview on crisp pure white paper
+              color: Colors
+                  .white, // Signatures always preview on crisp pure white paper
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.grey.shade300,
-                width: 1,
-              ),
+              border: Border.all(color: Colors.grey.shade300, width: 1),
             ),
             child: Stack(
               alignment: Alignment.center,
@@ -319,16 +330,19 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                         ? Image.file(
                             widget.initialImage,
                             fit: BoxFit.contain,
+                            cacheWidth: 800,
                           )
                         : (hasPreview
-                            ? Image.file(
-                                _previewImageFile!,
-                                fit: BoxFit.contain,
-                              )
-                            : Image.file(
-                                widget.initialImage,
-                                fit: BoxFit.contain,
-                              )),
+                              ? Image.file(
+                                  _previewImageFile!,
+                                  fit: BoxFit.contain,
+                                  cacheWidth: 800,
+                                )
+                              : Image.file(
+                                  widget.initialImage,
+                                  fit: BoxFit.contain,
+                                  cacheWidth: 800,
+                                )),
                   ),
                 ),
 
@@ -370,7 +384,11 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                       Wrap(
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          const Icon(Icons.bolt_rounded, size: 15, color: AppColors.primary),
+                          const Icon(
+                            Icons.bolt_rounded,
+                            size: 15,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             _previewResult != null
@@ -382,13 +400,19 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                               color: AppColors.primary,
                             ),
                           ),
-                          if (_previewResult != null && _originalSizeBytes > 0) ...[
+                          if (_previewResult != null &&
+                              _originalSizeBytes > 0) ...[
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1.5,
+                              ),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? const Color(0xFF14532D).withValues(alpha: 0.5)
+                                    ? const Color(
+                                        0xFF14532D,
+                                      ).withValues(alpha: 0.5)
                                     : AppColors.successContainer,
                                 borderRadius: BorderRadius.circular(4),
                               ),
@@ -397,7 +421,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? const Color(0xFF4ADE80) : AppColors.success,
+                                  color: isDark
+                                      ? const Color(0xFF4ADE80)
+                                      : AppColors.success,
                                 ),
                               ),
                             ),
@@ -409,7 +435,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                         'Original: ${_originalSizeBytes.toReadableFileSize()}  •  Output: 400 × 200 px',
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -430,12 +458,17 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                     setState(() => _showOriginal = false);
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       color: isDark ? Colors.white12 : Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                        color: isDark
+                            ? AppColors.borderDark
+                            : AppColors.borderLight,
                       ),
                     ),
                     child: Row(
@@ -444,7 +477,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                         Icon(
                           Icons.touch_app_rounded,
                           size: 15,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -452,7 +487,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                           style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
                         ),
                       ],
@@ -471,12 +508,18 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.primaryContainerDark : AppColors.primaryContainerLight,
+        color: isDark
+            ? AppColors.primaryContainerDark
+            : AppColors.primaryContainerLight,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          const Icon(Icons.verified_rounded, color: AppColors.primary, size: 20),
+          const Icon(
+            Icons.verified_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -484,7 +527,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.primaryDark,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.primaryDark,
                 height: 1.3,
               ),
             ),
@@ -513,7 +558,11 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(Icons.tune_rounded, size: 18, color: AppColors.primary),
+                    const Icon(
+                      Icons.tune_rounded,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
@@ -521,7 +570,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -553,11 +604,24 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
           // Quick threshold presets
           Row(
             children: [
-              _buildThresholdChip(label: 'Light (50%)', value: 0.50, isDark: isDark),
+              _buildThresholdChip(
+                label: 'Light (50%)',
+                value: 0.50,
+                isDark: isDark,
+              ),
               const SizedBox(width: 8),
-              _buildThresholdChip(label: 'Balanced (65%)', value: 0.65, isDark: isDark, isRecommended: true),
+              _buildThresholdChip(
+                label: 'Balanced (65%)',
+                value: 0.65,
+                isDark: isDark,
+                isRecommended: true,
+              ),
               const SizedBox(width: 8),
-              _buildThresholdChip(label: 'Deep (80%)', value: 0.80, isDark: isDark),
+              _buildThresholdChip(
+                label: 'Deep (80%)',
+                value: 0.80,
+                isDark: isDark,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -574,8 +638,12 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
               divisions: 12,
               activeColor: AppColors.primary,
               onChanged: (val) {
-                final normalizedVal = ((val * 100).round() / 100.0).clamp(0.30, 0.90);
-                if ((normalizedVal * 100).round() != (_threshold * 100).round()) {
+                final normalizedVal = ((val * 100).round() / 100.0).clamp(
+                  0.30,
+                  0.90,
+                );
+                if ((normalizedVal * 100).round() !=
+                    (_threshold * 100).round()) {
                   HapticFeedback.selectionClick();
                 }
                 setState(() => _threshold = normalizedVal);
@@ -587,7 +655,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
             'Increase if your scanned photo has heavy background shadows or dark paper grain.',
             style: TextStyle(
               fontSize: 11.5,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
         ],
@@ -628,7 +698,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                     color: isSelected
                         ? Colors.white
-                        : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                        : (isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight),
                   ),
                 ),
                 if (isRecommended && !isSelected)
@@ -639,7 +711,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                       style: TextStyle(
                         fontSize: 9.5,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.primary,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.primary,
                       ),
                     ),
                   ),
@@ -666,14 +740,20 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.palette_outlined, size: 18, color: AppColors.primary),
+              const Icon(
+                Icons.palette_outlined,
+                size: 18,
+                color: AppColors.primary,
+              ),
               const SizedBox(width: 6),
               Text(
                 'Ink Appearance',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
             ],
@@ -683,7 +763,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
             'Preserves natural ink color or converts to official monochrome tones.',
             style: TextStyle(
               fontSize: 11.5,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(height: 12),
@@ -783,7 +865,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                     color: isOriginal ? null : color,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isOriginal ? Colors.grey.shade400 : Colors.grey.shade400,
+                      color: isOriginal
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade400,
                       width: 0.8,
                     ),
                   ),
@@ -796,10 +880,14 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w600,
                       color: isSelected
                           ? AppColors.primary
-                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                          : (isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight),
                     ),
                   ),
                 ),
@@ -833,14 +921,20 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.compress_rounded, size: 18, color: AppColors.primary),
+              const Icon(
+                Icons.compress_rounded,
+                size: 18,
+                color: AppColors.primary,
+              ),
               const SizedBox(width: 6),
               Text(
                 'Target File Size',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
             ],
@@ -850,7 +944,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
             'Strictly compressed to fit government & job exam application portals.',
             style: TextStyle(
               fontSize: 11.5,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(height: 12),
@@ -870,7 +966,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                   fontSize: 12,
                   color: isSelected
                       ? Colors.white
-                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                      : (isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight),
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
                 onSelected: (sel) {
@@ -912,7 +1010,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
         ],
       ),
       child: GradientButton(
-        text: _isProcessing ? 'Enhancing Signature...' : '✍️ Save Clean Signature',
+        text: _isProcessing
+            ? 'Enhancing Signature...'
+            : '✍️ Save Clean Signature',
         isLoading: _isProcessing,
         onPressed: _isProcessing ? null : _handleEnhance,
       ),

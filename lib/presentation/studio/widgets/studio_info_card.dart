@@ -44,7 +44,10 @@ class StudioInfoCard extends StatelessWidget {
     final fileName = p.basename(filePath);
     final originalExt = p.extension(filePath).replaceAll('.', '').toUpperCase();
     final targetExt = (outputFormat ?? originalExt).toUpperCase();
-    final isFormatConverted = targetExt.isNotEmpty && originalExt.isNotEmpty && targetExt != originalExt;
+    final isFormatConverted =
+        targetExt.isNotEmpty &&
+        originalExt.isNotEmpty &&
+        targetExt != originalExt;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -57,7 +60,9 @@ class StudioInfoCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
+            color: isDark
+                ? Colors.black26
+                : Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -87,13 +92,19 @@ class StudioInfoCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                           letterSpacing: -0.2,
                         ),
                       ),
                     ),
                     const SizedBox(width: 6),
-                    _buildFormatBadge(originalExt, targetExt, isFormatConverted),
+                    _buildFormatBadge(
+                      originalExt,
+                      targetExt,
+                      isFormatConverted,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 2),
@@ -108,12 +119,16 @@ class StudioInfoCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
 
                 // Live Output & Status Row (Shown when calculating or estimate available)
-                if (isCalculating || estimatedSizeBytes != null || (targetSummary != null && targetSummary!.isNotEmpty)) ...[
+                if (isCalculating ||
+                    estimatedSizeBytes != null ||
+                    (targetSummary != null && targetSummary!.isNotEmpty)) ...[
                   const SizedBox(height: 4),
                   _buildStatusRow(),
                 ],
@@ -145,7 +160,11 @@ class StudioInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFormatBadge(String originalExt, String targetExt, bool isFormatConverted) {
+  Widget _buildFormatBadge(
+    String originalExt,
+    String targetExt,
+    bool isFormatConverted,
+  ) {
     if (isFormatConverted) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -169,7 +188,11 @@ class StudioInfoCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 3),
-            const Icon(Icons.arrow_forward_rounded, size: 9, color: AppColors.primary),
+            const Icon(
+              Icons.arrow_forward_rounded,
+              size: 9,
+              color: AppColors.primary,
+            ),
             const SizedBox(width: 3),
             Text(
               targetExt,
@@ -235,7 +258,9 @@ class StudioInfoCard extends StatelessWidget {
       final isReduced = estimatedSizeBytes! < fileSizeBytes;
       final isIncreased = estimatedSizeBytes! > fileSizeBytes;
       final pct = fileSizeBytes > 0
-          ? (((fileSizeBytes - estimatedSizeBytes!) / fileSizeBytes) * 100).abs().toStringAsFixed(0)
+          ? (((fileSizeBytes - estimatedSizeBytes!) / fileSizeBytes) * 100)
+                .abs()
+                .toStringAsFixed(0)
           : '0';
 
       return SingleChildScrollView(
@@ -268,9 +293,14 @@ class StudioInfoCard extends StatelessWidget {
             if (isReduced && int.parse(pct) > 0) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 1.5,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF14532D).withValues(alpha: 0.5) : AppColors.successContainer,
+                  color: isDark
+                      ? const Color(0xFF14532D).withValues(alpha: 0.5)
+                      : AppColors.successContainer,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -285,7 +315,10 @@ class StudioInfoCard extends StatelessWidget {
             ] else if (isIncreased && int.parse(pct) > 0) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 1.5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.amber.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),
@@ -300,7 +333,9 @@ class StudioInfoCard extends StatelessWidget {
                     Icon(
                       Icons.warning_amber_rounded,
                       size: 11,
-                      color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
+                      color: isDark
+                          ? Colors.amber.shade300
+                          : Colors.amber.shade900,
                     ),
                     const SizedBox(width: 3),
                     Text(
@@ -308,7 +343,9 @@ class StudioInfoCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
+                        color: isDark
+                            ? Colors.amber.shade300
+                            : Colors.amber.shade900,
                       ),
                     ),
                   ],
@@ -320,9 +357,14 @@ class StudioInfoCard extends StatelessWidget {
             if (targetGoal != null && targetGoal!.isNotEmpty) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 1.5,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.surfaceVariantDark : Colors.grey.shade100,
+                  color: isDark
+                      ? AppColors.surfaceVariantDark
+                      : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
                     color: isDark ? AppColors.borderDark : Colors.grey.shade300,
@@ -334,17 +376,24 @@ class StudioInfoCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
               ),
             ],
 
             // Resize delta chip if dimensions changed
-            if (outputWidth != null && outputHeight != null && (outputWidth != width || outputHeight != height)) ...[
+            if (outputWidth != null &&
+                outputHeight != null &&
+                (outputWidth != width || outputHeight != height)) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 1.5,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.secondary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
@@ -362,7 +411,10 @@ class StudioInfoCard extends StatelessWidget {
             if (targetDpi != null) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 1.5,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(4),
@@ -384,9 +436,14 @@ class StudioInfoCard extends StatelessWidget {
             if (stripMetadata) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 1.5,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF14532D).withValues(alpha: 0.4) : AppColors.successContainer,
+                  color: isDark
+                      ? const Color(0xFF14532D).withValues(alpha: 0.4)
+                      : AppColors.successContainer,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Row(
@@ -419,11 +476,7 @@ class StudioInfoCard extends StatelessWidget {
     if (targetSummary != null && targetSummary!.isNotEmpty) {
       return Row(
         children: [
-          const Icon(
-            Icons.bolt_rounded,
-            size: 14,
-            color: AppColors.primary,
-          ),
+          const Icon(Icons.bolt_rounded, size: 14, color: AppColors.primary),
           const SizedBox(width: 2),
           Expanded(
             child: FittedBox(

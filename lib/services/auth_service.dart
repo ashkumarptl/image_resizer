@@ -7,14 +7,14 @@ class AuthService {
   FirebaseAuth? _authInstance;
   final GoogleSignIn _googleSignIn;
 
-  AuthService({
-    FirebaseAuth? auth,
-    GoogleSignIn? googleSignIn,
-  })  : _authInstance = auth,
-        _googleSignIn = googleSignIn ??
-            GoogleSignIn(
-              serverClientId: '739988890096-5ufkdp2lec91avsfsb7sjvq94onvralt.apps.googleusercontent.com',
-            );
+  AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
+    : _authInstance = auth,
+      _googleSignIn =
+          googleSignIn ??
+          GoogleSignIn(
+            serverClientId:
+                '739988890096-5ufkdp2lec91avsfsb7sjvq94onvralt.apps.googleusercontent.com',
+          );
 
   FirebaseAuth get _auth {
     return _authInstance ??= FirebaseAuth.instance;
@@ -41,7 +41,8 @@ class AuthService {
           return null;
         }
 
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
 
         final OAuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
@@ -51,7 +52,9 @@ class AuthService {
         return await _auth.signInWithCredential(credential);
       }
     } on FirebaseAuthException catch (e) {
-      debugPrint('[AuthService] FirebaseAuthException during Google Sign-In: ${e.code} - ${e.message}');
+      debugPrint(
+        '[AuthService] FirebaseAuthException during Google Sign-In: ${e.code} - ${e.message}',
+      );
       rethrow;
     } catch (e) {
       debugPrint('[AuthService] Unexpected error during Google Sign-In: $e');
@@ -93,7 +96,8 @@ class AuthService {
           message: 'Re-authentication was canceled.',
         );
       }
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -120,7 +124,9 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       // If requires-recent-login, try re-authenticating and then retry deletion
       if (e.code == 'requires-recent-login') {
-        debugPrint('[AuthService] requires-recent-login encountered. Attempting reauthentication...');
+        debugPrint(
+          '[AuthService] requires-recent-login encountered. Attempting reauthentication...',
+        );
         await reauthenticateWithGoogle();
         // Retry delete
         await _auth.currentUser?.delete();
@@ -136,4 +142,3 @@ class AuthService {
     }
   }
 }
-

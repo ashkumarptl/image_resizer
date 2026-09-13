@@ -50,7 +50,8 @@ class ResizeOptionsSheet extends StatefulWidget {
     required int targetHeight,
     required int percentage,
     required bool keepAspectRatio,
-  }) onApply;
+  })
+  onApply;
 
   const ResizeOptionsSheet({
     super.key,
@@ -81,7 +82,8 @@ class ResizeOptionsSheet extends StatefulWidget {
       required int targetHeight,
       required int percentage,
       required bool keepAspectRatio,
-    }) onApply,
+    })
+    onApply,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -420,12 +422,17 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
       // Custom Tab
       finalW = int.tryParse(_widthController.text) ?? widget.originalWidth;
       finalH = int.tryParse(_heightController.text) ?? widget.originalHeight;
-      final isOriginal = (finalW == widget.originalWidth && finalH == widget.originalHeight);
-      finalOption = isOriginal ? ResizeSheetOption.none : ResizeSheetOption.exactPixels;
+      final isOriginal =
+          (finalW == widget.originalWidth && finalH == widget.originalHeight);
+      finalOption = isOriginal
+          ? ResizeSheetOption.none
+          : ResizeSheetOption.exactPixels;
     } else {
       // Percentage Tab
       final isOriginal = (_percentage == 100);
-      finalOption = isOriginal ? ResizeSheetOption.none : ResizeSheetOption.percentage;
+      finalOption = isOriginal
+          ? ResizeSheetOption.none
+          : ResizeSheetOption.percentage;
       finalW = (widget.originalWidth * _percentage / 100).round();
       finalH = (widget.originalHeight * _percentage / 100).round();
     }
@@ -451,8 +458,8 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
     // us the raw nav bar clearance we need.
     final navBarInset = MediaQuery.viewPaddingOf(context).bottom;
     final bottomPadding = keyboardInset > 0
-        ? keyboardInset           // keyboard open: it covers the nav bar too
-        : navBarInset;            // keyboard closed: just clear the nav bar
+        ? keyboardInset // keyboard open: it covers the nav bar too
+        : navBarInset; // keyboard closed: just clear the nav bar
     final maxHeight = MediaQuery.sizeOf(context).height * 0.88;
 
     return Container(
@@ -515,7 +522,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                       ),
                     ),
@@ -526,7 +535,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                   ],
@@ -537,7 +548,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                 icon: Icon(
                   Icons.close,
                   size: 22,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -640,17 +653,23 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                         size: 15,
                         color: isSelected
                             ? Colors.white
-                            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                            : (isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight),
                       ),
                       const SizedBox(width: 6),
                       Text(
                         label,
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w600,
                           color: isSelected
                               ? Colors.white
-                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                              : (isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight),
                         ),
                       ),
                     ],
@@ -700,7 +719,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
         ),
         const SizedBox(height: 8),
         _buildPresetGrid(
-          _expandDocuments ? _documentPresets : _documentPresets.take(4).toList(),
+          _expandDocuments
+              ? _documentPresets
+              : _documentPresets.take(4).toList(),
           isDark,
         ),
       ],
@@ -721,7 +742,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
         if (actionLabel != null && onAction != null)
@@ -752,7 +775,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
       builder: (context, constraints) {
         const crossAxisCount = 4;
         const spacing = 8.0;
-        final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * spacing)) / crossAxisCount;
+        final itemWidth =
+            (constraints.maxWidth - ((crossAxisCount - 1) * spacing)) /
+            crossAxisCount;
 
         return Wrap(
           spacing: spacing,
@@ -764,20 +789,27 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
               width: itemWidth,
               child: Material(
                 color: isSelected
-                    ? (isDark ? AppColors.primary.withValues(alpha: 0.2) : const Color(0xFFEFF6FF))
+                    ? (isDark
+                          ? AppColors.primary.withValues(alpha: 0.2)
+                          : const Color(0xFFEFF6FF))
                     : (isDark ? AppColors.surfaceDark : Colors.white),
                 borderRadius: BorderRadius.circular(12),
                 child: InkWell(
                   onTap: () => _selectPreset(preset),
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.primary
-                            : (isDark ? AppColors.borderDark : const Color(0xFFE2E8F0)),
+                            : (isDark
+                                  ? AppColors.borderDark
+                                  : const Color(0xFFE2E8F0)),
                         width: isSelected ? 1.6 : 1.0,
                       ),
                     ),
@@ -790,10 +822,14 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                           preset.name,
                           style: TextStyle(
                             fontSize: 11,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w600,
                             color: isSelected
                                 ? AppColors.primary
-                                : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                                : (isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight),
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -806,12 +842,14 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                               : '${preset.width} × ${preset.height}',
                           style: TextStyle(
                             fontSize: 9,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                             color: isSelected
                                 ? AppColors.primary.withValues(alpha: 0.85)
                                 : (isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondaryLight),
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight),
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -842,7 +880,11 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           ),
           borderRadius: BorderRadius.circular(7),
         ),
-        child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 16),
+        child: const Icon(
+          Icons.camera_alt_rounded,
+          color: Colors.white,
+          size: 16,
+        ),
       );
     }
 
@@ -854,7 +896,11 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           color: const Color(0xFFFF0000),
           borderRadius: BorderRadius.circular(6),
         ),
-        child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 16),
+        child: const Icon(
+          Icons.play_arrow_rounded,
+          color: Colors.white,
+          size: 16,
+        ),
       );
     }
 
@@ -888,7 +934,11 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           color: isDark ? Colors.black : const Color(0xFF111827),
           borderRadius: BorderRadius.circular(6),
         ),
-        child: const Icon(Icons.music_note_rounded, color: Color(0xFF00F2FE), size: 16),
+        child: const Icon(
+          Icons.music_note_rounded,
+          color: Color(0xFF00F2FE),
+          size: 16,
+        ),
       );
     }
 
@@ -898,7 +948,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
       color: isSelected
           ? AppColors.primary
           : (preset.iconColor ??
-              (isDark ? AppColors.textSecondaryDark : const Color(0xFF475569))),
+                (isDark
+                    ? AppColors.textSecondaryDark
+                    : const Color(0xFF475569))),
     );
   }
 
@@ -924,7 +976,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             InkWell(
@@ -940,7 +994,11 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                 padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 child: Row(
                   children: [
-                    Icon(Icons.refresh_rounded, size: 15, color: AppColors.primary),
+                    Icon(
+                      Icons.refresh_rounded,
+                      size: 15,
+                      color: AppColors.primary,
+                    ),
                     SizedBox(width: 4),
                     Text(
                       'Reset',
@@ -968,9 +1026,16 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   labelText: 'Width',
-                  suffixText: _selectedUnitIndex == 0 ? 'px' : (_selectedUnitIndex == 1 ? 'in' : 'cm'),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  suffixText: _selectedUnitIndex == 0
+                      ? 'px'
+                      : (_selectedUnitIndex == 1 ? 'in' : 'cm'),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                 ),
                 onChanged: _onWidthChanged,
               ),
@@ -980,7 +1045,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
               child: Material(
                 color: _keepAspectRatio
                     ? AppColors.primary.withValues(alpha: 0.1)
-                    : (isDark ? AppColors.surfaceDark : const Color(0xFFF1F5F9)),
+                    : (isDark
+                          ? AppColors.surfaceDark
+                          : const Color(0xFFF1F5F9)),
                 borderRadius: BorderRadius.circular(10),
                 child: InkWell(
                   onTap: () {
@@ -996,11 +1063,15 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: _keepAspectRatio ? AppColors.primary : Colors.grey.shade300,
+                        color: _keepAspectRatio
+                            ? AppColors.primary
+                            : Colors.grey.shade300,
                       ),
                     ),
                     child: Icon(
-                      _keepAspectRatio ? Icons.link_rounded : Icons.link_off_rounded,
+                      _keepAspectRatio
+                          ? Icons.link_rounded
+                          : Icons.link_off_rounded,
                       color: _keepAspectRatio ? AppColors.primary : Colors.grey,
                       size: 20,
                     ),
@@ -1015,9 +1086,16 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   labelText: 'Height',
-                  suffixText: _selectedUnitIndex == 0 ? 'px' : (_selectedUnitIndex == 1 ? 'in' : 'cm'),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  suffixText: _selectedUnitIndex == 0
+                      ? 'px'
+                      : (_selectedUnitIndex == 1 ? 'in' : 'cm'),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                 ),
                 onChanged: _onHeightChanged,
               ),
@@ -1032,7 +1110,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
         ),
         const SizedBox(height: 8),
@@ -1047,7 +1127,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                 padding: const EdgeInsets.only(right: 8),
                 child: Material(
                   color: isMatch
-                      ? (isDark ? AppColors.primary.withValues(alpha: 0.2) : const Color(0xFFEFF6FF))
+                      ? (isDark
+                            ? AppColors.primary.withValues(alpha: 0.2)
+                            : const Color(0xFFEFF6FF))
                       : (isDark ? AppColors.surfaceDark : Colors.white),
                   borderRadius: BorderRadius.circular(10),
                   child: InkWell(
@@ -1059,13 +1141,18 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                     },
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 7,
+                      ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: isMatch
                               ? AppColors.primary
-                              : (isDark ? AppColors.borderDark : const Color(0xFFCBD5E1)),
+                              : (isDark
+                                    ? AppColors.borderDark
+                                    : const Color(0xFFCBD5E1)),
                           width: isMatch ? 1.5 : 1.0,
                         ),
                       ),
@@ -1073,10 +1160,14 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                         size.toString(),
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isMatch ? FontWeight.bold : FontWeight.w600,
+                          fontWeight: isMatch
+                              ? FontWeight.bold
+                              : FontWeight.w600,
                           color: isMatch
                               ? AppColors.primary
-                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                              : (isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight),
                         ),
                       ),
                     ),
@@ -1094,7 +1185,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
         const SizedBox(height: 8),
@@ -1102,7 +1195,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           'Unit',
           style: TextStyle(
             fontSize: 12,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
         ),
         const SizedBox(height: 6),
@@ -1135,14 +1230,18 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   Text(
                     'When enabled, height adjusts automatically.',
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
@@ -1180,7 +1279,11 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.image_outlined, color: AppColors.primary, size: 20),
+                child: const Icon(
+                  Icons.image_outlined,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1192,7 +1295,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -1200,7 +1305,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                       '${widget.originalWidth} × ${widget.originalHeight} px$sizeSuffix',
                       style: TextStyle(
                         fontSize: 11,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                   ],
@@ -1217,8 +1324,13 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                 style: TextButton.styleFrom(
                   backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                   foregroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 child: const Text(
                   'Use Original',
@@ -1255,7 +1367,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 color: isSelected
                     ? Colors.white
-                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    : (isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight),
               ),
             ),
           ),
@@ -1280,7 +1394,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
         const SizedBox(height: 2),
@@ -1288,7 +1404,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
           'Resize your image by a percentage of its original size.',
           style: TextStyle(
             fontSize: 12,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
         ),
         const SizedBox(height: 12),
@@ -1315,13 +1433,18 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                     },
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primary
-                              : (isDark ? AppColors.borderDark : const Color(0xFFCBD5E1)),
+                              : (isDark
+                                    ? AppColors.borderDark
+                                    : const Color(0xFFCBD5E1)),
                           width: isSelected ? 1.5 : 1.0,
                         ),
                       ),
@@ -1329,10 +1452,14 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                         '$p%',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w600,
                           color: isSelected
                               ? Colors.white
-                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                              : (isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight),
                         ),
                       ),
                     ),
@@ -1406,14 +1533,18 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
               '10%',
               style: TextStyle(
                 fontSize: 11,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
             ),
             Text(
               '200%',
               style: TextStyle(
                 fontSize: 11,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
             ),
           ],
@@ -1438,7 +1569,11 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.image_outlined, color: AppColors.primary, size: 20),
+                child: const Icon(
+                  Icons.image_outlined,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1449,7 +1584,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                       'Resulting Size',
                       style: TextStyle(
                         fontSize: 11,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -1458,14 +1595,18 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                     ),
                     Text(
                       'Original: ${widget.originalWidth} × ${widget.originalHeight} px',
                       style: TextStyle(
                         fontSize: 11,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                   ],
@@ -1476,7 +1617,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                 decoration: BoxDecoration(
                   color: _percentage < 100
                       ? const Color(0xFFDCFCE7)
-                      : (_percentage > 100 ? const Color(0xFFE0F2FE) : Colors.grey.shade200),
+                      : (_percentage > 100
+                            ? const Color(0xFFE0F2FE)
+                            : Colors.grey.shade200),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1488,7 +1631,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                     fontWeight: FontWeight.bold,
                     color: _percentage < 100
                         ? const Color(0xFF166534)
-                        : (_percentage > 100 ? AppColors.primary : Colors.grey.shade800),
+                        : (_percentage > 100
+                              ? AppColors.primary
+                              : Colors.grey.shade800),
                   ),
                 ),
               ),
@@ -1510,14 +1655,18 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   Text(
                     'When enabled, both width and height will be scaled proportionally.',
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
@@ -1561,9 +1710,7 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
             ? AppColors.primary.withValues(alpha: 0.12)
             : AppColors.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1583,7 +1730,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
-                    color: isDark ? AppColors.textPrimaryDark : const Color(0xFF1E293B),
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -1592,7 +1741,9 @@ class _ResizeOptionsSheetState extends State<ResizeOptionsSheet> {
                   style: TextStyle(
                     fontSize: 11,
                     height: 1.35,
-                    color: isDark ? AppColors.textSecondaryDark : const Color(0xFF64748B),
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],

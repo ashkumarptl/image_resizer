@@ -1,9 +1,4 @@
-enum PresetCategory {
-  exam,
-  identity,
-  social,
-  custom,
-}
+enum PresetCategory { exam, identity, social, custom }
 
 enum ExamCategory {
   centralGovt('Central Govt', 'SSC, UPSC, Railways & Central recruitment'),
@@ -66,7 +61,10 @@ class ImagePreset {
     if (name.toLowerCase().contains(clean)) return true;
     if (description.toLowerCase().contains(clean)) return true;
     if (badgeText.toLowerCase().contains(clean)) return true;
-    if (examCategory != null && examCategory!.label.toLowerCase().contains(clean)) return true;
+    if (examCategory != null &&
+        examCategory!.label.toLowerCase().contains(clean)) {
+      return true;
+    }
     return searchKeywords.any((k) => k.toLowerCase().contains(clean));
   }
 
@@ -99,7 +97,8 @@ class ImagePreset {
         orElse: () => PresetCategory.exam,
       ),
       examCategory: ExamCategory.fromString(json['examCategory'] as String?),
-      searchKeywords: (json['searchKeywords'] as List<dynamic>?)
+      searchKeywords:
+          (json['searchKeywords'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],

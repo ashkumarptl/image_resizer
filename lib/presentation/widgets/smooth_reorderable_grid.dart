@@ -3,24 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/constants/app_colors.dart';
 
-typedef ReorderItemBuilder = Widget Function(
-  BuildContext context,
-  int index,
-  bool isDragging,
-);
+typedef ReorderItemBuilder =
+    Widget Function(BuildContext context, int index, bool isDragging);
 
-typedef PlaceholderBuilder = Widget Function(
-  BuildContext context,
-  double width,
-  double height,
-);
+typedef PlaceholderBuilder =
+    Widget Function(BuildContext context, double width, double height);
 
-typedef DragStackBuilder = Widget Function(
-  BuildContext context,
-  List<int> indexes,
-  double width,
-  double height,
-);
+typedef DragStackBuilder =
+    Widget Function(
+      BuildContext context,
+      List<int> indexes,
+      double width,
+      double height,
+    );
 
 /// A high-performance, smooth drag-to-reorder grid supporting single-item
 /// and multi-select group reordering designed for modern scanner and gallery apps.
@@ -96,8 +91,10 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
   List<int> _draggedIndexes = [];
   int? _primaryDraggedIndex;
   int? _targetInsertionIndex;
-  Offset? _dragPosition; // top-left position of the floating front card in Stack coordinates
-  Offset _touchOffset = Offset.zero; // offset from card top-left to initial touch
+  Offset?
+  _dragPosition; // top-left position of the floating front card in Stack coordinates
+  Offset _touchOffset =
+      Offset.zero; // offset from card top-left to initial touch
   Offset? _lastGlobalPos;
 
   // Geometry cache for current build frame
@@ -184,7 +181,12 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
   }
 
   /// Calculates top-left coordinate of a slot in Stack coordinates.
-  Offset _getSlotPosition(int slotIndex, double itemWidth, double itemHeight, EdgeInsets insets) {
+  Offset _getSlotPosition(
+    int slotIndex,
+    double itemWidth,
+    double itemHeight,
+    EdgeInsets insets,
+  ) {
     final col = slotIndex % widget.crossAxisCount;
     final row = slotIndex ~/ widget.crossAxisCount;
     final x = insets.left + col * (itemWidth + widget.crossAxisSpacing);
@@ -261,21 +263,27 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
 
   /// Calculates the target insertion index in the remaining items based on pointer position.
   int _calculateInsertionIndex(Offset globalPos) {
-    final RenderBox? stackBox = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? stackBox =
+        _stackKey.currentContext?.findRenderObject() as RenderBox?;
     if (stackBox == null) return _targetInsertionIndex ?? 0;
 
     final stackLocal = stackBox.globalToLocal(globalPos);
     final cardCenterX = (_dragPosition?.dx ?? stackLocal.dx) + _itemWidth / 2;
     final cardCenterY = (_dragPosition?.dy ?? stackLocal.dy) + _itemHeight / 2;
 
-    final col = ((cardCenterX - _insets.left) / (_itemWidth + widget.crossAxisSpacing))
-        .floor()
-        .clamp(0, widget.crossAxisCount - 1);
-    final row = ((cardCenterY - _insets.top) / (_itemHeight + widget.mainAxisSpacing)).floor();
+    final col =
+        ((cardCenterX - _insets.left) / (_itemWidth + widget.crossAxisSpacing))
+            .floor()
+            .clamp(0, widget.crossAxisCount - 1);
+    final row =
+        ((cardCenterY - _insets.top) / (_itemHeight + widget.mainAxisSpacing))
+            .floor();
 
     final hoveredSlot = row * widget.crossAxisCount + col;
 
-    final primaryOffset = _draggedIndexes.indexOf(_primaryDraggedIndex ?? _draggedIndexes.first);
+    final primaryOffset = _draggedIndexes.indexOf(
+      _primaryDraggedIndex ?? _draggedIndexes.first,
+    );
     final offsetInGroup = primaryOffset >= 0 ? primaryOffset : 0;
 
     final targetStartSlot = hoveredSlot - offsetInGroup;
@@ -297,7 +305,8 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
 
     HapticFeedback.selectionClick();
 
-    final RenderBox? stackBox = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? stackBox =
+        _stackKey.currentContext?.findRenderObject() as RenderBox?;
     if (stackBox == null) return;
 
     final stackLocal = stackBox.globalToLocal(details.globalPosition);
@@ -317,7 +326,10 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
     }
 
     final remaining = _buildRemainingIndexes();
-    _targetInsertionIndex = remaining.where((r) => r < index).length.clamp(0, remaining.length);
+    _targetInsertionIndex = remaining
+        .where((r) => r < index)
+        .length
+        .clamp(0, remaining.length);
 
     _dragPosition = slotPos;
     _lastGlobalPos = details.globalPosition;
@@ -331,7 +343,8 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
     if (_draggedIndexes.isEmpty || _isSettling) return;
 
     _lastGlobalPos = details.globalPosition;
-    final RenderBox? stackBox = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? stackBox =
+        _stackKey.currentContext?.findRenderObject() as RenderBox?;
     if (stackBox == null) return;
 
     final stackLocal = stackBox.globalToLocal(details.globalPosition);
@@ -356,7 +369,8 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
   }
 
   void _checkAutoScroll(Offset globalPos) {
-    final RenderBox? viewportBox = _viewportKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? viewportBox =
+        _viewportKey.currentContext?.findRenderObject() as RenderBox?;
     if (viewportBox == null || !_scrollController.hasClients) return;
 
     final viewportLocal = viewportBox.globalToLocal(globalPos);
@@ -365,12 +379,16 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
     const maxStep = 10.0;
 
     if (viewportLocal.dy < edgeThreshold && viewportLocal.dy >= -20) {
-      final proximity = ((edgeThreshold - viewportLocal.dy) / edgeThreshold).clamp(0.1, 1.0);
+      final proximity = ((edgeThreshold - viewportLocal.dy) / edgeThreshold)
+          .clamp(0.1, 1.0);
       _autoScrollVelocity = -maxStep * proximity;
       _startAutoScroll();
     } else if (viewportLocal.dy > viewportHeight - edgeThreshold &&
         viewportLocal.dy <= viewportHeight + 20) {
-      final proximity = ((viewportLocal.dy - (viewportHeight - edgeThreshold)) / edgeThreshold).clamp(0.1, 1.0);
+      final proximity =
+          ((viewportLocal.dy - (viewportHeight - edgeThreshold)) /
+                  edgeThreshold)
+              .clamp(0.1, 1.0);
       _autoScrollVelocity = maxStep * proximity;
       _startAutoScroll();
     } else {
@@ -382,12 +400,15 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
     if (_autoScrollTimer != null) return;
     _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
       if (!_scrollController.hasClients || _autoScrollVelocity == 0) return;
-      final target = (_scrollController.offset + _autoScrollVelocity)
-          .clamp(0.0, _scrollController.position.maxScrollExtent);
+      final target = (_scrollController.offset + _autoScrollVelocity).clamp(
+        0.0,
+        _scrollController.position.maxScrollExtent,
+      );
       _scrollController.jumpTo(target);
 
       if (_lastGlobalPos != null) {
-        final RenderBox? stackBox = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+        final RenderBox? stackBox =
+            _stackKey.currentContext?.findRenderObject() as RenderBox?;
         if (stackBox != null) {
           final stackLocal = stackBox.globalToLocal(_lastGlobalPos!);
           _dragPosition = stackLocal - _touchOffset;
@@ -418,7 +439,12 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
     final offsetInGroup = primaryOffset >= 0 ? primaryOffset : 0;
 
     final targetSlot = insertion + offsetInGroup;
-    final targetPos = _getSlotPosition(targetSlot, _itemWidth, _itemHeight, _insets);
+    final targetPos = _getSlotPosition(
+      targetSlot,
+      _itemWidth,
+      _itemHeight,
+      _insets,
+    );
 
     _settleStartPos = _dragPosition ?? targetPos;
     _settleTargetPos = targetPos;
@@ -428,7 +454,10 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
       if (!mounted) return;
 
       final newOrder = _buildVisualOrder(insertion);
-      final didChange = !_areListsEqual(List.generate(widget.itemCount, (i) => i), newOrder);
+      final didChange = !_areListsEqual(
+        List.generate(widget.itemCount, (i) => i),
+        newOrder,
+      );
 
       if (didChange) {
         if (widget.onGroupReorder != null) {
@@ -450,7 +479,12 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
     }
 
     final primaryIndex = _primaryDraggedIndex ?? _draggedIndexes.first;
-    final origPos = _getSlotPosition(primaryIndex, _itemWidth, _itemHeight, _insets);
+    final origPos = _getSlotPosition(
+      primaryIndex,
+      _itemWidth,
+      _itemHeight,
+      _insets,
+    );
 
     _settleStartPos = _dragPosition ?? origPos;
     _settleTargetPos = origPos;
@@ -519,7 +553,9 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
     }
 
     final frontIndex = _primaryDraggedIndex ?? _draggedIndexes.first;
-    final otherIndexes = _draggedIndexes.where((idx) => idx != frontIndex).toList();
+    final otherIndexes = _draggedIndexes
+        .where((idx) => idx != frontIndex)
+        .toList();
 
     final backCards = <Widget>[];
 
@@ -653,23 +689,29 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
       builder: (context, constraints) {
         final totalWidth = constraints.maxWidth;
         final availableWidth = totalWidth - _insets.left - _insets.right;
-        _itemWidth = (availableWidth - (widget.crossAxisCount - 1) * widget.crossAxisSpacing) /
+        _itemWidth =
+            (availableWidth -
+                (widget.crossAxisCount - 1) * widget.crossAxisSpacing) /
             widget.crossAxisCount;
         _itemHeight = _itemWidth / widget.childAspectRatio;
 
-        final rowCount = (widget.itemCount + widget.crossAxisCount - 1) ~/ widget.crossAxisCount;
+        final rowCount =
+            (widget.itemCount + widget.crossAxisCount - 1) ~/
+            widget.crossAxisCount;
         final totalHeight = rowCount == 0
             ? _insets.vertical
             : _insets.top +
-                _insets.bottom +
-                rowCount * _itemHeight +
-                (rowCount - 1) * widget.mainAxisSpacing;
+                  _insets.bottom +
+                  rowCount * _itemHeight +
+                  (rowCount - 1) * widget.mainAxisSpacing;
 
         // Current floating position and scale
         Offset floatingPos = Offset.zero;
         double floatingScale = 1.0;
 
-        if (_isSettling && _settleStartPos != null && _settleTargetPos != null) {
+        if (_isSettling &&
+            _settleStartPos != null &&
+            _settleTargetPos != null) {
           floatingPos = Offset.lerp(
             _settleStartPos!,
             _settleTargetPos!,
@@ -688,7 +730,9 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
 
         return SingleChildScrollView(
           controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           child: SizedBox(
             height: totalHeight,
             width: totalWidth,
@@ -705,13 +749,31 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
                           : ValueKey('grid_placeholder_gap_$g'),
                       duration: widget.animationDuration,
                       curve: widget.animationCurve,
-                      left: _getSlotPosition(_targetInsertionIndex! + g, _itemWidth, _itemHeight, _insets).dx,
-                      top: _getSlotPosition(_targetInsertionIndex! + g, _itemWidth, _itemHeight, _insets).dy,
+                      left: _getSlotPosition(
+                        _targetInsertionIndex! + g,
+                        _itemWidth,
+                        _itemHeight,
+                        _insets,
+                      ).dx,
+                      top: _getSlotPosition(
+                        _targetInsertionIndex! + g,
+                        _itemWidth,
+                        _itemHeight,
+                        _insets,
+                      ).dy,
                       width: _itemWidth,
                       height: _itemHeight,
                       child: widget.placeholderBuilder != null
-                          ? widget.placeholderBuilder!(context, _itemWidth, _itemHeight)
-                          : _buildDefaultPlaceholder(_itemWidth, _itemHeight, isDark),
+                          ? widget.placeholderBuilder!(
+                              context,
+                              _itemWidth,
+                              _itemHeight,
+                            )
+                          : _buildDefaultPlaceholder(
+                              _itemWidth,
+                              _itemHeight,
+                              isDark,
+                            ),
                     ),
 
                 // 2. Normal / Repositioning Grid Items
@@ -723,7 +785,12 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
                     builder: (context) {
                       final isDragged = _draggedIndexes.contains(i);
                       final slot = visualSlots[i] ?? i;
-                      final pos = _getSlotPosition(slot, _itemWidth, _itemHeight, _insets);
+                      final pos = _getSlotPosition(
+                        slot,
+                        _itemWidth,
+                        _itemHeight,
+                        _insets,
+                      );
 
                       return AnimatedPositioned(
                         duration: widget.animationDuration,
@@ -738,10 +805,15 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
                           onLongPressStart: widget.enableReorder
                               ? (details) => _onLongPressStart(i, details)
                               : null,
-                          onLongPressMoveUpdate:
-                              widget.enableReorder ? _onLongPressMoveUpdate : null,
-                          onLongPressEnd: widget.enableReorder ? _onLongPressEnd : null,
-                          onLongPressCancel: widget.enableReorder ? _onLongPressCancel : null,
+                          onLongPressMoveUpdate: widget.enableReorder
+                              ? _onLongPressMoveUpdate
+                              : null,
+                          onLongPressEnd: widget.enableReorder
+                              ? _onLongPressEnd
+                              : null,
+                          onLongPressCancel: widget.enableReorder
+                              ? _onLongPressCancel
+                              : null,
                           child: IgnorePointer(
                             ignoring: isDragged,
                             child: Opacity(
@@ -765,7 +837,11 @@ class _SmoothReorderableGridState extends State<SmoothReorderableGrid>
                       child: Transform.scale(
                         scale: floatingScale,
                         alignment: Alignment.center,
-                        child: _buildDragStack(context, _itemWidth, _itemHeight),
+                        child: _buildDragStack(
+                          context,
+                          _itemWidth,
+                          _itemHeight,
+                        ),
                       ),
                     ),
                   ),

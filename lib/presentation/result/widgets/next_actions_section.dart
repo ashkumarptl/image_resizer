@@ -14,15 +14,16 @@ import '../../widgets/image_source_picker_sheet.dart';
 class NextActionsSection extends ConsumerWidget {
   const NextActionsSection({super.key});
 
-  Future<File?> _pickImage(BuildContext context, {String title = 'Select Photo'}) async {
+  Future<File?> _pickImage(
+    BuildContext context, {
+    String title = 'Select Photo',
+  }) async {
     return ImageSourcePickerSheet.show(context, title: title);
   }
 
   void _navigateTo(BuildContext context, Widget screen) {
     HapticFeedback.lightImpact();
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => screen),
-    );
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 
   @override
@@ -36,7 +37,11 @@ class NextActionsSection extends ConsumerWidget {
           padding: const EdgeInsets.only(left: 2, bottom: 8),
           child: Row(
             children: [
-              const Icon(Icons.bolt_rounded, size: 16, color: AppColors.primary),
+              const Icon(
+                Icons.bolt_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
               const SizedBox(width: 4),
               Text(
                 'NEXT ACTIONS FOR YOUR FORM',
@@ -44,7 +49,9 @@ class NextActionsSection extends ConsumerWidget {
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.6,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
             ],
@@ -61,7 +68,10 @@ class NextActionsSection extends ConsumerWidget {
           badge: 'Most Common',
           isDark: isDark,
           onTap: () async {
-            final file = await _pickImage(context, title: 'Select Signature Photo');
+            final file = await _pickImage(
+              context,
+              title: 'Select Signature Photo',
+            );
             if (file != null && context.mounted) {
               _navigateTo(context, SignatureCleanerScreen(initialImage: file));
             }
@@ -90,7 +100,10 @@ class NextActionsSection extends ConsumerWidget {
           badge: 'Exam Mandatory',
           isDark: isDark,
           onTap: () async {
-            final file = await _pickImage(context, title: 'Select Passport Photo to Stamp');
+            final file = await _pickImage(
+              context,
+              title: 'Select Passport Photo to Stamp',
+            );
             if (file != null && context.mounted) {
               _navigateTo(context, PhotoStampScreen(initialImage: file));
             }
@@ -103,10 +116,14 @@ class NextActionsSection extends ConsumerWidget {
           icon: Icons.crop_rotate_rounded,
           iconColor: const Color(0xFF8B5CF6),
           title: 'Straighten / Deskew Document',
-          subtitle: 'Fix tilted certificate or ID card with 4-corner perspective crop',
+          subtitle:
+              'Fix tilted certificate or ID card with 4-corner perspective crop',
           isDark: isDark,
           onTap: () async {
-            final file = await _pickImage(context, title: 'Select Document to Deskew');
+            final file = await _pickImage(
+              context,
+              title: 'Select Document to Deskew',
+            );
             if (file != null && context.mounted) {
               _navigateTo(context, PerspectiveCropScreen(initialImage: file));
             }
@@ -181,16 +198,23 @@ class _NextActionCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
                               ),
                             ),
                           ),
                           if (badge != null) ...[
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1.5,
+                              ),
                               decoration: BoxDecoration(
-                                color: iconColor.withValues(alpha: isDark ? 0.25 : 0.12),
+                                color: iconColor.withValues(
+                                  alpha: isDark ? 0.25 : 0.12,
+                                ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -210,7 +234,9 @@ class _NextActionCard extends StatelessWidget {
                         subtitle,
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                     ],
@@ -220,7 +246,9 @@ class _NextActionCard extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 13,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ],
             ),

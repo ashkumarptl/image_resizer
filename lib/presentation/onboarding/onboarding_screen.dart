@@ -10,10 +10,7 @@ import 'models/onboarding_models.dart';
 class OnboardingScreen extends ConsumerStatefulWidget {
   final bool isRevisit;
 
-  const OnboardingScreen({
-    super.key,
-    this.isRevisit = false,
-  });
+  const OnboardingScreen({super.key, this.isRevisit = false});
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -46,9 +43,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await ref.read(onboardingCompletedProvider.notifier).completeOnboarding();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => const MainNavigationScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
       );
     }
   }
@@ -83,8 +78,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final activeColor = _pages[_currentPage].gradientColors.first;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor: isDark
+          ? AppColors.backgroundDark
+          : AppColors.backgroundLight,
       body: SafeArea(
         child: Column(
           children: [
@@ -152,8 +148,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 Text(
                   'Step ${_currentPage + 1} of ${_pages.length}',
                   style: TextStyle(
-                    fontSize: context.adaptiveFontSize(12,
-                        tabletSize: 14, largeTabletSize: 15),
+                    fontSize: context.adaptiveFontSize(
+                      12,
+                      tabletSize: 14,
+                      largeTabletSize: 15,
+                    ),
                     fontWeight: FontWeight.bold,
                     color: activeColor,
                     letterSpacing: 0.3,
@@ -170,8 +169,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               tooltip: 'Close Guide',
               onPressed: () => Navigator.of(context).pop(),
               style: IconButton.styleFrom(
-                backgroundColor:
-                    isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                backgroundColor: isDark
+                    ? AppColors.surfaceDark
+                    : AppColors.surfaceLight,
                 side: BorderSide(
                   color: isDark ? AppColors.borderDark : AppColors.borderLight,
                 ),
@@ -181,8 +181,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             TextButton(
               onPressed: _handleFinish,
               style: TextButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -193,8 +195,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   Text(
                     'Skip',
                     style: TextStyle(
-                      fontSize: context.adaptiveFontSize(13,
-                          tabletSize: 15, largeTabletSize: 16),
+                      fontSize: context.adaptiveFontSize(
+                        13,
+                        tabletSize: 15,
+                        largeTabletSize: 16,
+                      ),
                       fontWeight: FontWeight.w600,
                       color: isDark
                           ? AppColors.textSecondaryDark
@@ -204,8 +209,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const SizedBox(width: 4),
                   Icon(
                     Icons.fast_forward_rounded,
-                    size: context.adaptiveIconSize(16,
-                        tabletSize: 18, largeTabletSize: 20),
+                    size: context.adaptiveIconSize(
+                      16,
+                      tabletSize: 18,
+                      largeTabletSize: 20,
+                    ),
                     color: isDark
                         ? AppColors.textSecondaryDark
                         : AppColors.textSecondaryLight,
@@ -277,10 +285,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       end: Alignment.bottomRight,
     );
 
-    final heroSize =
-        context.isLargeTablet ? 72.0 : (context.isMediumOrWider ? 62.0 : 54.0);
-    final iconSize =
-        context.isLargeTablet ? 36.0 : (context.isMediumOrWider ? 32.0 : 28.0);
+    final heroSize = context.isLargeTablet
+        ? 72.0
+        : (context.isMediumOrWider ? 62.0 : 54.0);
+    final iconSize = context.isLargeTablet
+        ? 36.0
+        : (context.isMediumOrWider ? 32.0 : 28.0);
 
     return Column(
       children: [
@@ -300,11 +310,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ],
           ),
           alignment: Alignment.center,
-          child: Icon(
-            page.heroIcon,
-            size: iconSize,
-            color: Colors.white,
-          ),
+          child: Icon(page.heroIcon, size: iconSize, color: Colors.white),
         ),
         const SizedBox(height: 12),
 
@@ -312,20 +318,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: page.gradientColors.first
-                .withValues(alpha: isDark ? 0.18 : 0.08),
+            color: page.gradientColors.first.withValues(
+              alpha: isDark ? 0.18 : 0.08,
+            ),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: page.gradientColors.first
-                  .withValues(alpha: isDark ? 0.3 : 0.15),
+              color: page.gradientColors.first.withValues(
+                alpha: isDark ? 0.3 : 0.15,
+              ),
               width: 0.8,
             ),
           ),
           child: Text(
             page.badge,
             style: TextStyle(
-              fontSize: context.adaptiveFontSize(10.5,
-                  tabletSize: 12, largeTabletSize: 13),
+              fontSize: context.adaptiveFontSize(
+                10.5,
+                tabletSize: 12,
+                largeTabletSize: 13,
+              ),
               fontWeight: FontWeight.bold,
               letterSpacing: 0.8,
               color: page.gradientColors.first,
@@ -339,11 +350,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           page.title,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: context.adaptiveFontSize(22,
-                tabletSize: 28, largeTabletSize: 32),
+            fontSize: context.adaptiveFontSize(
+              22,
+              tabletSize: 28,
+              largeTabletSize: 32,
+            ),
             fontWeight: FontWeight.w800,
-            color:
-                isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
             letterSpacing: -0.3,
           ),
         ),
@@ -356,8 +371,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             page.subtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: context.adaptiveFontSize(12.5,
-                  tabletSize: 15, largeTabletSize: 16),
+              fontSize: context.adaptiveFontSize(
+                12.5,
+                tabletSize: 15,
+                largeTabletSize: 16,
+              ),
               height: 1.35,
               color: isDark
                   ? AppColors.textSecondaryDark
@@ -411,10 +429,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     OnboardingFeatureItem feature,
     bool isDark,
   ) {
-    final iconBoxSize =
-        context.isLargeTablet ? 44.0 : (context.isMediumOrWider ? 40.0 : 36.0);
-    final iconSize =
-        context.isLargeTablet ? 22.0 : (context.isMediumOrWider ? 20.0 : 18.0);
+    final iconBoxSize = context.isLargeTablet
+        ? 44.0
+        : (context.isMediumOrWider ? 40.0 : 36.0);
+    final iconSize = context.isLargeTablet
+        ? 22.0
+        : (context.isMediumOrWider ? 20.0 : 18.0);
 
     return Container(
       padding: EdgeInsets.all(
@@ -446,8 +466,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               color: feature.accentColor.withValues(alpha: isDark ? 0.2 : 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color:
-                    feature.accentColor.withValues(alpha: isDark ? 0.35 : 0.2),
+                color: feature.accentColor.withValues(
+                  alpha: isDark ? 0.35 : 0.2,
+                ),
                 width: 0.8,
               ),
             ),
@@ -473,8 +494,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       child: Text(
                         feature.title,
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(13,
-                              tabletSize: 15, largeTabletSize: 16),
+                          fontSize: context.adaptiveFontSize(
+                            13,
+                            tabletSize: 15,
+                            largeTabletSize: 16,
+                          ),
                           fontWeight: FontWeight.w700,
                           color: isDark
                               ? AppColors.textPrimaryDark
@@ -488,17 +512,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: feature.accentColor
-                              .withValues(alpha: isDark ? 0.22 : 0.1),
+                          color: feature.accentColor.withValues(
+                            alpha: isDark ? 0.22 : 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           feature.badge!,
                           style: TextStyle(
-                            fontSize: context.adaptiveFontSize(9.5,
-                                tabletSize: 11, largeTabletSize: 12),
+                            fontSize: context.adaptiveFontSize(
+                              9.5,
+                              tabletSize: 11,
+                              largeTabletSize: 12,
+                            ),
                             fontWeight: FontWeight.bold,
                             color: feature.accentColor,
                           ),
@@ -511,8 +541,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 Text(
                   feature.description,
                   style: TextStyle(
-                    fontSize: context.adaptiveFontSize(11.5,
-                        tabletSize: 13, largeTabletSize: 14),
+                    fontSize: context.adaptiveFontSize(
+                      11.5,
+                      tabletSize: 13,
+                      largeTabletSize: 14,
+                    ),
                     height: 1.3,
                     color: isDark
                         ? AppColors.textSecondaryDark
@@ -590,8 +623,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       color: isSelected
                           ? dotColor
                           : (isDark
-                              ? AppColors.borderDark
-                              : AppColors.borderLight),
+                                ? AppColors.borderDark
+                                : AppColors.borderLight),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   );
@@ -608,7 +641,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     backgroundColor: activeColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -625,8 +660,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: _pages.last.gradientColors.first
-                            .withValues(alpha: 0.35),
+                        color: _pages.last.gradientColors.first.withValues(
+                          alpha: 0.35,
+                        ),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -649,7 +685,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       foregroundColor: Colors.white,
                       shadowColor: Colors.transparent,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 22, vertical: 12),
+                        horizontal: 22,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),

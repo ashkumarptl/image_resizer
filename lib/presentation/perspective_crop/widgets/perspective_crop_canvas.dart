@@ -20,7 +20,8 @@ class PerspectiveCropCanvas extends StatefulWidget {
     NormalizedPoint tr,
     NormalizedPoint br,
     NormalizedPoint bl,
-  ) onPointsChanged;
+  )
+  onPointsChanged;
 
   const PerspectiveCropCanvas({
     super.key,
@@ -70,7 +71,8 @@ class _PerspectiveCropCanvasState extends State<PerspectiveCropCanvas> {
   }
 
   Future<void> _loadUiImage() async {
-    final isTest = Platform.environment.containsKey('FLUTTER_TEST') ||
+    final isTest =
+        Platform.environment.containsKey('FLUTTER_TEST') ||
         Platform.environment['FLUTTER_TEST'] == 'true' ||
         WidgetsBinding.instance.runtimeType.toString().contains('Test');
     if (isTest) {
@@ -100,7 +102,10 @@ class _PerspectiveCropCanvasState extends State<PerspectiveCropCanvas> {
         setState(() {
           _uiImage = frame.image;
         });
-        widget.onImageLoaded?.call(header?.width ?? frame.image.width, header?.height ?? frame.image.height);
+        widget.onImageLoaded?.call(
+          header?.width ?? frame.image.width,
+          header?.height ?? frame.image.height,
+        );
       }
     } catch (e) {
       debugPrint('[PerspectiveCropCanvas] Error loading ui.Image: $e');
@@ -161,8 +166,14 @@ class _PerspectiveCropCanvasState extends State<PerspectiveCropCanvas> {
     if (_activeCorner == ActiveCorner.none || _imageRect.isEmpty) return;
 
     final touchPos = details.localPosition;
-    final nx = ((touchPos.dx - _imageRect.left) / _imageRect.width).clamp(0.0, 1.0);
-    final ny = ((touchPos.dy - _imageRect.top) / _imageRect.height).clamp(0.0, 1.0);
+    final nx = ((touchPos.dx - _imageRect.left) / _imageRect.width).clamp(
+      0.0,
+      1.0,
+    );
+    final ny = ((touchPos.dy - _imageRect.top) / _imageRect.height).clamp(
+      0.0,
+      1.0,
+    );
 
     const minMargin = 0.04;
     var tl = widget.topLeft;
@@ -271,7 +282,9 @@ class _PerspectiveCropCanvasState extends State<PerspectiveCropCanvas> {
         // Calculate loupe position (hovered above finger or below if too close to top)
         const loupeSize = 108.0;
         final showLoupeBelow = activeOffset.dy < (loupeSize + 40.0);
-        final loupeY = showLoupeBelow ? (activeOffset.dy + 36.0) : (activeOffset.dy - loupeSize - 32.0);
+        final loupeY = showLoupeBelow
+            ? (activeOffset.dy + 36.0)
+            : (activeOffset.dy - loupeSize - 32.0);
         final loupeX = (activeOffset.dx - loupeSize / 2).clamp(
           8.0,
           constraints.maxWidth - loupeSize - 8.0,

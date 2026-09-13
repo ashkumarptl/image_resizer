@@ -11,11 +11,14 @@ void main() {
   });
 
   group('PresetFavoritesRepository Tests', () {
-    test('loadFavoritePresetIds returns empty set when no presets are saved', () async {
-      final repo = PresetFavoritesRepository();
-      final favorites = await repo.loadFavoritePresetIds();
-      expect(favorites, isEmpty);
-    });
+    test(
+      'loadFavoritePresetIds returns empty set when no presets are saved',
+      () async {
+        final repo = PresetFavoritesRepository();
+        final favorites = await repo.loadFavoritePresetIds();
+        expect(favorites, isEmpty);
+      },
+    );
 
     test('loadFavoritePresetIds returns saved preset IDs', () async {
       SharedPreferences.setMockInitialValues({
@@ -29,23 +32,29 @@ void main() {
 
     test('saveFavoritePresetIds persists set to SharedPreferences', () async {
       final repo = PresetFavoritesRepository();
-      final saved = await repo.saveFavoritePresetIds({'upsc_photo', 'neet_passport_photo'});
+      final saved = await repo.saveFavoritePresetIds({
+        'upsc_photo',
+        'neet_passport_photo',
+      });
       expect(saved, isTrue);
 
       final loaded = await repo.loadFavoritePresetIds();
       expect(loaded, containsAll(['upsc_photo', 'neet_passport_photo']));
     });
 
-    test('recordPresetUsed maintains recent preset order and limits to 10', () async {
-      final repo = PresetFavoritesRepository();
-      for (int i = 0; i < 15; i++) {
-        await repo.recordPresetUsed('preset_$i');
-      }
+    test(
+      'recordPresetUsed maintains recent preset order and limits to 10',
+      () async {
+        final repo = PresetFavoritesRepository();
+        for (int i = 0; i < 15; i++) {
+          await repo.recordPresetUsed('preset_$i');
+        }
 
-      final recents = await repo.loadRecentPresetIds();
-      expect(recents.length, 10);
-      expect(recents.first, 'preset_14');
-    });
+        final recents = await repo.loadRecentPresetIds();
+        expect(recents.length, 10);
+        expect(recents.first, 'preset_14');
+      },
+    );
   });
 
   group('FavoritePresetIdsNotifier & Provider Tests', () {
@@ -64,19 +73,28 @@ void main() {
       expect(state.contains('ssc_photo'), isTrue);
 
       // Toggle new preset
-      await container.read(favoritePresetIdsProvider.notifier).toggleFavorite('gate_photo');
+      await container
+          .read(favoritePresetIdsProvider.notifier)
+          .toggleFavorite('gate_photo');
 
       state = container.read(favoritePresetIdsProvider);
       expect(state.contains('gate_photo'), isTrue);
       expect(state.contains('ssc_photo'), isTrue);
 
       // Toggle off ssc_photo
-      await container.read(favoritePresetIdsProvider.notifier).toggleFavorite('ssc_photo');
+      await container
+          .read(favoritePresetIdsProvider.notifier)
+          .toggleFavorite('ssc_photo');
 
       state = container.read(favoritePresetIdsProvider);
       expect(state.contains('ssc_photo'), isFalse);
       expect(state.contains('gate_photo'), isTrue);
-      expect(container.read(favoritePresetIdsProvider.notifier).isFavorite('gate_photo'), isTrue);
+      expect(
+        container
+            .read(favoritePresetIdsProvider.notifier)
+            .isFavorite('gate_photo'),
+        isTrue,
+      );
     });
   });
 }

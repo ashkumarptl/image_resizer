@@ -28,7 +28,9 @@ void main() {
     img.fill(image, color: img.ColorRgb8(100, 100, 100));
     final bytes = img.encodeJpg(image);
 
-    dummyImage = File('${Directory.systemTemp.path}/test_modular_studio_img.jpg');
+    dummyImage = File(
+      '${Directory.systemTemp.path}/test_modular_studio_img.jpg',
+    );
     await dummyImage.writeAsBytes(bytes);
   });
 
@@ -39,13 +41,12 @@ void main() {
   });
 
   group('ImageStudioScreen Modular Tests', () {
-    testWidgets('allowRePick: true shows Change Image button in AppBar', (tester) async {
+    testWidgets('allowRePick: true shows Change Image button in AppBar', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ImageStudioScreen(
-            initialImage: dummyImage,
-            allowRePick: true,
-          ),
+          home: ImageStudioScreen(initialImage: dummyImage, allowRePick: true),
         ),
       );
       await tester.pump();
@@ -54,7 +55,9 @@ void main() {
       expect(find.byTooltip('Change Image'), findsOneWidget);
     });
 
-    testWidgets('allowRePick: false hides Change Image button in AppBar', (tester) async {
+    testWidgets('allowRePick: false hides Change Image button in AppBar', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ImageStudioScreen(
@@ -70,132 +73,141 @@ void main() {
       expect(find.byTooltip('Change Image'), findsNothing);
     });
 
-    testWidgets('ScanProjectDetailScreen displays Studio action button on each page', (tester) async {
-      final project = ScanProject(
-        id: 'test_project_studio',
-        name: 'Studio Test Docs',
-        pagePaths: [dummyImage.path],
-        pdfPath: null,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+    testWidgets(
+      'ScanProjectDetailScreen displays Studio action button on each page',
+      (tester) async {
+        final project = ScanProject(
+          id: 'test_project_studio',
+          name: 'Studio Test Docs',
+          pagePaths: [dummyImage.path],
+          pdfPath: null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authServiceProvider.overrideWithValue(MockAuthService()),
-          ],
-          child: MaterialApp(
-            home: ScanProjectDetailScreen(initialProject: project),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authServiceProvider.overrideWithValue(MockAuthService()),
+            ],
+            child: MaterialApp(
+              home: ScanProjectDetailScreen(initialProject: project),
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Tapping page opens preview with 'Studio Edit' option
-      await tester.tap(find.text('1/1'));
-      await tester.pumpAndSettle();
-      expect(find.text('Studio Edit'), findsOneWidget);
+        // Tapping page opens preview with 'Studio Edit' option
+        await tester.tap(find.text('1/1'));
+        await tester.pumpAndSettle();
+        expect(find.text('Studio Edit'), findsOneWidget);
 
-      // Return to detail screen
-      await tester.tap(find.byTooltip('Back'));
-      await tester.pumpAndSettle();
+        // Return to detail screen
+        await tester.tap(find.byTooltip('Back'));
+        await tester.pumpAndSettle();
 
-      // Switch to Grid View
-      await tester.tap(find.byIcon(Icons.grid_view_rounded));
-      await tester.pumpAndSettle();
+        // Switch to Grid View
+        await tester.tap(find.byIcon(Icons.grid_view_rounded));
+        await tester.pumpAndSettle();
 
-      // Verify Grid item opens preview with Studio Edit
-      expect(find.text('01'), findsOneWidget);
-      await tester.ensureVisible(find.text('01'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('01'));
-      await tester.pumpAndSettle();
-      expect(find.text('Studio Edit'), findsOneWidget);
-    });
+        // Verify Grid item opens preview with Studio Edit
+        expect(find.text('01'), findsOneWidget);
+        await tester.ensureVisible(find.text('01'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('01'));
+        await tester.pumpAndSettle();
+        expect(find.text('Studio Edit'), findsOneWidget);
+      },
+    );
 
-    testWidgets('Tablet Landscape renders dual-pane layout with pinned save button and no bottom bar', (tester) async {
-      tester.view.physicalSize = const Size(1280, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
+    testWidgets(
+      'Tablet Landscape renders dual-pane layout with pinned save button and no bottom bar',
+      (tester) async {
+        tester.view.physicalSize = const Size(1280, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ImageStudioScreen(
-            initialImage: dummyImage,
-            allowRePick: true,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ImageStudioScreen(
+              initialImage: dummyImage,
+              allowRePick: true,
+            ),
           ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
 
-      // 1. Bottom toolbar is NOT present in tablet mode
-      expect(find.text('Doc Filter'), findsNothing);
+        // 1. Bottom toolbar is NOT present in tablet mode
+        expect(find.text('Doc Filter'), findsNothing);
 
-      // 2. Tablet tool selector tabs are present
-      expect(find.text('Compress'), findsOneWidget);
-      expect(find.text('Resize'), findsOneWidget);
-      expect(find.text('Format'), findsOneWidget);
-      expect(find.text('Tools'), findsOneWidget);
+        // 2. Tablet tool selector tabs are present
+        expect(find.text('Compress'), findsOneWidget);
+        expect(find.text('Resize'), findsOneWidget);
+        expect(find.text('Format'), findsOneWidget);
+        expect(find.text('Tools'), findsOneWidget);
 
-      // 3. Pinned Process & Save Image button is visible in inspector footer
-      expect(find.text('Process & Save Image'), findsOneWidget);
+        // 3. Pinned Process & Save Image button is visible in inspector footer
+        expect(find.text('Process & Save Image'), findsOneWidget);
 
-      // 4. Switch to Tools tab and verify tools inspector appears
-      await tester.tap(find.text('Tools'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
+        // 4. Switch to Tools tab and verify tools inspector appears
+        await tester.tap(find.text('Tools'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
 
-      expect(find.text('AI Background Remover'), findsOneWidget);
-      expect(find.text('Perspective & Document Crop'), findsOneWidget);
-      expect(find.text('Document Scanner Filter'), findsOneWidget);
-      expect(find.text('Flip H'), findsOneWidget);
-      expect(find.text('Flip V'), findsOneWidget);
-    });
+        expect(find.text('AI Background Remover'), findsOneWidget);
+        expect(find.text('Perspective & Document Crop'), findsOneWidget);
+        expect(find.text('Document Scanner Filter'), findsOneWidget);
+        expect(find.text('Flip H'), findsOneWidget);
+        expect(find.text('Flip V'), findsOneWidget);
+      },
+    );
 
-    testWidgets('Tablet Portrait renders preview canvas and inspector deck with pinned save button', (tester) async {
-      tester.view.physicalSize = const Size(800, 1280);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
+    testWidgets(
+      'Tablet Portrait renders preview canvas and inspector deck with pinned save button',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1280);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ImageStudioScreen(
-            initialImage: dummyImage,
-            allowRePick: true,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ImageStudioScreen(
+              initialImage: dummyImage,
+              allowRePick: true,
+            ),
           ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
 
-      // 1. Bottom toolbar is NOT present in tablet mode
-      expect(find.text('Doc Filter'), findsNothing);
+        // 1. Bottom toolbar is NOT present in tablet mode
+        expect(find.text('Doc Filter'), findsNothing);
 
-      // 2. Tablet tool selector tabs are present in portrait deck
-      expect(find.text('Compress'), findsOneWidget);
-      expect(find.text('Resize'), findsOneWidget);
-      expect(find.text('Format'), findsOneWidget);
-      expect(find.text('Tools'), findsOneWidget);
+        // 2. Tablet tool selector tabs are present in portrait deck
+        expect(find.text('Compress'), findsOneWidget);
+        expect(find.text('Resize'), findsOneWidget);
+        expect(find.text('Format'), findsOneWidget);
+        expect(find.text('Tools'), findsOneWidget);
 
-      // 3. Pinned Process & Save Image button is visible
-      expect(find.text('Process & Save Image'), findsOneWidget);
+        // 3. Pinned Process & Save Image button is visible
+        expect(find.text('Process & Save Image'), findsOneWidget);
 
-      // 4. Switch to Resize tab and verify resize controls
-      await tester.tap(find.text('Resize'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
+        // 4. Switch to Resize tab and verify resize controls
+        await tester.tap(find.text('Resize'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 200));
 
-      expect(find.text('Original'), findsOneWidget);
-      expect(find.text('Exact (W×H)'), findsOneWidget);
-      expect(find.text('Scale %'), findsOneWidget);
-    });
+        expect(find.text('Original'), findsOneWidget);
+        expect(find.text('Exact (W×H)'), findsOneWidget);
+        expect(find.text('Scale %'), findsOneWidget);
+      },
+    );
   });
 }

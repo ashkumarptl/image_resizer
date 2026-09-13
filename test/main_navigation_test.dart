@@ -33,7 +33,9 @@ void main() {
   });
 
   group('FloatingBottomNavBar Widget Tests', () {
-    testWidgets('renders all 4 nav items correctly', (WidgetTester tester) async {
+    testWidgets('renders all 4 nav items correctly', (
+      WidgetTester tester,
+    ) async {
       int selectedIndex = 0;
 
       await tester.pumpWidget(
@@ -81,14 +83,15 @@ void main() {
       expect(selectedIndex, 3);
     });
 
-    testWidgets('handles high text scaler (1.30x and 1.50x) without overflow',
-        (WidgetTester tester) async {
+    testWidgets('handles high text scaler (1.30x and 1.50x) without overflow', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaler: const TextScaler.linear(1.35),
-            ),
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(1.35)),
             child: child!,
           ),
           home: Scaffold(
@@ -131,290 +134,333 @@ void main() {
       expect(find.text('Settings'), findsOneWidget);
     });
 
-    testWidgets('adapts bottom margin for Android 3-button navigation vs gesture navigation',
-        (WidgetTester tester) async {
-      // 1. Test 3-Button navigation (48dp bottom inset)
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              viewPadding: const EdgeInsets.only(bottom: 48),
-              padding: const EdgeInsets.only(bottom: 48),
+    testWidgets(
+      'adapts bottom margin for Android 3-button navigation vs gesture navigation',
+      (WidgetTester tester) async {
+        // 1. Test 3-Button navigation (48dp bottom inset)
+        await tester.pumpWidget(
+          MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                viewPadding: const EdgeInsets.only(bottom: 48),
+                padding: const EdgeInsets.only(bottom: 48),
+              ),
+              child: child!,
             ),
-            child: child!,
-          ),
-          home: Scaffold(
-            bottomNavigationBar: FloatingBottomNavBar(
-              currentIndex: 0,
-              onTap: (_) {},
-              items: const [
-                FloatingNavItem(icon: Icons.home, activeIcon: Icons.home, label: 'Home'),
-                FloatingNavItem(icon: Icons.settings, activeIcon: Icons.settings, label: 'Settings'),
-              ],
+            home: Scaffold(
+              bottomNavigationBar: FloatingBottomNavBar(
+                currentIndex: 0,
+                onTap: (_) {},
+                items: const [
+                  FloatingNavItem(
+                    icon: Icons.home,
+                    activeIcon: Icons.home,
+                    label: 'Home',
+                  ),
+                  FloatingNavItem(
+                    icon: Icons.settings,
+                    activeIcon: Icons.settings,
+                    label: 'Settings',
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
 
-      final paddingFinder3Btn = find.descendant(
-        of: find.byType(FloatingBottomNavBar),
-        matching: find.byType(Padding),
-      );
-      final paddingWidget3Btn = tester.widget<Padding>(paddingFinder3Btn.first);
-      // safeBottom (48) + 12 = 60
-      final insets3Btn = paddingWidget3Btn.padding as EdgeInsets;
-      expect(insets3Btn.bottom, equals(60.0));
+        final paddingFinder3Btn = find.descendant(
+          of: find.byType(FloatingBottomNavBar),
+          matching: find.byType(Padding),
+        );
+        final paddingWidget3Btn = tester.widget<Padding>(
+          paddingFinder3Btn.first,
+        );
+        // safeBottom (48) + 12 = 60
+        final insets3Btn = paddingWidget3Btn.padding as EdgeInsets;
+        expect(insets3Btn.bottom, equals(60.0));
 
-      // 2. Test Gesture navigation (16dp bottom inset)
-      await tester.pumpWidget(
-        MaterialApp(
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              viewPadding: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.only(bottom: 16),
+        // 2. Test Gesture navigation (16dp bottom inset)
+        await tester.pumpWidget(
+          MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                viewPadding: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.only(bottom: 16),
+              ),
+              child: child!,
             ),
-            child: child!,
-          ),
-          home: Scaffold(
-            bottomNavigationBar: FloatingBottomNavBar(
-              currentIndex: 0,
-              onTap: (_) {},
-              items: const [
-                FloatingNavItem(icon: Icons.home, activeIcon: Icons.home, label: 'Home'),
-                FloatingNavItem(icon: Icons.settings, activeIcon: Icons.settings, label: 'Settings'),
-              ],
+            home: Scaffold(
+              bottomNavigationBar: FloatingBottomNavBar(
+                currentIndex: 0,
+                onTap: (_) {},
+                items: const [
+                  FloatingNavItem(
+                    icon: Icons.home,
+                    activeIcon: Icons.home,
+                    label: 'Home',
+                  ),
+                  FloatingNavItem(
+                    icon: Icons.settings,
+                    activeIcon: Icons.settings,
+                    label: 'Settings',
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
 
-      final paddingFinderGesture = find.descendant(
-        of: find.byType(FloatingBottomNavBar),
-        matching: find.byType(Padding),
-      );
-      final paddingWidgetGesture = tester.widget<Padding>(paddingFinderGesture.first);
-      // safeBottom (16) + 8 = 24
-      final insetsGesture = paddingWidgetGesture.padding as EdgeInsets;
-      expect(insetsGesture.bottom, equals(24.0));
-    });
+        final paddingFinderGesture = find.descendant(
+          of: find.byType(FloatingBottomNavBar),
+          matching: find.byType(Padding),
+        );
+        final paddingWidgetGesture = tester.widget<Padding>(
+          paddingFinderGesture.first,
+        );
+        // safeBottom (16) + 8 = 24
+        final insetsGesture = paddingWidgetGesture.padding as EdgeInsets;
+        expect(insetsGesture.bottom, equals(24.0));
+      },
+    );
   });
 
   group('MainNavigationScreen Integration Tests', () {
-    testWidgets('phone layout (< 600dp) uses FloatingBottomNavBar and switches tabs',
-        (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1080, 2400);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'phone layout (< 600dp) uses FloatingBottomNavBar and switches tabs',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authServiceProvider.overrideWithValue(MockAuthService()),
-          ],
-          child: const MaterialApp(
-            home: MainNavigationScreen(),
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authServiceProvider.overrideWithValue(MockAuthService()),
+            ],
+            child: const MaterialApp(home: MainNavigationScreen()),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Mobile verifies FloatingBottomNavBar is used and NavigationRail is not
-      expect(find.byType(FloatingBottomNavBar), findsOneWidget);
-      expect(find.byType(NavigationRail), findsNothing);
+        // Mobile verifies FloatingBottomNavBar is used and NavigationRail is not
+        expect(find.byType(FloatingBottomNavBar), findsOneWidget);
+        expect(find.byType(NavigationRail), findsNothing);
 
-      // 1. Initially on Home tab
-      expect(find.text(AppConstants.appName), findsOneWidget);
-      expect(find.text('Single Photo'), findsOneWidget);
-      expect(find.text('Batch (Multi)'), findsOneWidget);
+        // 1. Initially on Home tab
+        expect(find.text(AppConstants.appName), findsOneWidget);
+        expect(find.text('Single Photo'), findsOneWidget);
+        expect(find.text('Batch (Multi)'), findsOneWidget);
 
-      // 2. Tap on "Scan to PDF" tab in the floating nav bar
-      await tester.tap(find.descendant(
-        of: find.byType(FloatingBottomNavBar),
-        matching: find.text('Scan to PDF'),
-      ));
-      await tester.pumpAndSettle();
-
-      // Verify Scan to PDF content is shown
-      expect(find.text('No Documents Yet'), findsOneWidget);
-      expect(find.text('Scan Document'), findsOneWidget);
-
-      // 3. Tap on "Exam Tools" tab in the floating nav bar
-      await tester.tap(find.descendant(
-        of: find.byType(FloatingBottomNavBar),
-        matching: find.text('Exam Tools'),
-      ));
-      await tester.pumpAndSettle();
-
-      // Verify Exam Tools content is shown by default
-      expect(find.text('Exam Document Tools'), findsWidgets);
-      expect(find.text('Signature B&W Cleaner'), findsWidgets);
-      expect(find.text('Name & Date Photo Stamp'), findsWidgets);
-
-      // Switch to Presets tab pill inside the combined screen
-      await tester.tap(find.text('Presets'));
-      await tester.pumpAndSettle();
-
-      // Verify Presets Hub content is shown
-      expect(find.text('Govt & Exam Presets'), findsWidgets);
-      expect(find.text('SSC Signature'), findsOneWidget);
-      expect(find.text('UPSC Civil Services Photo'), findsOneWidget);
-
-      // 4. Tap on "Settings" tab in the floating nav bar
-      await tester.tap(find.descendant(
-        of: find.byType(FloatingBottomNavBar),
-        matching: find.text('Settings'),
-      ));
-      await tester.pumpAndSettle();
-
-      // Verify Settings content is shown
-      expect(find.text('APPEARANCE'), findsOneWidget);
-      expect(find.text('ACCOUNT'), findsOneWidget);
-
-      // 5. Switch back to Home
-      await tester.tap(find.descendant(
-        of: find.byType(FloatingBottomNavBar),
-        matching: find.text('Home'),
-      ));
-      await tester.pumpAndSettle();
-      expect(find.text(AppConstants.appName), findsOneWidget);
-      expect(find.text('Single Photo'), findsOneWidget);
-    });
-
-    testWidgets('sliding / swiping horizontally switches screens and updates active tab',
-        (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1080, 2400);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authServiceProvider.overrideWithValue(MockAuthService()),
-          ],
-          child: const MaterialApp(
-            home: MainNavigationScreen(),
+        // 2. Tap on "Scan to PDF" tab in the floating nav bar
+        await tester.tap(
+          find.descendant(
+            of: find.byType(FloatingBottomNavBar),
+            matching: find.text('Scan to PDF'),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Initially on Home tab (index 0)
-      expect(find.text(AppConstants.appName), findsOneWidget);
+        // Verify Scan to PDF content is shown
+        expect(find.text('No Documents Yet'), findsOneWidget);
+        expect(find.text('Scan Document'), findsOneWidget);
 
-      // Swipe left on the screen to slide to "Scan to PDF" (index 1)
-      await tester.drag(find.text(AppConstants.appName), const Offset(-400, 0));
-      await tester.pumpAndSettle();
-
-      // Verify Scan to PDF content is now shown
-      expect(find.text('No Documents Yet'), findsOneWidget);
-
-      // Swipe left again to slide to "Exam Tools" (index 2)
-      await tester.drag(find.text('No Documents Yet'), const Offset(-400, 0));
-      await tester.pumpAndSettle();
-
-      // Verify Exam Tools content is now shown
-      expect(find.text('Exam Document Tools'), findsWidgets);
-
-      // Swipe right to slide back to "Scan to PDF" (index 1)
-      await tester.drag(find.text('Exam Document Tools').first, const Offset(400, 0));
-      await tester.pumpAndSettle();
-
-      expect(find.text('No Documents Yet'), findsOneWidget);
-    });
-
-    testWidgets('tablet/wide layout (>= 600dp) uses NavigationRail and switches tabs',
-        (WidgetTester tester) async {
-      // 1800 x 2400 with DPR 2.0 = 900 x 1200 logical dp (expanded / tablet)
-      tester.view.physicalSize = const Size(1800, 2400);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authServiceProvider.overrideWithValue(MockAuthService()),
-          ],
-          child: const MaterialApp(
-            home: MainNavigationScreen(),
+        // 3. Tap on "Exam Tools" tab in the floating nav bar
+        await tester.tap(
+          find.descendant(
+            of: find.byType(FloatingBottomNavBar),
+            matching: find.text('Exam Tools'),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Tablet verifies NavigationRail is rendered and FloatingBottomNavBar is not
-      expect(find.byType(NavigationRail), findsOneWidget);
-      expect(find.byType(FloatingBottomNavBar), findsNothing);
+        // Verify Exam Tools content is shown by default
+        expect(find.text('Exam Document Tools'), findsWidgets);
+        expect(find.text('Signature B&W Cleaner'), findsWidgets);
+        expect(find.text('Name & Date Photo Stamp'), findsWidgets);
 
-      // Initially on Home tab
-      expect(find.text(AppConstants.appName), findsOneWidget);
-      expect(find.text('Single Photo'), findsOneWidget);
+        // Switch to Presets tab pill inside the combined screen
+        await tester.tap(find.text('Presets'));
+        await tester.pumpAndSettle();
 
-      // Tap on "Scan to PDF" in the NavigationRail
-      await tester.tap(find.descendant(
-        of: find.byType(NavigationRail),
-        matching: find.text('Scan to PDF'),
-      ));
-      await tester.pumpAndSettle();
-      expect(find.text('No Documents Yet'), findsOneWidget);
+        // Verify Presets Hub content is shown
+        expect(find.text('Govt & Exam Presets'), findsWidgets);
+        expect(find.text('SSC Signature'), findsOneWidget);
+        expect(find.text('UPSC Civil Services Photo'), findsOneWidget);
 
-      // Tap on "Settings" in the NavigationRail
-      await tester.tap(find.descendant(
-        of: find.byType(NavigationRail),
-        matching: find.text('Settings'),
-      ));
-      await tester.pumpAndSettle();
-      expect(find.text('APPEARANCE'), findsOneWidget);
-      expect(find.text('ACCOUNT'), findsOneWidget);
-
-      // Tap back on "Home" in the NavigationRail
-      await tester.tap(find.descendant(
-        of: find.byType(NavigationRail),
-        matching: find.text('Home'),
-      ));
-      await tester.pumpAndSettle();
-      expect(find.text('Single Photo'), findsOneWidget);
-    });
-
-    testWidgets('mobile landscape / short height wide layout (740x360dp) uses NavigationRail without overflow',
-        (WidgetTester tester) async {
-      // 1480 x 720 with DPR 2.0 = 740 x 360 logical dp (mobile landscape)
-      tester.view.physicalSize = const Size(1480, 720);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            authServiceProvider.overrideWithValue(MockAuthService()),
-          ],
-          child: const MaterialApp(
-            home: MainNavigationScreen(),
+        // 4. Tap on "Settings" tab in the floating nav bar
+        await tester.tap(
+          find.descendant(
+            of: find.byType(FloatingBottomNavBar),
+            matching: find.text('Settings'),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // NavigationRail is present and no RenderFlex overflow occurs
-      expect(find.byType(NavigationRail), findsOneWidget);
-      expect(find.byType(FloatingBottomNavBar), findsNothing);
-      expect(tester.takeException(), isNull);
+        // Verify Settings content is shown
+        expect(find.text('APPEARANCE'), findsOneWidget);
+        expect(find.text('ACCOUNT'), findsOneWidget);
 
-      // Verify tabs switch cleanly
-      await tester.tap(find.descendant(
-        of: find.byType(NavigationRail),
-        matching: find.text('Settings'),
-      ));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-    });
+        // 5. Switch back to Home
+        await tester.tap(
+          find.descendant(
+            of: find.byType(FloatingBottomNavBar),
+            matching: find.text('Home'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(AppConstants.appName), findsOneWidget);
+        expect(find.text('Single Photo'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'sliding / swiping horizontally switches screens and updates active tab',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authServiceProvider.overrideWithValue(MockAuthService()),
+            ],
+            child: const MaterialApp(home: MainNavigationScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Initially on Home tab (index 0)
+        expect(find.text(AppConstants.appName), findsOneWidget);
+
+        // Swipe left on the screen to slide to "Scan to PDF" (index 1)
+        await tester.drag(
+          find.text(AppConstants.appName),
+          const Offset(-400, 0),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify Scan to PDF content is now shown
+        expect(find.text('No Documents Yet'), findsOneWidget);
+
+        // Swipe left again to slide to "Exam Tools" (index 2)
+        await tester.drag(find.text('No Documents Yet'), const Offset(-400, 0));
+        await tester.pumpAndSettle();
+
+        // Verify Exam Tools content is now shown
+        expect(find.text('Exam Document Tools'), findsWidgets);
+
+        // Swipe right to slide back to "Scan to PDF" (index 1)
+        await tester.drag(
+          find.text('Exam Document Tools').first,
+          const Offset(400, 0),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('No Documents Yet'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'tablet/wide layout (>= 600dp) uses NavigationRail and switches tabs',
+      (WidgetTester tester) async {
+        // 1800 x 2400 with DPR 2.0 = 900 x 1200 logical dp (expanded / tablet)
+        tester.view.physicalSize = const Size(1800, 2400);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authServiceProvider.overrideWithValue(MockAuthService()),
+            ],
+            child: const MaterialApp(home: MainNavigationScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Tablet verifies NavigationRail is rendered and FloatingBottomNavBar is not
+        expect(find.byType(NavigationRail), findsOneWidget);
+        expect(find.byType(FloatingBottomNavBar), findsNothing);
+
+        // Initially on Home tab
+        expect(find.text(AppConstants.appName), findsOneWidget);
+        expect(find.text('Single Photo'), findsOneWidget);
+
+        // Tap on "Scan to PDF" in the NavigationRail
+        await tester.tap(
+          find.descendant(
+            of: find.byType(NavigationRail),
+            matching: find.text('Scan to PDF'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('No Documents Yet'), findsOneWidget);
+
+        // Tap on "Settings" in the NavigationRail
+        await tester.tap(
+          find.descendant(
+            of: find.byType(NavigationRail),
+            matching: find.text('Settings'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('APPEARANCE'), findsOneWidget);
+        expect(find.text('ACCOUNT'), findsOneWidget);
+
+        // Tap back on "Home" in the NavigationRail
+        await tester.tap(
+          find.descendant(
+            of: find.byType(NavigationRail),
+            matching: find.text('Home'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Single Photo'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'mobile landscape / short height wide layout (740x360dp) uses NavigationRail without overflow',
+      (WidgetTester tester) async {
+        // 1480 x 720 with DPR 2.0 = 740 x 360 logical dp (mobile landscape)
+        tester.view.physicalSize = const Size(1480, 720);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authServiceProvider.overrideWithValue(MockAuthService()),
+            ],
+            child: const MaterialApp(home: MainNavigationScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // NavigationRail is present and no RenderFlex overflow occurs
+        expect(find.byType(NavigationRail), findsOneWidget);
+        expect(find.byType(FloatingBottomNavBar), findsNothing);
+        expect(tester.takeException(), isNull);
+
+        // Verify tabs switch cleanly
+        await tester.tap(
+          find.descendant(
+            of: find.byType(NavigationRail),
+            matching: find.text('Settings'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }
-

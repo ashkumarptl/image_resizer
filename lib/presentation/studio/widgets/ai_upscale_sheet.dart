@@ -27,10 +27,7 @@ class AiUpscaleSheetResult {
 class AiUpscaleSheet extends StatefulWidget {
   final File imageFile;
 
-  const AiUpscaleSheet({
-    super.key,
-    required this.imageFile,
-  });
+  const AiUpscaleSheet({super.key, required this.imageFile});
 
   static Future<AiUpscaleSheetResult?> show(
     BuildContext context, {
@@ -112,7 +109,10 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
         _statusMessage = 'Failed: $e';
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Upscaling error: $e'), backgroundColor: Colors.redAccent),
+        SnackBar(
+          content: Text('Upscaling error: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     }
   }
@@ -140,7 +140,10 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving result: $e'), backgroundColor: Colors.redAccent),
+        SnackBar(
+          content: Text('Error saving result: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     }
   }
@@ -192,7 +195,11 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                       color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF8B5CF6), size: 20),
+                    child: const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: Color(0xFF8B5CF6),
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -207,23 +214,35 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 17,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppColors.textPrimaryLight,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1.5,
+                              ),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                                  colors: [
+                                    Color(0xFF8B5CF6),
+                                    Color(0xFF6366F1),
+                                  ],
                                 ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: const Text(
                                 'BETA',
-                                style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
@@ -232,14 +251,18 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                           'Enhance clarity & double pixel dimensions',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
                           ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    onPressed: _isProcessing ? null : () => Navigator.of(context).pop(),
+                    onPressed: _isProcessing
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded),
                     visualDensity: VisualDensity.compact,
                   ),
@@ -252,7 +275,10 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
             // Body
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -270,7 +296,9 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
               child: _upscaleResult == null
                   ? GradientButton(
                       text: _isProcessing
-                          ? (_progress > 0 ? 'Processing ${(_progress * 100).toInt()}%...' : 'Processing AI...')
+                          ? (_progress > 0
+                                ? 'Processing ${(_progress * 100).toInt()}%...'
+                                : 'Processing AI...')
                           : 'Upscale (${_selectedScale}x)',
                       icon: Icons.auto_awesome_rounded,
                       isLoading: _isProcessing,
@@ -287,7 +315,9 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                             },
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 13),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                             child: const Text('Discard'),
                           ),
@@ -303,7 +333,9 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 13),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
@@ -322,7 +354,9 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -330,14 +364,8 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
         children: [
           if (_originalBytes != null)
             _upscaleResult != null && !_showComparisonOriginal
-                ? Image.memory(
-                    _upscaleResult!.imageBytes,
-                    fit: BoxFit.contain,
-                  )
-                : Image.memory(
-                    _originalBytes!,
-                    fit: BoxFit.contain,
-                  ),
+                ? Image.memory(_upscaleResult!.imageBytes, fit: BoxFit.contain)
+                : Image.memory(_originalBytes!, fit: BoxFit.contain),
 
           if (_isProcessing)
             Container(
@@ -366,7 +394,9 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                           height: 42,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF8B5CF6),
+                            ),
                           ),
                         ),
                         const Icon(
@@ -401,7 +431,9 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                         value: _progress > 0 ? _progress : null,
                         minHeight: 5,
                         backgroundColor: Colors.white.withValues(alpha: 0.15),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF8B5CF6),
+                        ),
                       ),
                     ),
                   ),
@@ -424,11 +456,16 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
               top: 10,
               right: 10,
               child: GestureDetector(
-                onTapDown: (_) => setState(() => _showComparisonOriginal = true),
+                onTapDown: (_) =>
+                    setState(() => _showComparisonOriginal = true),
                 onTapUp: (_) => setState(() => _showComparisonOriginal = false),
-                onTapCancel: () => setState(() => _showComparisonOriginal = false),
+                onTapCancel: () =>
+                    setState(() => _showComparisonOriginal = false),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.75),
                     borderRadius: BorderRadius.circular(16),
@@ -437,14 +474,21 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        _showComparisonOriginal ? Icons.visibility : Icons.touch_app_rounded,
+                        _showComparisonOriginal
+                            ? Icons.visibility
+                            : Icons.touch_app_rounded,
                         color: Colors.white,
                         size: 13,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        _showComparisonOriginal ? 'Original' : 'Hold to Compare',
-                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                        _showComparisonOriginal
+                            ? 'Original'
+                            : 'Hold to Compare',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
@@ -466,7 +510,10 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
             const SizedBox(width: 6),
             Text(
               'Upscale Multiplier',
-              style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600),
+              style: GoogleFonts.outfit(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -504,7 +551,9 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
   }) {
     final isSelected = _selectedScale == scale;
     return InkWell(
-      onTap: _isProcessing ? null : () => setState(() => _selectedScale = scale),
+      onTap: _isProcessing
+          ? null
+          : () => setState(() => _selectedScale = scale),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -526,7 +575,9 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
             Row(
               children: [
                 Icon(
-                  isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                  isSelected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
                   size: 15,
                   color: isSelected ? const Color(0xFF8B5CF6) : Colors.grey,
                 ),

@@ -54,7 +54,11 @@ class BatchImagePreviewDialog extends StatelessWidget {
                   errorBuilder: (context, error, stackTrace) => Column(
                     mainAxisSize: MainAxisSize.min,
                     children: const [
-                      Icon(Icons.broken_image_rounded, color: Colors.white54, size: 64),
+                      Icon(
+                        Icons.broken_image_rounded,
+                        color: Colors.white54,
+                        size: 64,
+                      ),
                       SizedBox(height: 12),
                       Text(
                         'Preview unavailable',
@@ -72,7 +76,10 @@ class BatchImagePreviewDialog extends StatelessWidget {
               left: 12,
               right: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(16),
@@ -81,7 +88,10 @@ class BatchImagePreviewDialog extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Colors.white),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                       visualDensity: VisualDensity.compact,
                     ),
@@ -112,7 +122,10 @@ class BatchImagePreviewDialog extends StatelessWidget {
                                 ),
                               ),
                               if (item.dimensions != null) ...[
-                                const Text(' • ', style: TextStyle(color: Colors.white38)),
+                                const Text(
+                                  ' • ',
+                                  style: TextStyle(color: Colors.white38),
+                                ),
                                 Text(
                                   item.resolutionString,
                                   style: const TextStyle(
@@ -128,7 +141,10 @@ class BatchImagePreviewDialog extends StatelessWidget {
                     ),
                     if (onRemove != null)
                       IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          color: AppColors.error,
+                        ),
                         tooltip: 'Remove from batch',
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -154,7 +170,10 @@ class BatchImagePreviewDialog extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white24,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -173,14 +192,19 @@ class BatchImagePreviewDialog extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         icon: const Icon(Icons.tune_rounded, size: 18),
                         label: Text(
-                          item.hasCustomOptions ? 'Custom Settings' : 'Customize',
+                          item.hasCustomOptions
+                              ? 'Custom Settings'
+                              : 'Customize',
                         ),
                         onPressed: () {
                           Navigator.of(context).pop();

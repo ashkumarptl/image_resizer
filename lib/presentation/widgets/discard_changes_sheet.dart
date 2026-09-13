@@ -9,7 +9,8 @@ class DiscardChangesSheet extends StatelessWidget {
   const DiscardChangesSheet({
     super.key,
     this.title = 'Discard Changes?',
-    this.message = 'You have unsaved adjustments on this image. If you exit now, all your progress will be lost.',
+    this.message =
+        'You have unsaved adjustments on this image. If you exit now, all your progress will be lost.',
   });
 
   /// Shows the thumb-friendly discard confirmation sheet.
@@ -26,7 +27,8 @@ class DiscardChangesSheet extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 560),
       builder: (_) => DiscardChangesSheet(
         title: title ?? 'Discard Changes?',
-        message: message ??
+        message:
+            message ??
             'You have unsaved adjustments on this image. If you exit now, all your progress will be lost.',
       ),
     );

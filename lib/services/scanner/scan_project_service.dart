@@ -97,8 +97,10 @@ class ScanProjectService {
     final savedOriginalPagePaths = <String>[];
     for (int i = 0; i < imageFiles.length; i++) {
       final source = imageFiles[i];
-      final targetPath = '${projectDir.path}/page_${i}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final origPath = '${projectDir.path}/orig_${i}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final targetPath =
+          '${projectDir.path}/page_${i}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final origPath =
+          '${projectDir.path}/orig_${i}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final saved = await source.copy(targetPath);
       final savedOrig = await source.copy(origPath);
       savedPagePaths.add(saved.path);
@@ -123,7 +125,9 @@ class ScanProjectService {
 
     final project = ScanProject(
       id: id,
-      name: name.trim().isNotEmpty ? name.trim() : 'Document ${DateTime.now().day}/${DateTime.now().month}',
+      name: name.trim().isNotEmpty
+          ? name.trim()
+          : 'Document ${DateTime.now().day}/${DateTime.now().month}',
       pagePaths: savedPagePaths,
       originalPagePaths: savedOriginalPagePaths,
       pageFilters: const {},
@@ -154,14 +158,18 @@ class ScanProjectService {
     }
 
     final updatedPaths = List<String>.from(project.pagePaths);
-    final updatedOrigPaths = List<String>.from(project.originalPagePaths.isNotEmpty
-        ? project.originalPagePaths
-        : project.pagePaths);
+    final updatedOrigPaths = List<String>.from(
+      project.originalPagePaths.isNotEmpty
+          ? project.originalPagePaths
+          : project.pagePaths,
+    );
 
     for (int i = 0; i < newFiles.length; i++) {
       final source = newFiles[i];
-      final targetPath = '${projectDir.path}/page_${updatedPaths.length + i}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final origPath = '${projectDir.path}/orig_${updatedPaths.length + i}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final targetPath =
+          '${projectDir.path}/page_${updatedPaths.length + i}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final origPath =
+          '${projectDir.path}/orig_${updatedPaths.length + i}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final saved = await source.copy(targetPath);
       final savedOrig = await source.copy(origPath);
       updatedPaths.add(saved.path);
@@ -194,7 +202,11 @@ class ScanProjectService {
     return updatedProject;
   }
 
-  Future<ScanProject?> replacePage(String projectId, int pageIndex, File newImageFile) async {
+  Future<ScanProject?> replacePage(
+    String projectId,
+    int pageIndex,
+    File newImageFile,
+  ) async {
     final all = await loadProjects();
     final index = all.indexWhere((p) => p.id == projectId);
     if (index == -1) return null;
@@ -204,8 +216,10 @@ class ScanProjectService {
 
     final baseDir = await _getBaseDirectory();
     final projectDir = Directory('${baseDir.path}/$projectId');
-    final targetPath = '${projectDir.path}/page_replace_${pageIndex}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final origPath = '${projectDir.path}/orig_replace_${pageIndex}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final targetPath =
+        '${projectDir.path}/page_replace_${pageIndex}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final origPath =
+        '${projectDir.path}/orig_replace_${pageIndex}_${DateTime.now().millisecondsSinceEpoch}.jpg';
     final saved = await newImageFile.copy(targetPath);
     final savedOrig = await newImageFile.copy(origPath);
 
@@ -218,9 +232,11 @@ class ScanProjectService {
     }
 
     final updatedPaths = List<String>.from(project.pagePaths);
-    final updatedOrigPaths = List<String>.from(project.originalPagePaths.isNotEmpty
-        ? project.originalPagePaths
-        : project.pagePaths);
+    final updatedOrigPaths = List<String>.from(
+      project.originalPagePaths.isNotEmpty
+          ? project.originalPagePaths
+          : project.pagePaths,
+    );
 
     updatedPaths[pageIndex] = saved.path;
     if (pageIndex < updatedOrigPaths.length) {
@@ -255,7 +271,11 @@ class ScanProjectService {
     return updatedProject;
   }
 
-  Future<ScanProject?> rotatePage(String projectId, int pageIndex, {int degrees = 90}) async {
+  Future<ScanProject?> rotatePage(
+    String projectId,
+    int pageIndex, {
+    int degrees = 90,
+  }) async {
     final all = await loadProjects();
     final index = all.indexWhere((p) => p.id == projectId);
     if (index == -1) return null;
@@ -275,14 +295,18 @@ class ScanProjectService {
     await pageFile.writeAsBytes(rotatedBytes, flush: true);
 
     // Also rotate the original source copy to keep non-destructive filter in sync
-    if (project.originalPagePaths.isNotEmpty && pageIndex < project.originalPagePaths.length) {
+    if (project.originalPagePaths.isNotEmpty &&
+        pageIndex < project.originalPagePaths.length) {
       final origFile = File(project.originalPagePaths[pageIndex]);
       if (await origFile.exists()) {
         final origBytes = await origFile.readAsBytes();
         final origDecoded = img.decodeImage(origBytes);
         if (origDecoded != null) {
           final origRotated = img.copyRotate(origDecoded, angle: degrees);
-          await origFile.writeAsBytes(img.encodeJpg(origRotated, quality: 92), flush: true);
+          await origFile.writeAsBytes(
+            img.encodeJpg(origRotated, quality: 92),
+            flush: true,
+          );
         }
       }
     }
@@ -325,10 +349,13 @@ class ScanProjectService {
       } catch (_) {}
     }
 
-    final updatedPaths = List<String>.from(project.pagePaths)..removeAt(pageIndex);
-    final updatedOrigPaths = List<String>.from(project.originalPagePaths.isNotEmpty
-        ? project.originalPagePaths
-        : project.pagePaths);
+    final updatedPaths = List<String>.from(project.pagePaths)
+      ..removeAt(pageIndex);
+    final updatedOrigPaths = List<String>.from(
+      project.originalPagePaths.isNotEmpty
+          ? project.originalPagePaths
+          : project.pagePaths,
+    );
     if (pageIndex < updatedOrigPaths.length) {
       updatedOrigPaths.removeAt(pageIndex);
     }
@@ -371,7 +398,10 @@ class ScanProjectService {
     return updatedProject;
   }
 
-  Future<ScanProject?> deletePages(String projectId, Set<int> pageIndices) async {
+  Future<ScanProject?> deletePages(
+    String projectId,
+    Set<int> pageIndices,
+  ) async {
     final all = await loadProjects();
     final index = all.indexWhere((p) => p.id == projectId);
     if (index == -1) return null;
@@ -516,9 +546,11 @@ class ScanProjectService {
 
     final project = all[index];
     final updatedPaths = List<String>.from(project.pagePaths);
-    final updatedOrigPaths = List<String>.from(project.originalPagePaths.isNotEmpty
-        ? project.originalPagePaths
-        : project.pagePaths);
+    final updatedOrigPaths = List<String>.from(
+      project.originalPagePaths.isNotEmpty
+          ? project.originalPagePaths
+          : project.pagePaths,
+    );
 
     if (oldIndex < 0 || oldIndex >= updatedPaths.length) return null;
     if (newIndex < 0 || newIndex >= updatedPaths.length) return null;
@@ -529,7 +561,10 @@ class ScanProjectService {
 
     if (oldIndex < updatedOrigPaths.length) {
       final origItem = updatedOrigPaths.removeAt(oldIndex);
-      updatedOrigPaths.insert(newIndex.clamp(0, updatedOrigPaths.length), origItem);
+      updatedOrigPaths.insert(
+        newIndex.clamp(0, updatedOrigPaths.length),
+        origItem,
+      );
     }
 
     // Re-index filters
@@ -591,7 +626,8 @@ class ScanProjectService {
     if (index == -1) return null;
 
     final project = all[index];
-    final pdfExists = project.pdfPath != null && File(project.pdfPath!).existsSync();
+    final pdfExists =
+        project.pdfPath != null && File(project.pdfPath!).existsSync();
 
     if (!force && !project.isPdfDirty && pdfExists) {
       return project;

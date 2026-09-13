@@ -16,15 +16,18 @@ void main() {
       expect(HeicConverter.isHeicFile('/path/to/image.webp'), isFalse);
     });
 
-    test('ensureCompatibleImage returns non-HEIC file as-is without processing', () async {
-      final tempDir = await Directory.systemTemp.createTemp('heic_test_');
-      final jpgFile = File('${tempDir.path}/test.jpg');
-      await jpgFile.writeAsBytes([1, 2, 3, 4]);
+    test(
+      'ensureCompatibleImage returns non-HEIC file as-is without processing',
+      () async {
+        final tempDir = await Directory.systemTemp.createTemp('heic_test_');
+        final jpgFile = File('${tempDir.path}/test.jpg');
+        await jpgFile.writeAsBytes([1, 2, 3, 4]);
 
-      final result = await HeicConverter.ensureCompatibleImage(jpgFile.path);
-      expect(result, equals(jpgFile.path));
+        final result = await HeicConverter.ensureCompatibleImage(jpgFile.path);
+        expect(result, equals(jpgFile.path));
 
-      await tempDir.delete(recursive: true);
-    });
+        await tempDir.delete(recursive: true);
+      },
+    );
   });
 }

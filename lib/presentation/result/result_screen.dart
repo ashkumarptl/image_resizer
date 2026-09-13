@@ -22,10 +22,7 @@ import 'widgets/next_actions_section.dart';
 class ResultScreen extends ConsumerStatefulWidget {
   final ProcessResult result;
 
-  const ResultScreen({
-    super.key,
-    required this.result,
-  });
+  const ResultScreen({super.key, required this.result});
 
   @override
   ConsumerState<ResultScreen> createState() => _ResultScreenState();
@@ -67,7 +64,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     if (_isSaved) return;
 
     setState(() => _isSaving = true);
-    final success = await StorageService.saveToGallery(widget.result.outputPath);
+    final success = await StorageService.saveToGallery(
+      widget.result.outputPath,
+    );
     setState(() {
       _isSaving = false;
       _isSaved = success;
@@ -110,7 +109,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     HapticFeedback.lightImpact();
     if (!_isSaved) {
       setState(() => _isSaving = true);
-      final success = await StorageService.saveToGallery(widget.result.outputPath);
+      final success = await StorageService.saveToGallery(
+        widget.result.outputPath,
+      );
       setState(() {
         _isSaving = false;
         _isSaved = success;
@@ -129,7 +130,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     if (!opened && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Could not open gallery viewer. Image saved to photos!'),
+          content: Text(
+            'Could not open gallery viewer. Image saved to photos!',
+          ),
         ),
       );
     }
@@ -158,10 +161,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
   }
 
   void _handleSendToPc() {
-    SendToPcSheet.show(
-      context,
-      filePaths: [widget.result.outputPath],
-    );
+    SendToPcSheet.show(context, filePaths: [widget.result.outputPath]);
   }
 
   @override
@@ -218,16 +218,16 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
 
   Widget _buildInspectionSection(ProcessResult result, bool isDark) {
     return RepaintBoundary(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CelebratorySavingsBanner(result: result),
-          BeforeAfterCard(result: result),
-          const SizedBox(height: 10),
-          _buildSpecGrid(result, isDark),
-        ],
-      ),
-    )
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CelebratorySavingsBanner(result: result),
+              BeforeAfterCard(result: result),
+              const SizedBox(height: 10),
+              _buildSpecGrid(result, isDark),
+            ],
+          ),
+        )
         .animate()
         .fadeIn(duration: 250.ms)
         .slideY(begin: 0.04, end: 0, curve: Curves.easeOutCubic);
@@ -251,7 +251,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                 child: _SpecTile(
                   label: 'Output Dimensions',
                   value: '${result.outputWidth} × ${result.outputHeight} px',
-                  subValue: '(${result.originalWidth}×${result.originalHeight})',
+                  subValue:
+                      '(${result.originalWidth}×${result.originalHeight})',
                   isDark: isDark,
                 ),
               ),
@@ -310,7 +311,11 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.shield_outlined, size: 14, color: AppColors.success),
+                const Icon(
+                  Icons.shield_outlined,
+                  size: 14,
+                  color: AppColors.success,
+                ),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
@@ -318,7 +323,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -333,255 +340,321 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
 
   Widget _buildActionsSection(bool isDark) {
     return RepaintBoundary(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Primary Action Button
-          Builder(
-            builder: (context) {
-              if (!_isSaved) {
-                return GradientButton(
-                  text: 'Save to Gallery',
-                  icon: Icons.download_rounded,
-                  isLoading: _isSaving,
-                  onPressed: _handleSaveToGallery,
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(23),
-                        border: Border.all(color: Colors.green.withValues(alpha: 0.35)),
-                      ),
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.check_circle_rounded, color: Colors.green, size: 16)
-                                  .animate()
-                                  .scale(delay: 100.ms, duration: 250.ms, curve: Curves.easeOutBack),
-                              const SizedBox(width: 4),
-                              const Flexible(
-                                child: Text(
-                                  'Saved ✓',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                    fontSize: 12,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Primary Action Button
+              Builder(
+                builder: (context) {
+                  if (!_isSaved) {
+                    return GradientButton(
+                      text: 'Save to Gallery',
+                      icon: Icons.download_rounded,
+                      isLoading: _isSaving,
+                      onPressed: _handleSaveToGallery,
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(
+                        child:
+                            Container(
+                                  height: 46,
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(23),
+                                    border: Border.all(
+                                      color: Colors.green.withValues(
+                                        alpha: 0.35,
+                                      ),
+                                    ),
                                   ),
+                                  child: Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.check_circle_rounded,
+                                            color: Colors.green,
+                                            size: 16,
+                                          ).animate().scale(
+                                            delay: 100.ms,
+                                            duration: 250.ms,
+                                            curve: Curves.easeOutBack,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          const Flexible(
+                                            child: Text(
+                                              'Saved ✓',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.green,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .animate()
+                                .fadeIn(duration: 250.ms)
+                                .scale(
+                                  begin: const Offset(0.88, 0.88),
+                                  end: const Offset(1, 1),
+                                  curve: Curves.easeOutBack,
                                 ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          height: 46,
+                          child: FilledButton.icon(
+                            onPressed: _handleOpenInGallery,
+                            icon: const Icon(
+                              Icons.photo_library_rounded,
+                              size: 18,
+                            ),
+                            label: const Text(
+                              'Open in Gallery',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
-                            ],
+                            ),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: const StadiumBorder(),
+                            ),
                           ),
                         ),
                       ),
-                    )
-                        .animate()
-                        .fadeIn(duration: 250.ms)
-                        .scale(begin: const Offset(0.88, 0.88), end: const Offset(1, 1), curve: Curves.easeOutBack),
-                  ),
-                  const SizedBox(width: 10),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+
+              // Secondary Action Row (Direct Print, Share & Send to PC)
+              Row(
+                children: [
                   Expanded(
-                    flex: 2,
                     child: SizedBox(
-                      height: 46,
-                      child: FilledButton.icon(
-                        onPressed: _handleOpenInGallery,
-                        icon: const Icon(Icons.photo_library_rounded, size: 18),
+                      height: 44,
+                      child: OutlinedButton.icon(
+                        onPressed: _handlePrint,
+                        icon: const Icon(Icons.print_outlined, size: 17),
                         label: const Text(
-                          'Open in Gallery',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          'Print',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
+                        style: OutlinedButton.styleFrom(
                           shape: const StadiumBorder(),
                         ),
                       ),
                     ),
                   ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 8),
-
-          // Secondary Action Row (Direct Print, Share & Send to PC)
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 44,
-                  child: OutlinedButton.icon(
-                    onPressed: _handlePrint,
-                    icon: const Icon(Icons.print_outlined, size: 17),
-                    label: const Text('Print', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                    style: OutlinedButton.styleFrom(
-                      shape: const StadiumBorder(),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SizedBox(
-                  height: 44,
-                  child: OutlinedButton.icon(
-                    onPressed: _handleShare,
-                    icon: const Icon(Icons.share_outlined, size: 17),
-                    label: const Text('Share', style: TextStyle(fontSize: 13)),
-                    style: OutlinedButton.styleFrom(
-                      shape: const StadiumBorder(),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SizedBox(
-                  height: 44,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      SizedBox.expand(
-                        child: OutlinedButton.icon(
-                          onPressed: _handleSendToPc,
-                          icon: const Icon(Icons.laptop_chromebook_rounded, size: 18),
-                          label: const Text(
-                            'Send to PC',
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                            side: const BorderSide(color: AppColors.primary, width: 1.5),
-                            backgroundColor: AppColors.primary.withValues(alpha: 0.04),
-                            shape: const StadiumBorder(),
-                          ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SizedBox(
+                      height: 44,
+                      child: OutlinedButton.icon(
+                        onPressed: _handleShare,
+                        icon: const Icon(Icons.share_outlined, size: 17),
+                        label: const Text(
+                          'Share',
+                          style: TextStyle(fontSize: 13),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          shape: const StadiumBorder(),
                         ),
                       ),
-                      Positioned(
-                        top: -7,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF0D9488), Color(0xFF059669)],
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF0D9488).withValues(alpha: 0.35),
-                                blurRadius: 3,
-                                offset: const Offset(0, 1),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SizedBox(
+                      height: 44,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          SizedBox.expand(
+                            child: OutlinedButton.icon(
+                              onPressed: _handleSendToPc,
+                              icon: const Icon(
+                                Icons.laptop_chromebook_rounded,
+                                size: 18,
                               ),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.bolt_rounded, size: 9, color: Colors.white),
-                              SizedBox(width: 2),
-                              Text(
-                                'CYBER CAFE / PC',
+                              label: const Text(
+                                'Send to PC',
                                 style: TextStyle(
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                  letterSpacing: 0.4,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
                                 ),
                               ),
-                            ],
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1.5,
+                                ),
+                                backgroundColor: AppColors.primary.withValues(
+                                  alpha: 0.04,
+                                ),
+                                shape: const StadiumBorder(),
+                              ),
+                            ),
                           ),
+                          Positioned(
+                            top: -7,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1.5,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF0D9488),
+                                    Color(0xFF059669),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF0D9488,
+                                    ).withValues(alpha: 0.35),
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.bolt_rounded,
+                                    size: 9,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(width: 2),
+                                  Text(
+                                    'CYBER CAFE / PC',
+                                    style: TextStyle(
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Slim Cyber Cafe & Form Fillers Hint Card
+              InkWell(
+                onTap: _handleSendToPc,
+                borderRadius: BorderRadius.circular(10),
+                child: Ink(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
+                        : const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFF0D9488).withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
                         ),
+                        child: const Icon(
+                          Icons.laptop_chromebook_rounded,
+                          size: 14,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Filling a form on PC? Transfer wirelessly without WhatsApp or cable.',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : const Color(0xFF115E59),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 10,
+                        color: AppColors.secondary,
                       ),
                     ],
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 10),
+              const SizedBox(height: 14),
 
-          // Slim Cyber Cafe & Form Fillers Hint Card
-          InkWell(
-            onTap: _handleSendToPc,
-            borderRadius: BorderRadius.circular(10),
-            child: Ink(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
-                    : const Color(0xFFF0FDF4),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: const Color(0xFF0D9488).withValues(alpha: 0.25),
+              // Smart Next Actions Suggestions
+              const NextActionsSection(),
+              const SizedBox(height: 8),
+
+              // Process Another Image Button
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                  ),
+                  child: const Text(
+                    'Process Another Image',
+                    style: TextStyle(fontSize: 12.5),
+                  ),
                 ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.laptop_chromebook_rounded,
-                      size: 14,
-                      color: AppColors.secondary,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Filling a form on PC? Transfer wirelessly without WhatsApp or cable.',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        color: isDark ? AppColors.textSecondaryDark : const Color(0xFF115E59),
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 10,
-                    color: AppColors.secondary,
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
-          const SizedBox(height: 14),
-
-          // Smart Next Actions Suggestions
-          const NextActionsSection(),
-          const SizedBox(height: 8),
-
-          // Process Another Image Button
-          Center(
-            child: TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              ),
-              child: const Text('Process Another Image', style: TextStyle(fontSize: 12.5)),
-            ),
-          ),
-        ],
-      ),
-    )
+        )
         .animate()
         .fadeIn(delay: 60.ms, duration: 250.ms)
         .slideY(begin: 0.04, end: 0, curve: Curves.easeOutCubic);
@@ -612,7 +685,9 @@ class _SpecTile extends StatelessWidget {
           style: TextStyle(
             fontSize: 10.5,
             fontWeight: FontWeight.w500,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
         ),
         const SizedBox(height: 2),
@@ -624,7 +699,9 @@ class _SpecTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -636,7 +713,9 @@ class _SpecTile extends StatelessWidget {
                 subValue!,
                 style: TextStyle(
                   fontSize: 10.5,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
             ],

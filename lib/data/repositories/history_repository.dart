@@ -41,7 +41,9 @@ class HistoryRepository {
     return thumbDir;
   }
 
-  static Future<String?> _generateThumbnailInternal(_ThumbnailParam param) async {
+  static Future<String?> _generateThumbnailInternal(
+    _ThumbnailParam param,
+  ) async {
     try {
       final sourceFile = File(param.sourcePath);
       if (!sourceFile.existsSync()) return null;
@@ -74,7 +76,8 @@ class HistoryRepository {
       }
 
       final param = _ThumbnailParam(sourcePath, targetPath);
-      final bool isTest = Platform.environment.containsKey('FLUTTER_TEST') ||
+      final bool isTest =
+          Platform.environment.containsKey('FLUTTER_TEST') ||
           Platform.environment['FLUTTER_TEST'] == 'true' ||
           WidgetsBinding.instance.runtimeType.toString().contains('Test');
 
@@ -131,7 +134,8 @@ class HistoryRepository {
         final updatedItems = <HistoryItem>[];
 
         for (final item in items) {
-          if (item.thumbnailPath == null || !File(item.thumbnailPath!).existsSync()) {
+          if (item.thumbnailPath == null ||
+              !File(item.thumbnailPath!).existsSync()) {
             final thumbPath = await generateThumbnail(item.filePath, item.id);
             if (thumbPath != null) {
               updatedItems.add(item.copyWith(thumbnailPath: thumbPath));
@@ -144,7 +148,9 @@ class HistoryRepository {
 
         if (changed) {
           final prefs = await SharedPreferences.getInstance();
-          final stringList = updatedItems.map((i) => jsonEncode(i.toJson())).toList();
+          final stringList = updatedItems
+              .map((i) => jsonEncode(i.toJson()))
+              .toList();
           await prefs.setStringList(_historyKey, stringList);
         }
       } catch (_) {}
@@ -158,7 +164,8 @@ class HistoryRepository {
 
       // Generate thumbnail if not already present or existing
       HistoryItem itemToAdd = item;
-      if (item.thumbnailPath == null || !File(item.thumbnailPath!).existsSync()) {
+      if (item.thumbnailPath == null ||
+          !File(item.thumbnailPath!).existsSync()) {
         final thumbPath = await generateThumbnail(item.filePath, item.id);
         if (thumbPath != null) {
           itemToAdd = item.copyWith(thumbnailPath: thumbPath);
@@ -175,7 +182,8 @@ class HistoryRepository {
         return false;
       });
       for (final oldItem in removed) {
-        if (oldItem.thumbnailPath != null && oldItem.thumbnailPath != itemToAdd.thumbnailPath) {
+        if (oldItem.thumbnailPath != null &&
+            oldItem.thumbnailPath != itemToAdd.thumbnailPath) {
           _deleteFileQuietly(oldItem.thumbnailPath);
         }
       }
@@ -189,10 +197,15 @@ class HistoryRepository {
         for (final trimmedItem in trimmed) {
           _deleteFileQuietly(trimmedItem.thumbnailPath);
         }
-        currentList.removeRange(AppConstants.maxHistoryItems, currentList.length);
+        currentList.removeRange(
+          AppConstants.maxHistoryItems,
+          currentList.length,
+        );
       }
 
-      final stringList = currentList.map((i) => jsonEncode(i.toJson())).toList();
+      final stringList = currentList
+          .map((i) => jsonEncode(i.toJson()))
+          .toList();
       await prefs.setStringList(_historyKey, stringList);
     } catch (_) {}
   }

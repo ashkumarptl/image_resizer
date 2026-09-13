@@ -47,6 +47,13 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+    super.dispose();
+  }
+
   Future<void> _loadInitialFile(File file) async {
     final bytes = await file.readAsBytes();
     setState(() {
@@ -91,7 +98,8 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
         _result = res;
         _isProcessing = false;
         _progress = 1.0;
-        _statusMessage = 'Completed in ${(res.duration.inMilliseconds / 1000).toStringAsFixed(1)}s';
+        _statusMessage =
+            'Completed in ${(res.duration.inMilliseconds / 1000).toStringAsFixed(1)}s';
       });
 
       if (mounted) {
@@ -124,7 +132,9 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
     if (_result == null) return;
     try {
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/upscaled_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final file = File(
+        '${tempDir.path}/upscaled_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
       await file.writeAsBytes(_result!.imageBytes);
       await Gal.putImage(file.path);
 
@@ -139,7 +149,10 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text('Failed to save: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     }
@@ -149,13 +162,21 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
     if (_result == null) return;
     try {
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/upscaled_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final file = File(
+        '${tempDir.path}/upscaled_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
       await file.writeAsBytes(_result!.imageBytes);
-      await ShareService.shareImage(file.path, text: 'Upscaled with AI Super Resolution');
+      await ShareService.shareImage(
+        file.path,
+        text: 'Upscaled with AI Super Resolution',
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Share error: $e'), backgroundColor: Colors.redAccent),
+          SnackBar(
+            content: Text('Share error: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     }
@@ -173,7 +194,10 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
             Flexible(
               child: Text(
                 'AI Super Resolution',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 18),
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -188,7 +212,11 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
               ),
               child: const Text(
                 'BETA',
-                style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -315,16 +343,21 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
                     ? Image.memory(
                         _result!.imageBytes,
                         fit: BoxFit.contain,
+                        cacheWidth: 1200,
                       )
                     : Image.file(
                         _selectedFile!,
                         fit: BoxFit.contain,
+                        cacheWidth: 1200,
                       ),
               ),
               if (_isProcessing)
                 Container(
                   color: Colors.black.withValues(alpha: 0.80),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -348,7 +381,9 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
                               height: 44,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.8,
-                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF8B5CF6),
+                                ),
                               ),
                             ),
                             const Icon(
@@ -380,8 +415,12 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
                           child: LinearProgressIndicator(
                             value: _progress > 0 ? _progress : null,
                             minHeight: 6,
-                            backgroundColor: Colors.white.withValues(alpha: 0.15),
-                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.15,
+                            ),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xFF8B5CF6),
+                            ),
                           ),
                         ),
                       ),
@@ -403,11 +442,17 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
                   top: 12,
                   right: 12,
                   child: GestureDetector(
-                    onTapDown: (_) => setState(() => _showComparisonOriginal = true),
-                    onTapUp: (_) => setState(() => _showComparisonOriginal = false),
-                    onTapCancel: () => setState(() => _showComparisonOriginal = false),
+                    onTapDown: (_) =>
+                        setState(() => _showComparisonOriginal = true),
+                    onTapUp: (_) =>
+                        setState(() => _showComparisonOriginal = false),
+                    onTapCancel: () =>
+                        setState(() => _showComparisonOriginal = false),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.75),
                         borderRadius: BorderRadius.circular(20),
@@ -417,14 +462,21 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            _showComparisonOriginal ? Icons.visibility : Icons.touch_app_rounded,
+                            _showComparisonOriginal
+                                ? Icons.visibility
+                                : Icons.touch_app_rounded,
                             color: Colors.white,
                             size: 14,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _showComparisonOriginal ? 'Showing Original' : 'Hold to Compare',
-                            style: const TextStyle(color: Colors.white, fontSize: 11),
+                            _showComparisonOriginal
+                                ? 'Showing Original'
+                                : 'Hold to Compare',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -446,7 +498,10 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
                 if (_result != null)
                   Text(
                     '${_result!.upscaledWidth}x${_result!.upscaledHeight} px',
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
                   ),
               ],
             ),
@@ -471,11 +526,18 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.tune_rounded, size: 18, color: Color(0xFF8B5CF6)),
+              const Icon(
+                Icons.tune_rounded,
+                size: 18,
+                color: Color(0xFF8B5CF6),
+              ),
               const SizedBox(width: 8),
               Text(
                 'Upscale Factor',
-                style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600),
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -514,7 +576,9 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
   }) {
     final isSelected = _selectedScale == scale;
     return InkWell(
-      onTap: _isProcessing ? null : () => setState(() => _selectedScale = scale),
+      onTap: _isProcessing
+          ? null
+          : () => setState(() => _selectedScale = scale),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -536,7 +600,9 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
             Row(
               children: [
                 Icon(
-                  isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                  isSelected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
                   size: 16,
                   color: isSelected ? const Color(0xFF8B5CF6) : Colors.grey,
                 ),
@@ -577,7 +643,9 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
   Widget _buildActionButton() {
     return GradientButton(
       text: _isProcessing
-          ? (_progress > 0 ? 'Processing ${(_progress * 100).toInt()}%...' : 'Processing AI Tiles...')
+          ? (_progress > 0
+                ? 'Processing ${(_progress * 100).toInt()}%...'
+                : 'Processing AI Tiles...')
           : 'Upscale (${_selectedScale}x)',
       icon: Icons.auto_awesome_rounded,
       isLoading: _isProcessing,
@@ -595,7 +663,9 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
             label: const Text('Share'),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
@@ -609,7 +679,9 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
@@ -625,7 +697,10 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
           children: [
             const Icon(Icons.memory_rounded, color: Color(0xFF8B5CF6)),
             const SizedBox(width: 8),
-            Text('AI Engine Details', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+            Text(
+              'AI Engine Details',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+            ),
           ],
         ),
         content: Column(
@@ -633,7 +708,12 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _infoRow('Core Backend', 'Tencent NCNN + Real-ESRGAN'),
-            _infoRow('Acceleration', _upscalerService.isVulkanSupported ? 'Vulkan GPU (Active)' : 'CPU / OpenMP'),
+            _infoRow(
+              'Acceleration',
+              _upscalerService.isVulkanSupported
+                  ? 'Vulkan GPU (Active)'
+                  : 'CPU / OpenMP',
+            ),
             _infoRow('Model Footprint', '~1.24 MB (Compact v3)'),
             _infoRow('Memory Protection', 'Sub-tile slicing (128x128)'),
             _infoRow('Privacy', '100% On-Device & Offline'),

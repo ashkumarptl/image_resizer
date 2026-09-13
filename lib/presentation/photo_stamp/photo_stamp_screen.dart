@@ -13,10 +13,7 @@ import '../widgets/tool_instruction_sheet.dart';
 class PhotoStampScreen extends StatefulWidget {
   final File initialImage;
 
-  const PhotoStampScreen({
-    super.key,
-    required this.initialImage,
-  });
+  const PhotoStampScreen({super.key, required this.initialImage});
 
   @override
   State<PhotoStampScreen> createState() => _PhotoStampScreenState();
@@ -29,14 +26,18 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
   int _targetSizeKB = 48; // Under 50 KB for SSC / UPSC
   bool _isProcessing = false;
 
-  bool get _hasChanges => _nameController.text.trim().isNotEmpty || _targetSizeKB != 48 || _isProcessing;
+  bool get _hasChanges =>
+      _nameController.text.trim().isNotEmpty ||
+      _targetSizeKB != 48 ||
+      _isProcessing;
 
   Future<void> _handlePopScope(bool didPop) async {
     if (didPop) return;
     final shouldDiscard = await DiscardChangesSheet.show(
       context,
       title: 'Discard Photo Stamp?',
-      message: 'You have candidate name or date inputs. Are you sure you want to exit without saving?',
+      message:
+          'You have candidate name or date inputs. Are you sure you want to exit without saving?',
     );
     if (shouldDiscard && mounted) {
       Navigator.of(context).pop();
@@ -102,11 +103,9 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ResultScreen(result: result),
-        ),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => ResultScreen(result: result)));
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessing = false);
@@ -222,9 +221,7 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
             padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Colors.grey, width: 1),
-              ),
+              border: Border(top: BorderSide(color: Colors.grey, width: 1)),
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
             ),
             child: Column(
@@ -265,7 +262,9 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
         const SizedBox(height: 8),
@@ -286,7 +285,9 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
         const SizedBox(height: 8),
@@ -314,7 +315,9 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
         const SizedBox(height: 10),
@@ -323,14 +326,18 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
           children: [48, 98, 190].map((size) {
             final isSelected = _targetSizeKB == size;
             return ChoiceChip(
-              label: Text(size == 48 ? '20-50 KB (SSC/Vyapam)' : '< ${size + 2} KB'),
+              label: Text(
+                size == 48 ? '20-50 KB (SSC/Vyapam)' : '< ${size + 2} KB',
+              ),
               selected: isSelected,
               selectedColor: AppColors.primary,
               checkmarkColor: Colors.white,
               labelStyle: TextStyle(
                 color: isSelected
                     ? Colors.white
-                    : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                    : (isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight),
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
               onSelected: (sel) {

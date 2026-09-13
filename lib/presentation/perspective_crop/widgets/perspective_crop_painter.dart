@@ -2,13 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../services/image_service/perspective_cropper.dart';
 
-enum ActiveCorner {
-  none,
-  topLeft,
-  topRight,
-  bottomRight,
-  bottomLeft,
-}
+enum ActiveCorner { none, topLeft, topRight, bottomRight, bottomLeft }
 
 class PerspectiveCropPainter extends CustomPainter {
   final Rect imageRect;
@@ -52,7 +46,11 @@ class PerspectiveCropPainter extends CustomPainter {
       ..lineTo(bl.dx, bl.dy)
       ..close();
 
-    final scrimPath = Path.combine(PathOperation.difference, fullRectPath, quadPath);
+    final scrimPath = Path.combine(
+      PathOperation.difference,
+      fullRectPath,
+      quadPath,
+    );
     final scrimPaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.55)
       ..style = PaintingStyle.fill;

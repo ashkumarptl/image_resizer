@@ -122,7 +122,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                       letterSpacing: 0.2,
                     ),
                   ),
@@ -131,7 +133,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
               IconButton(
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.close_rounded, size: 20),
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
                 tooltip: 'Close',
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -180,7 +184,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF261E14) : const Color(0xFFFFFBEB),
+                color: isDark
+                    ? const Color(0xFF261E14)
+                    : const Color(0xFFFFFBEB),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: Colors.amber.withValues(alpha: 0.3),
@@ -189,7 +195,11 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, size: 15, color: Colors.amber.shade700),
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 15,
+                    color: Colors.amber.shade700,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -197,7 +207,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
                       style: GoogleFonts.outfit(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.amber.shade200 : Colors.amber.shade900,
+                        color: isDark
+                            ? Colors.amber.shade200
+                            : Colors.amber.shade900,
                       ),
                     ),
                   ),
@@ -213,11 +225,16 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
                   style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: primaryColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
@@ -236,7 +253,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
             SliderTheme(
               data: SliderThemeData(
                 activeTrackColor: primaryColor,
-                inactiveTrackColor: isDark ? AppColors.borderDark : AppColors.borderLight,
+                inactiveTrackColor: isDark
+                    ? AppColors.borderDark
+                    : AppColors.borderLight,
                 thumbColor: primaryColor,
                 trackHeight: 3.0,
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
@@ -267,7 +286,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
                 style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
               if (_dpi != null)
@@ -289,17 +310,47 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
             physics: const BouncingScrollPhysics(),
             child: Row(
               children: [
-                _buildDpiChip(label: 'Auto', dpiValue: null, isDark: isDark, primaryColor: primaryColor),
+                _buildDpiChip(
+                  label: 'Auto',
+                  dpiValue: null,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                ),
                 const SizedBox(width: 8),
-                _buildDpiChip(label: '72 (Web)', dpiValue: 72, isDark: isDark, primaryColor: primaryColor),
+                _buildDpiChip(
+                  label: '72 (Web)',
+                  dpiValue: 72,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                ),
                 const SizedBox(width: 8),
-                _buildDpiChip(label: '150 (Docs)', dpiValue: 150, isDark: isDark, primaryColor: primaryColor),
+                _buildDpiChip(
+                  label: '150 (Docs)',
+                  dpiValue: 150,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                ),
                 const SizedBox(width: 8),
-                _buildDpiChip(label: '200 (SSC) ★', dpiValue: 200, isDark: isDark, primaryColor: primaryColor),
+                _buildDpiChip(
+                  label: '200 (SSC) ★',
+                  dpiValue: 200,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                ),
                 const SizedBox(width: 8),
-                _buildDpiChip(label: '300 (UPSC) ★', dpiValue: 300, isDark: isDark, primaryColor: primaryColor),
+                _buildDpiChip(
+                  label: '300 (UPSC) ★',
+                  dpiValue: 300,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                ),
                 const SizedBox(width: 8),
-                _buildDpiChip(label: '600 (Print)', dpiValue: 600, isDark: isDark, primaryColor: primaryColor),
+                _buildDpiChip(
+                  label: '600 (Print)',
+                  dpiValue: 600,
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                ),
               ],
             ),
           ),
@@ -318,7 +369,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 0,
               ),
               child: Text(
@@ -359,9 +412,11 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
           decoration: BoxDecoration(
             color: isSelected
                 ? (isDark
-                    ? AppColors.primaryContainerDark.withValues(alpha: 0.6)
-                    : AppColors.primaryContainerLight)
-                : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight),
+                      ? AppColors.primaryContainerDark.withValues(alpha: 0.6)
+                      : AppColors.primaryContainerLight)
+                : (isDark
+                      ? AppColors.surfaceVariantDark
+                      : AppColors.surfaceVariantLight),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
@@ -380,7 +435,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
                       ? primaryColor
-                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                      : (isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight),
                 ),
               ),
               const SizedBox(height: 2),
@@ -394,7 +451,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
                   fontWeight: FontWeight.w500,
                   color: isSelected
                       ? primaryColor
-                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                      : (isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight),
                 ),
               ),
             ],
@@ -426,7 +485,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
           decoration: BoxDecoration(
             color: isSelected
                 ? primaryColor.withValues(alpha: 0.14)
-                : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight),
+                : (isDark
+                      ? AppColors.surfaceVariantDark
+                      : AppColors.surfaceVariantLight),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected
@@ -442,7 +503,9 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               color: isSelected
                   ? primaryColor
-                  : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                  : (isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight),
             ),
           ),
         ),
@@ -450,4 +513,3 @@ class _FormatOptionsSheetState extends State<FormatOptionsSheet> {
     );
   }
 }
-

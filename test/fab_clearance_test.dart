@@ -16,7 +16,9 @@ class MockAuthService extends AuthService {
 }
 
 void main() {
-  testWidgets('FAB has exact 16-24dp clearance across all insets', (tester) async {
+  testWidgets('FAB has exact 16-24dp clearance across all insets', (
+    tester,
+  ) async {
     for (final inset in [0.0, 16.0, 24.0, 34.0, 48.0]) {
       tester.view.physicalSize = const Size(476, 1024);
       tester.view.devicePixelRatio = 1.0;
@@ -25,12 +27,8 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            authServiceProvider.overrideWithValue(MockAuthService()),
-          ],
-          child: const MaterialApp(
-            home: MainNavigationScreen(),
-          ),
+          overrides: [authServiceProvider.overrideWithValue(MockAuthService())],
+          child: const MaterialApp(home: MainNavigationScreen()),
         ),
       );
       await tester.pumpAndSettle();
@@ -42,7 +40,9 @@ void main() {
       await tester.tap(tabFinder);
       await tester.pumpAndSettle();
 
-      final fabRect = tester.getRect(find.byKey(const Key('scan_floating_action_pill')));
+      final fabRect = tester.getRect(
+        find.byKey(const Key('scan_floating_action_pill')),
+      );
       final navBarRect = tester.getRect(find.byType(FloatingBottomNavBar));
       final gap = navBarRect.top - fabRect.bottom;
 

@@ -11,13 +11,13 @@ import 'gradient_button.dart';
 class SendToPcSheet extends StatefulWidget {
   final List<String> filePaths;
 
-  const SendToPcSheet({
-    super.key,
-    required this.filePaths,
-  });
+  const SendToPcSheet({super.key, required this.filePaths});
 
   /// Static helper to display the sheet from anywhere
-  static Future<void> show(BuildContext context, {required List<String> filePaths}) {
+  static Future<void> show(
+    BuildContext context, {
+    required List<String> filePaths,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -90,7 +90,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
               _statusText = 'Downloaded to PC successfully! 🎉';
               _statusColor = AppColors.success;
               _statusIcon = Icons.check_circle_rounded;
-              AnalyticsService.logSendToPcDownloaded(fileCount: widget.filePaths.length);
+              AnalyticsService.logSendToPcDownloaded(
+                fileCount: widget.filePaths.length,
+              );
               break;
             case WebShareEventType.error:
               _statusText = 'Network warning: ${event.message}';
@@ -151,7 +153,11 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -163,7 +169,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
         ),
         backgroundColor: AppColors.primaryDark,
         behavior: SnackBarBehavior.floating,
-        shape: const RoundedRectangleBorder(borderRadius: AppRadii.cardSmallRadius),
+        shape: const RoundedRectangleBorder(
+          borderRadius: AppRadii.cardSmallRadius,
+        ),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -286,9 +294,13 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+                    color: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.surfaceVariantLight,
                     borderRadius: AppRadii.cardRadius,
-                    border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -303,7 +315,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -312,7 +326,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -332,11 +348,16 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                 // Live Status Badge
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: _statusColor.withValues(alpha: 0.12),
                     borderRadius: AppRadii.cardSmallRadius,
-                    border: Border.all(color: _statusColor.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: _statusColor.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -392,10 +413,14 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                         selectedColor: AppColors.primary,
                         labelStyle: TextStyle(
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                           color: isSelected
                               ? Colors.white
-                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                              : (isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight),
                         ),
                         onSelected: (_) => _onSelectNetwork(net),
                       );
@@ -468,10 +493,14 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+                    color: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.surfaceVariantLight,
                     borderRadius: AppRadii.cardRadius,
                     border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.borderLight,
                     ),
                   ),
                   child: Column(
@@ -483,14 +512,20 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                               onTap: _copyUrlToClipboard,
                               borderRadius: AppRadii.cardInnerRadius,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 child: Row(
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(6),
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary.withValues(alpha: 0.12),
-                                        borderRadius: AppRadii.cardInnerSmallRadius,
+                                        color: AppColors.primary.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        borderRadius:
+                                            AppRadii.cardInnerSmallRadius,
                                       ),
                                       child: const Icon(
                                         Icons.language_rounded,
@@ -501,7 +536,8 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             'LOCAL IP URL',
@@ -511,7 +547,8 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                                               letterSpacing: 0.6,
                                               color: isDark
                                                   ? AppColors.textSecondaryDark
-                                                  : AppColors.textSecondaryLight,
+                                                  : AppColors
+                                                        .textSecondaryLight,
                                             ),
                                           ),
                                           const SizedBox(height: 1),
@@ -539,7 +576,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                           ElevatedButton.icon(
                             onPressed: _copyUrlToClipboard,
                             icon: Icon(
-                              _isCopied ? Icons.check_rounded : Icons.copy_rounded,
+                              _isCopied
+                                  ? Icons.check_rounded
+                                  : Icons.copy_rounded,
                               size: 15,
                             ),
                             label: Text(
@@ -550,10 +589,15 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _isCopied ? AppColors.success : AppColors.primary,
+                              backgroundColor: _isCopied
+                                  ? AppColors.success
+                                  : AppColors.primary,
                               foregroundColor: Colors.white,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
                               shape: const RoundedRectangleBorder(
                                 borderRadius: AppRadii.cardInnerRadius,
                               ),
@@ -586,7 +630,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                         : AppColors.surfaceVariantLight.withValues(alpha: 0.8),
                     borderRadius: AppRadii.cardRadius,
                     border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.borderLight,
                     ),
                   ),
                   child: Column(
@@ -629,7 +675,8 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                           colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
                         ),
                         title: 'Connect Same Network',
-                        description: 'Connect laptop to the same Wi-Fi network or Phone Hotspot.',
+                        description:
+                            'Connect laptop to the same Wi-Fi network or Phone Hotspot.',
                         isDark: isDark,
                         showDivider: true,
                       ),
@@ -641,7 +688,8 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                           colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
                         ),
                         title: 'Open in PC Browser',
-                        description: 'Scan QR code or open the link above in Chrome, Edge, Safari, or Firefox.',
+                        description:
+                            'Scan QR code or open the link above in Chrome, Edge, Safari, or Firefox.',
                         isDark: isDark,
                         showDivider: true,
                       ),
@@ -653,7 +701,8 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                           colors: [Color(0xFF16A34A), Color(0xFF22C55E)],
                         ),
                         title: 'Instant Download for Forms',
-                        description: 'Click Download on PC browser and upload straight to your online application form.',
+                        description:
+                            'Click Download on PC browser and upload straight to your online application form.',
                         isDark: isDark,
                         showDivider: false,
                       ),
@@ -674,9 +723,14 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                     ),
                   ),
                   child: Theme(
-                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                    data: Theme.of(
+                      context,
+                    ).copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+                      tilePadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 0,
+                      ),
                       childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
                       leading: const Icon(
                         Icons.help_outline_rounded,
@@ -697,14 +751,19 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                           children: [
                             const Text(
                               '1. Router AP Client Isolation (Very Common)',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                             const SizedBox(height: 3),
                             Text(
                               'Many Wi-Fi routers (e.g. JioFiber, Airtel, office Wi-Fi) isolate devices, preventing your laptop from talking directly to your phone over Wi-Fi.',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
                                 height: 1.35,
                               ),
                             ),
@@ -722,7 +781,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                               'Turn ON your phone\'s Mobile Hotspot, connect your PC to the hotspot Wi-Fi, and select the "Mobile Hotspot" tab above.',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
                                 height: 1.35,
                               ),
                             ),
@@ -740,7 +801,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                               'If plugged in via USB, run "adb forward tcp:8080 tcp:8080" in your terminal and open http://localhost:8080 in your browser.',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
                                 height: 1.35,
                               ),
                             ),
@@ -754,7 +817,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
 
                 // Close / Done Button
                 GradientButton(
-                  text: _downloadCount > 0 ? 'Done ($_downloadCount Downloaded)' : 'Done / Stop Sharing',
+                  text: _downloadCount > 0
+                      ? 'Done ($_downloadCount Downloaded)'
+                      : 'Done / Stop Sharing',
                   icon: Icons.check_rounded,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
@@ -797,13 +862,7 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Icon(
-                    icon,
-                    size: 20,
-                    color: Colors.white,
-                  ),
-                ),
+                child: Center(child: Icon(icon, size: 20, color: Colors.white)),
               ),
               if (showDivider)
                 Expanded(
@@ -811,7 +870,9 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                     width: 2,
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      color: isDark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -829,7 +890,10 @@ class _SendToPcSheetState extends State<SendToPcSheet> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: iconColor.withValues(alpha: 0.12),
                           borderRadius: AppRadii.badgeRadius,

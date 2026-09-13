@@ -184,7 +184,11 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
             SnackBar(
               content: const Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   SizedBox(width: 10),
                   Text('Page saved to Gallery!'),
                 ],
@@ -382,8 +386,7 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
                             vertical: 1.5,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.secondary
-                                .withValues(alpha: 0.15),
+                            color: AppColors.secondary.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
@@ -464,7 +467,9 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: isDark ? AppColors.backgroundDark : const Color(0xFFF1F5F9),
+        backgroundColor: isDark
+            ? AppColors.backgroundDark
+            : const Color(0xFFF1F5F9),
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight + 1),
           child: AnimatedSlide(
@@ -475,21 +480,29 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
               duration: const Duration(milliseconds: 250),
               opacity: _showChrome ? 1.0 : 0.0,
               child: AppBar(
-                backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-                foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                backgroundColor: isDark
+                    ? AppColors.surfaceDark
+                    : AppColors.surfaceLight,
+                foregroundColor: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
                 elevation: 0,
                 scrolledUnderElevation: 1,
                 bottom: PreferredSize(
                   preferredSize: const Size.fromHeight(1),
                   child: Divider(
                     height: 1,
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    color: isDark
+                        ? AppColors.borderDark
+                        : AppColors.borderLight,
                   ),
                 ),
                 leading: IconButton(
                   icon: Icon(
                     Icons.arrow_back_rounded,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                   tooltip: 'Back',
                   onPressed: () => Navigator.of(context).pop(_project),
@@ -497,7 +510,9 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
                 title: Text(
                   _project.name,
                   style: TextStyle(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -507,7 +522,9 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
                   IconButton(
                     icon: Icon(
                       Icons.print_rounded,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                     tooltip: 'Print Page',
                     onPressed: _handlePrintCurrentPage,
@@ -515,7 +532,9 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
                   IconButton(
                     icon: Icon(
                       Icons.share_rounded,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                     tooltip: 'Share Page',
                     onPressed: _handleShareCurrentPage,
@@ -523,7 +542,9 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
                   IconButton(
                     icon: Icon(
                       Icons.delete_outline_rounded,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                     tooltip: 'Delete Page',
                     onPressed: _handleDeleteCurrentPage,
@@ -538,7 +559,9 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
                 child: Text(
                   'No pages remaining',
                   style: TextStyle(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
               )
@@ -623,11 +646,15 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
                           duration: const Duration(milliseconds: 250),
                           opacity: _showChrome ? 1.0 : 0.0,
                           child: Material(
-                            color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.75),
+                            color: (isDark ? Colors.black : Colors.white)
+                                .withValues(alpha: 0.75),
                             shape: const CircleBorder(),
                             elevation: 4,
                             child: IconButton(
-                              icon: const Icon(Icons.chevron_left_rounded, size: 30),
+                              icon: const Icon(
+                                Icons.chevron_left_rounded,
+                                size: 30,
+                              ),
                               tooltip: 'Previous Page',
                               onPressed: () {
                                 _pageController.previousPage(
@@ -652,11 +679,15 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
                           duration: const Duration(milliseconds: 250),
                           opacity: _showChrome ? 1.0 : 0.0,
                           child: Material(
-                            color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.75),
+                            color: (isDark ? Colors.black : Colors.white)
+                                .withValues(alpha: 0.75),
                             shape: const CircleBorder(),
                             elevation: 4,
                             child: IconButton(
-                              icon: const Icon(Icons.chevron_right_rounded, size: 30),
+                              icon: const Icon(
+                                Icons.chevron_right_rounded,
+                                size: 30,
+                              ),
                               tooltip: 'Next Page',
                               onPressed: () {
                                 _pageController.nextPage(
@@ -826,8 +857,9 @@ class _ActionItemState extends State<_ActionItem> {
 
   @override
   Widget build(BuildContext context) {
-    final defaultColor =
-        widget.isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final defaultColor = widget.isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimaryLight;
     final iconColor = widget.isDestructive ? AppColors.error : defaultColor;
     final textColor = widget.isDestructive ? AppColors.error : defaultColor;
 

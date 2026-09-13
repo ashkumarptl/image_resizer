@@ -45,9 +45,10 @@ class StripMetadataNotifier extends StateNotifier<bool> {
   }
 }
 
-final stripMetadataProvider = StateNotifierProvider<StripMetadataNotifier, bool>((ref) {
-  return StripMetadataNotifier();
-});
+final stripMetadataProvider =
+    StateNotifierProvider<StripMetadataNotifier, bool>((ref) {
+      return StripMetadataNotifier();
+    });
 
 /// Provider to fetch app version and build number dynamically from platform metadata
 final appVersionProvider = FutureProvider<String>((ref) async {
@@ -59,14 +60,10 @@ final appVersionProvider = FutureProvider<String>((ref) async {
   }
 });
 
-
 class SettingsScreen extends ConsumerStatefulWidget {
   final bool isTab;
 
-  const SettingsScreen({
-    super.key,
-    this.isTab = false,
-  });
+  const SettingsScreen({super.key, this.isTab = false});
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -99,7 +96,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('You are $remaining tap${remaining == 1 ? '' : 's'} away from toggling Developer Mode.'),
+          content: Text(
+            'You are $remaining tap${remaining == 1 ? '' : 's'} away from toggling Developer Mode.',
+          ),
           duration: const Duration(milliseconds: 700),
         ),
       );
@@ -122,7 +121,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Clear All History?'),
-        content: const Text('This will remove all recent processed image references from the home screen.'),
+        content: const Text(
+          'This will remove all recent processed image references from the home screen.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -180,13 +181,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: context.isLargeTablet ? 84 : (context.isMediumOrWider ? 72 : null),
+        toolbarHeight: context.isLargeTablet
+            ? 84
+            : (context.isMediumOrWider ? 72 : null),
         automaticallyImplyLeading: !widget.isTab,
         title: Text(
           'Settings',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: context.adaptiveFontSize(20, tabletSize: 26, largeTabletSize: 28),
+            fontSize: context.adaptiveFontSize(
+              20,
+              tabletSize: 26,
+              largeTabletSize: 28,
+            ),
           ),
         ),
       ),
@@ -218,7 +225,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           children: [
                             _buildAccountSection(context, isDark),
                             SizedBox(height: context.isMediumOrWider ? 28 : 24),
-                            _buildAppearanceSection(context, isDark, currentThemeMode),
+                            _buildAppearanceSection(
+                              context,
+                              isDark,
+                              currentThemeMode,
+                            ),
                             SizedBox(height: context.isMediumOrWider ? 28 : 24),
                             _buildAboutSection(context, isDark),
                           ],
@@ -230,9 +241,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         flex: 5,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildStorageSection(context, isDark),
-                          ],
+                          children: [_buildStorageSection(context, isDark)],
                         ),
                       ),
                     ],
@@ -276,17 +285,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildAppearanceSection(BuildContext context, bool isDark, ThemeMode currentThemeMode) {
+  Widget _buildAppearanceSection(
+    BuildContext context,
+    bool isDark,
+    ThemeMode currentThemeMode,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionHeader(title: 'APPEARANCE', isDark: isDark),
         SizedBox(height: context.isMediumOrWider ? 14 : 10),
         Container(
-          padding: EdgeInsets.all(context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 16)),
+          padding: EdgeInsets.all(
+            context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 16),
+          ),
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
+            borderRadius: BorderRadius.circular(
+              context.isLargeTablet ? 20 : 16,
+            ),
             border: Border.all(
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
             ),
@@ -297,41 +314,63 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Text(
                 'App Theme',
                 style: TextStyle(
-                  fontSize: context.adaptiveFontSize(15, tabletSize: 18.5, largeTabletSize: 22),
+                  fontSize: context.adaptiveFontSize(
+                    15,
+                    tabletSize: 18.5,
+                    largeTabletSize: 22,
+                  ),
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Choose light, dark, or follow your system settings.',
                 style: TextStyle(
-                  fontSize: context.adaptiveFontSize(12, tabletSize: 15, largeTabletSize: 17),
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  fontSize: context.adaptiveFontSize(
+                    12,
+                    tabletSize: 15,
+                    largeTabletSize: 17,
+                  ),
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
-              SizedBox(height: context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 16)),
+              SizedBox(
+                height: context.isLargeTablet
+                    ? 24
+                    : (context.isMediumOrWider ? 20 : 16),
+              ),
               Row(
                 children: [
                   _ThemeOptionCard(
                     title: 'System',
                     icon: Icons.brightness_auto,
                     isSelected: currentThemeMode == ThemeMode.system,
-                    onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.system),
+                    onTap: () => ref
+                        .read(themeModeProvider.notifier)
+                        .setThemeMode(ThemeMode.system),
                   ),
                   SizedBox(width: context.isMediumOrWider ? 14 : 10),
                   _ThemeOptionCard(
                     title: 'Light',
                     icon: Icons.light_mode_rounded,
                     isSelected: currentThemeMode == ThemeMode.light,
-                    onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.light),
+                    onTap: () => ref
+                        .read(themeModeProvider.notifier)
+                        .setThemeMode(ThemeMode.light),
                   ),
                   SizedBox(width: context.isMediumOrWider ? 14 : 10),
                   _ThemeOptionCard(
                     title: 'Dark',
                     icon: Icons.dark_mode_rounded,
                     isSelected: currentThemeMode == ThemeMode.dark,
-                    onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.dark),
+                    onTap: () => ref
+                        .read(themeModeProvider.notifier)
+                        .setThemeMode(ThemeMode.dark),
                   ),
                 ],
               ),
@@ -344,13 +383,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildStorageSection(BuildContext context, bool isDark) {
     final listTilePadding = EdgeInsets.symmetric(
-      horizontal: context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 16),
+      horizontal: context.isLargeTablet
+          ? 24
+          : (context.isMediumOrWider ? 20 : 16),
       vertical: context.isLargeTablet ? 14 : (context.isMediumOrWider ? 8 : 2),
     );
-    final leadingIconSize = context.adaptiveIconSize(24, tabletSize: 30, largeTabletSize: 38);
-    final titleFontSize = context.adaptiveFontSize(14, tabletSize: 17.5, largeTabletSize: 20.5);
-    final subtitleFontSize = context.adaptiveFontSize(12, tabletSize: 14.5, largeTabletSize: 16.5);
-    final trailingIconSize = context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 30);
+    final leadingIconSize = context.adaptiveIconSize(
+      24,
+      tabletSize: 30,
+      largeTabletSize: 38,
+    );
+    final titleFontSize = context.adaptiveFontSize(
+      14,
+      tabletSize: 17.5,
+      largeTabletSize: 20.5,
+    );
+    final subtitleFontSize = context.adaptiveFontSize(
+      12,
+      tabletSize: 14.5,
+      largeTabletSize: 16.5,
+    );
+    final trailingIconSize = context.adaptiveIconSize(
+      20,
+      tabletSize: 24,
+      largeTabletSize: 30,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,7 +418,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
           clipBehavior: Clip.antiAlias,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
+            borderRadius: BorderRadius.circular(
+              context.isLargeTablet ? 20 : 16,
+            ),
             side: BorderSide(
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
             ),
@@ -370,43 +429,98 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               SwitchListTile.adaptive(
                 contentPadding: listTilePadding,
-                secondary: Icon(Icons.shield_outlined, color: AppColors.primary, size: leadingIconSize),
+                secondary: Icon(
+                  Icons.shield_outlined,
+                  color: AppColors.primary,
+                  size: leadingIconSize,
+                ),
                 title: Text(
                   'Strip GPS & Camera Metadata',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: titleFontSize),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: titleFontSize,
+                  ),
                 ),
                 subtitle: Text(
                   'Remove location and device info from files before upload',
                   style: TextStyle(fontSize: subtitleFontSize),
                 ),
                 value: ref.watch(stripMetadataProvider),
-                onChanged: (val) => ref.read(stripMetadataProvider.notifier).setStripMetadata(val),
+                onChanged: (val) => ref
+                    .read(stripMetadataProvider.notifier)
+                    .setStripMetadata(val),
               ),
               const Divider(height: 1),
               ListTile(
                 contentPadding: listTilePadding,
-                leading: Icon(Icons.cleaning_services_outlined, color: AppColors.primary, size: leadingIconSize),
-                title: Text('Clear Temporary Cache', style: TextStyle(fontWeight: FontWeight.w600, fontSize: titleFontSize)),
-                subtitle: Text('Remove temporary cached image files', style: TextStyle(fontSize: subtitleFontSize)),
+                leading: Icon(
+                  Icons.cleaning_services_outlined,
+                  color: AppColors.primary,
+                  size: leadingIconSize,
+                ),
+                title: Text(
+                  'Clear Temporary Cache',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: titleFontSize,
+                  ),
+                ),
+                subtitle: Text(
+                  'Remove temporary cached image files',
+                  style: TextStyle(fontSize: subtitleFontSize),
+                ),
                 trailing: Icon(Icons.chevron_right, size: trailingIconSize),
                 onTap: _handleClearCache,
               ),
               const Divider(height: 1),
               ListTile(
                 contentPadding: listTilePadding,
-                leading: Icon(Icons.history_toggle_off_rounded, color: AppColors.warning, size: leadingIconSize),
-                title: Text('Clear Recent History', style: TextStyle(fontWeight: FontWeight.w600, fontSize: titleFontSize)),
-                subtitle: Text('Clear history list on home screen', style: TextStyle(fontSize: subtitleFontSize)),
+                leading: Icon(
+                  Icons.history_toggle_off_rounded,
+                  color: AppColors.warning,
+                  size: leadingIconSize,
+                ),
+                title: Text(
+                  'Clear Recent History',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: titleFontSize,
+                  ),
+                ),
+                subtitle: Text(
+                  'Clear history list on home screen',
+                  style: TextStyle(fontSize: subtitleFontSize),
+                ),
                 trailing: Icon(Icons.chevron_right, size: trailingIconSize),
                 onTap: _handleClearHistory,
               ),
               const Divider(height: 1),
               ListTile(
                 contentPadding: listTilePadding,
-                leading: Icon(Icons.privacy_tip_outlined, color: AppColors.primary, size: leadingIconSize),
-                title: Text('Privacy Policy', style: TextStyle(fontWeight: FontWeight.w600, fontSize: titleFontSize)),
-                subtitle: Text('Read our data practices & policies', style: TextStyle(fontSize: subtitleFontSize)),
-                trailing: Icon(Icons.open_in_new_rounded, size: context.adaptiveIconSize(18, tabletSize: 22, largeTabletSize: 24)),
+                leading: Icon(
+                  Icons.privacy_tip_outlined,
+                  color: AppColors.primary,
+                  size: leadingIconSize,
+                ),
+                title: Text(
+                  'Privacy Policy',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: titleFontSize,
+                  ),
+                ),
+                subtitle: Text(
+                  'Read our data practices & policies',
+                  style: TextStyle(fontSize: subtitleFontSize),
+                ),
+                trailing: Icon(
+                  Icons.open_in_new_rounded,
+                  size: context.adaptiveIconSize(
+                    18,
+                    tabletSize: 22,
+                    largeTabletSize: 24,
+                  ),
+                ),
                 onTap: _handleOpenPrivacyPolicy,
               ),
               const Divider(height: 1),
@@ -417,16 +531,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     Icon(
                       Icons.security_rounded,
                       color: AppColors.success,
-                      size: context.adaptiveIconSize(20, tabletSize: 26, largeTabletSize: 30),
+                      size: context.adaptiveIconSize(
+                        20,
+                        tabletSize: 26,
+                        largeTabletSize: 30,
+                      ),
                     ),
                     SizedBox(width: context.isMediumOrWider ? 14 : 10),
                     Expanded(
                       child: Text(
                         '100% Offline & Private. Images are processed exclusively on your device.',
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(12, tabletSize: 15, largeTabletSize: 16.5),
+                          fontSize: context.adaptiveFontSize(
+                            12,
+                            tabletSize: 15,
+                            largeTabletSize: 16.5,
+                          ),
                           fontWeight: FontWeight.w500,
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                     ),
@@ -442,7 +566,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildAboutSection(BuildContext context, bool isDark) {
     final aboutPadding = context.isMediumOrWider ? 20.0 : 16.0;
-    final rowFontSize = context.adaptiveFontSize(14, tabletSize: 16.5, largeTabletSize: 18);
+    final rowFontSize = context.adaptiveFontSize(
+      14,
+      tabletSize: 16.5,
+      largeTabletSize: 18,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,12 +592,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text('App Name', style: TextStyle(fontSize: rowFontSize)),
+                    child: Text(
+                      'App Name',
+                      style: TextStyle(fontSize: rowFontSize),
+                    ),
                   ),
                   Flexible(
                     child: Text(
                       AppConstants.appName,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: rowFontSize),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: rowFontSize,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -482,30 +616,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onTap: _handleVersionTap,
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: context.isMediumOrWider ? 8 : 4),
+                    padding: EdgeInsets.symmetric(
+                      vertical: context.isMediumOrWider ? 8 : 4,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: Text('Version', style: TextStyle(fontSize: rowFontSize)),
+                          child: Text(
+                            'Version',
+                            style: TextStyle(fontSize: rowFontSize),
+                          ),
                         ),
-                        ref.watch(appVersionProvider).when(
+                        ref
+                            .watch(appVersionProvider)
+                            .when(
                               data: (version) => Flexible(
                                 child: Text(
                                   version,
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: rowFontSize),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: rowFontSize,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               loading: () => SizedBox(
                                 width: context.isMediumOrWider ? 18 : 14,
                                 height: context.isMediumOrWider ? 18 : 14,
-                                child: const CircularProgressIndicator(strokeWidth: 2),
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                               error: (_, _) => Flexible(
                                 child: Text(
                                   '1.0.0+1',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: rowFontSize),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: rowFontSize,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -528,7 +677,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: context.isMediumOrWider ? 8 : 4),
+                    padding: EdgeInsets.symmetric(
+                      vertical: context.isMediumOrWider ? 8 : 4,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -541,7 +692,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         Icon(
                           Icons.system_update_alt_rounded,
-                          size: context.adaptiveIconSize(18, tabletSize: 24, largeTabletSize: 28),
+                          size: context.adaptiveIconSize(
+                            18,
+                            tabletSize: 24,
+                            largeTabletSize: 28,
+                          ),
                           color: AppColors.primary,
                         ),
                       ],
@@ -563,7 +718,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: context.isMediumOrWider ? 8 : 4),
+                    padding: EdgeInsets.symmetric(
+                      vertical: context.isMediumOrWider ? 8 : 4,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -582,8 +739,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               Text(
                                 'Explore Edit Studio, Scan to PDF & Exam Tools',
                                 style: TextStyle(
-                                  fontSize: context.adaptiveFontSize(11.5, tabletSize: 13.5, largeTabletSize: 15),
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                  fontSize: context.adaptiveFontSize(
+                                    11.5,
+                                    tabletSize: 13.5,
+                                    largeTabletSize: 15,
+                                  ),
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
                                 ),
                               ),
                             ],
@@ -591,7 +754,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         Icon(
                           Icons.explore_outlined,
-                          size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
+                          size: context.adaptiveIconSize(
+                            20,
+                            tabletSize: 24,
+                            largeTabletSize: 28,
+                          ),
                           color: AppColors.primary,
                         ),
                       ],
@@ -610,14 +777,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('✨ All tool instructions reset! Guides will show on next open.'),
+                        content: Text(
+                          '✨ All tool instructions reset! Guides will show on next open.',
+                        ),
                         backgroundColor: AppColors.success,
                       ),
                     );
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: context.isMediumOrWider ? 8 : 4),
+                    padding: EdgeInsets.symmetric(
+                      vertical: context.isMediumOrWider ? 8 : 4,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -636,8 +807,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               Text(
                                 'Show step-by-step guides when opening tools again',
                                 style: TextStyle(
-                                  fontSize: context.adaptiveFontSize(11.5, tabletSize: 13.5, largeTabletSize: 15),
-                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                  fontSize: context.adaptiveFontSize(
+                                    11.5,
+                                    tabletSize: 13.5,
+                                    largeTabletSize: 15,
+                                  ),
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
                                 ),
                               ),
                             ],
@@ -645,7 +822,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         Icon(
                           Icons.restart_alt_rounded,
-                          size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
+                          size: context.adaptiveIconSize(
+                            20,
+                            tabletSize: 24,
+                            largeTabletSize: 28,
+                          ),
                           color: AppColors.primary,
                         ),
                       ],
@@ -663,7 +844,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         children: [
                           Icon(
                             Icons.terminal_rounded,
-                            size: context.adaptiveIconSize(18, tabletSize: 24, largeTabletSize: 28),
+                            size: context.adaptiveIconSize(
+                              18,
+                              tabletSize: 24,
+                              largeTabletSize: 28,
+                            ),
                             color: AppColors.primary,
                           ),
                           SizedBox(width: context.isMediumOrWider ? 12 : 8),
@@ -694,7 +879,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: Text(
                         'Active (Limits Bypassed)',
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15),
+                          fontSize: context.adaptiveFontSize(
+                            11,
+                            tabletSize: 13.5,
+                            largeTabletSize: 15,
+                          ),
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
                         ),
@@ -722,10 +911,16 @@ class _SectionHeader extends StatelessWidget {
     return Text(
       title,
       style: TextStyle(
-        fontSize: context.adaptiveFontSize(12, tabletSize: 15, largeTabletSize: 17),
+        fontSize: context.adaptiveFontSize(
+          12,
+          tabletSize: 15,
+          largeTabletSize: 17,
+        ),
         fontWeight: FontWeight.w700,
         letterSpacing: 1.0,
-        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+        color: isDark
+            ? AppColors.textSecondaryDark
+            : AppColors.textSecondaryLight,
       ),
     );
   }
@@ -758,11 +953,17 @@ class _ThemeOptionCard extends StatelessWidget {
           },
           borderRadius: BorderRadius.circular(16),
           child: Ink(
-            padding: EdgeInsets.symmetric(vertical: context.isMediumOrWider ? 16 : 12),
+            padding: EdgeInsets.symmetric(
+              vertical: context.isMediumOrWider ? 16 : 12,
+            ),
             decoration: BoxDecoration(
               color: isSelected
-                  ? (isDark ? AppColors.primaryContainerDark : AppColors.primaryContainerLight)
-                  : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight),
+                  ? (isDark
+                        ? AppColors.primaryContainerDark
+                        : AppColors.primaryContainerLight)
+                  : (isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.surfaceVariantLight),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected ? AppColors.primary : Colors.transparent,
@@ -773,20 +974,34 @@ class _ThemeOptionCard extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  size: context.adaptiveIconSize(22, tabletSize: 28, largeTabletSize: 32),
+                  size: context.adaptiveIconSize(
+                    22,
+                    tabletSize: 28,
+                    largeTabletSize: 32,
+                  ),
                   color: isSelected
                       ? AppColors.primary
-                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                      : (isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight),
                 ),
                 SizedBox(height: context.isMediumOrWider ? 8 : 6),
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: context.adaptiveFontSize(12, tabletSize: 15, largeTabletSize: 16.5),
+                    fontSize: context.adaptiveFontSize(
+                      12,
+                      tabletSize: 15,
+                      largeTabletSize: 16.5,
+                    ),
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     color: isSelected
-                        ? (isDark ? AppColors.textPrimaryDark : AppColors.primaryDark)
-                        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                        ? (isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.primaryDark)
+                        : (isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight),
                   ),
                 ),
               ],

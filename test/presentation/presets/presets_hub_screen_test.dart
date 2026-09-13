@@ -19,8 +19,9 @@ void main() {
     );
   }
 
-  testWidgets('PresetsHubScreen renders search bar and category filter chips',
-      (WidgetTester tester) async {
+  testWidgets('PresetsHubScreen renders search bar and category filter chips', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(1920, 1080);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -46,8 +47,9 @@ void main() {
     expect(find.text('SSC Signature'), findsOneWidget);
   });
 
-  testWidgets('Typing in search bar filters presets dynamically',
-      (WidgetTester tester) async {
+  testWidgets('Typing in search bar filters presets dynamically', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -73,8 +75,9 @@ void main() {
     expect(find.text('SSC Signature'), findsOneWidget);
   });
 
-  testWidgets('Tapping category filter chip filters presets by category',
-      (WidgetTester tester) async {
+  testWidgets('Tapping category filter chip filters presets by category', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(1920, 1080);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -101,8 +104,9 @@ void main() {
     expect(find.text('IBPS / Bank PO Photo'), findsNothing);
   });
 
-  testWidgets('Toggling star pins preset and shows Pinned Presets bar',
-      (WidgetTester tester) async {
+  testWidgets('Toggling star pins preset and shows Pinned Presets bar', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -120,7 +124,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // SnackBar appears
-    expect(find.textContaining('Pinned "SSC Signature" to Home Screen ⭐'), findsOneWidget);
+    expect(
+      find.textContaining('Pinned "SSC Signature" to Home Screen ⭐'),
+      findsOneWidget,
+    );
 
     // Pinned presets section appears
     expect(find.text('Pinned Presets'), findsOneWidget);
@@ -129,56 +136,60 @@ void main() {
     expect(find.byIcon(Icons.star_rounded), findsWidgets);
   });
 
-  testWidgets('Empty search result shows clear button and restores list when tapped',
-      (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 2.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'Empty search result shows clear button and restores list when tapped',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(buildPresetsHubScreen(initialTabIndex: 1));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(buildPresetsHubScreen(initialTabIndex: 1));
+      await tester.pumpAndSettle();
 
-    // Search query with no match
-    await tester.enterText(find.byType(TextField), 'zzzz9999nonexistent');
-    await tester.pumpAndSettle();
+      // Search query with no match
+      await tester.enterText(find.byType(TextField), 'zzzz9999nonexistent');
+      await tester.pumpAndSettle();
 
-    expect(find.text('No presets found'), findsOneWidget);
-    expect(find.text('Clear Search & Filters'), findsOneWidget);
+      expect(find.text('No presets found'), findsOneWidget);
+      expect(find.text('Clear Search & Filters'), findsOneWidget);
 
-    // Tap 'Clear Search & Filters'
-    await tester.tap(find.text('Clear Search & Filters'));
-    await tester.pumpAndSettle();
+      // Tap 'Clear Search & Filters'
+      await tester.tap(find.text('Clear Search & Filters'));
+      await tester.pumpAndSettle();
 
-    // List is restored
-    expect(find.text('SSC Signature'), findsOneWidget);
-  });
+      // List is restored
+      expect(find.text('SSC Signature'), findsOneWidget);
+    },
+  );
 
-  testWidgets('Tablet horizontal screen renders 2-column GridView and centered tab pill',
-      (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1280, 800);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'Tablet horizontal screen renders 2-column GridView and centered tab pill',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(buildPresetsHubScreen(initialTabIndex: 1));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(buildPresetsHubScreen(initialTabIndex: 1));
+      await tester.pumpAndSettle();
 
-    // Verify GridView is used instead of single-column ListView on horizontal tablet
-    expect(find.byType(GridView), findsOneWidget);
+      // Verify GridView is used instead of single-column ListView on horizontal tablet
+      expect(find.byType(GridView), findsOneWidget);
 
-    // Verify presets are displayed
-    expect(find.text('SSC Signature'), findsOneWidget);
-    expect(find.text('UPSC Civil Services Photo'), findsOneWidget);
+      // Verify presets are displayed
+      expect(find.text('SSC Signature'), findsOneWidget);
+      expect(find.text('UPSC Civil Services Photo'), findsOneWidget);
 
-    // Switch to Exam Tools tab
-    await tester.tap(find.text('Exam Tools'));
-    await tester.pumpAndSettle();
+      // Switch to Exam Tools tab
+      await tester.tap(find.text('Exam Tools'));
+      await tester.pumpAndSettle();
 
-    // Verify Exam Document Tools header and cards exist
-    expect(find.text('Signature B&W Cleaner'), findsOneWidget);
-    expect(find.text('Name & Date Photo Stamp'), findsOneWidget);
-    expect(find.text('Document Scanner Filter'), findsOneWidget);
-    expect(find.text('Perspective Crop & Deskew'), findsOneWidget);
-  });
+      // Verify Exam Document Tools header and cards exist
+      expect(find.text('Signature B&W Cleaner'), findsOneWidget);
+      expect(find.text('Name & Date Photo Stamp'), findsOneWidget);
+      expect(find.text('Document Scanner Filter'), findsOneWidget);
+      expect(find.text('Perspective Crop & Deskew'), findsOneWidget);
+    },
+  );
 }

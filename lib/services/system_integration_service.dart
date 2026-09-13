@@ -10,8 +10,9 @@ class SystemIntegrationService {
   SystemIntegrationService._();
   static final SystemIntegrationService instance = SystemIntegrationService._();
 
-  static const MethodChannel _channel =
-      MethodChannel('com.ashspark.image_resizer/system_integration');
+  static const MethodChannel _channel = MethodChannel(
+    'com.ashspark.image_resizer/system_integration',
+  );
 
   final StreamController<String> _sharedFileController =
       StreamController<String>.broadcast();
@@ -61,7 +62,9 @@ class SystemIntegrationService {
   /// Checks if the app was launched via an Android App Shortcut.
   Future<String?> getInitialShortcut() async {
     try {
-      final shortcut = await _channel.invokeMethod<String>('getInitialShortcut');
+      final shortcut = await _channel.invokeMethod<String>(
+        'getInitialShortcut',
+      );
       return (shortcut != null && shortcut.isNotEmpty) ? shortcut : null;
     } catch (e) {
       debugPrint('Error getting initial shortcut: $e');
@@ -72,10 +75,9 @@ class SystemIntegrationService {
   /// Opens the given image file in Google Photos / Gallery via Android ACTION_VIEW intent.
   Future<bool> openInGallery(String filePath) async {
     try {
-      final result = await _channel.invokeMethod<bool>(
-        'openInGallery',
-        {'path': filePath},
-      );
+      final result = await _channel.invokeMethod<bool>('openInGallery', {
+        'path': filePath,
+      });
       return result ?? false;
     } catch (e) {
       debugPrint('Error opening in gallery: $e');
@@ -86,10 +88,9 @@ class SystemIntegrationService {
   /// Direct prints the image via native system print manager / dialog.
   Future<bool> printImage(String filePath) async {
     try {
-      final result = await _channel.invokeMethod<bool>(
-        'printImage',
-        {'path': filePath},
-      );
+      final result = await _channel.invokeMethod<bool>('printImage', {
+        'path': filePath,
+      });
       return result ?? false;
     } catch (e) {
       debugPrint('Error printing image via system service: $e');
@@ -100,10 +101,9 @@ class SystemIntegrationService {
   /// Direct prints the PDF document via native system print manager / spooler.
   Future<bool> printPdf(String filePath) async {
     try {
-      final result = await _channel.invokeMethod<bool>(
-        'printPdf',
-        {'path': filePath},
-      );
+      final result = await _channel.invokeMethod<bool>('printPdf', {
+        'path': filePath,
+      });
       return result ?? false;
     } catch (e) {
       debugPrint('Error printing PDF via system service: $e');
@@ -112,21 +112,24 @@ class SystemIntegrationService {
   }
 
   /// Converts a HEIC / HEIF image file to standard JPEG using native platform decoder.
-  Future<String?> convertHeicToJpeg(String sourcePath, {String? targetPath}) async {
+  Future<String?> convertHeicToJpeg(
+    String sourcePath, {
+    String? targetPath,
+  }) async {
     try {
-      final destPath = targetPath ??
+      final destPath =
+          targetPath ??
           '${sourcePath.replaceAll(RegExp(r'\.(heic|heif)$', caseSensitive: false), '')}_converted_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final result = await _channel.invokeMethod<String>(
-        'convertHeicToJpeg',
-        {
-          'path': sourcePath,
-          'targetPath': destPath,
-          'quality': 95,
-        },
-      );
+      final result = await _channel.invokeMethod<String>('convertHeicToJpeg', {
+        'path': sourcePath,
+        'targetPath': destPath,
+        'quality': 95,
+      });
       return result;
     } catch (e) {
-      debugPrint('[SystemIntegrationService] Error converting HEIC via platform: $e');
+      debugPrint(
+        '[SystemIntegrationService] Error converting HEIC via platform: $e',
+      );
       return null;
     }
   }

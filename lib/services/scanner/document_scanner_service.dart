@@ -28,14 +28,24 @@ class ScannedPdfResult {
 enum PdfQualityPreset {
   low('Low (< 1 MB)', 'Compressed for email and job portals', 60, 1200),
   medium('Medium (< 2 MB)', 'Optimal for exams & govt uploads', 78, 1600),
-  original('Original (HQ)', 'Full camera resolution and archival quality', 92, 4096);
+  original(
+    'Original (HQ)',
+    'Full camera resolution and archival quality',
+    92,
+    4096,
+  );
 
   final String label;
   final String subtitle;
   final int quality;
   final int maxDimension;
 
-  const PdfQualityPreset(this.label, this.subtitle, this.quality, this.maxDimension);
+  const PdfQualityPreset(
+    this.label,
+    this.subtitle,
+    this.quality,
+    this.maxDimension,
+  );
 
   static PdfQualityPreset fromString(String? val) {
     if (val == 'low') return PdfQualityPreset.low;
@@ -61,11 +71,10 @@ class _PdfGenerationParams {
 /// Provides live document boundary detection, auto-capture, gallery import within scanner,
 /// interactive 4-corner perspective correction, shadow removal, contrast enhancement, and PDF export.
 class DocumentScannerService {
-  final DocumentScanner Function(DocumentScannerOptions options)? scannerFactory;
+  final DocumentScanner Function(DocumentScannerOptions options)?
+  scannerFactory;
 
-  DocumentScannerService({
-    this.scannerFactory,
-  });
+  DocumentScannerService({this.scannerFactory});
 
   DocumentScanner _createScanner({
     required int pageLimit,
@@ -92,7 +101,9 @@ class DocumentScannerService {
       final msg = (error.message ?? '').toLowerCase();
       final details = (error.details ?? '').toString().toLowerCase();
       final code = error.code.toLowerCase();
-      if (msg.contains('cancel') || details.contains('cancel') || code.contains('cancel')) {
+      if (msg.contains('cancel') ||
+          details.contains('cancel') ||
+          code.contains('cancel')) {
         return true;
       }
     }
@@ -173,21 +184,27 @@ class DocumentScannerService {
       }
       return files;
     } on MissingPluginException catch (e) {
-      debugPrint('[DocumentScannerService] MissingPluginException: $e. Falling back to ImagePicker.');
+      debugPrint(
+        '[DocumentScannerService] MissingPluginException: $e. Falling back to ImagePicker.',
+      );
       return _fallbackMultiImagePicker(pageLimit);
     } on PlatformException catch (e) {
       if (_isUserCancelled(e)) {
         debugPrint('[DocumentScannerService] User cancelled document scan');
         return [];
       }
-      debugPrint('[DocumentScannerService] PlatformException scanning document: $e. Falling back to ImagePicker.');
+      debugPrint(
+        '[DocumentScannerService] PlatformException scanning document: $e. Falling back to ImagePicker.',
+      );
       return _fallbackMultiImagePicker(pageLimit);
     } catch (e, stack) {
       if (_isUserCancelled(e)) {
         debugPrint('[DocumentScannerService] User cancelled document scan');
         return [];
       }
-      debugPrint('[DocumentScannerService] Error scanning document: $e\n$stack. Falling back to ImagePicker.');
+      debugPrint(
+        '[DocumentScannerService] Error scanning document: $e\n$stack. Falling back to ImagePicker.',
+      );
       return _fallbackMultiImagePicker(pageLimit);
     } finally {
       try {
@@ -265,7 +282,9 @@ class DocumentScannerService {
         scannedAt: DateTime.now(),
       );
     } on MissingPluginException catch (e) {
-      debugPrint('[DocumentScannerService] MissingPluginException scanning PDF: $e. Falling back to image picker.');
+      debugPrint(
+        '[DocumentScannerService] MissingPluginException scanning PDF: $e. Falling back to image picker.',
+      );
       final files = await _fallbackMultiImagePicker(pageLimit);
       if (files.isEmpty) return null;
       final pdfFile = await createPdfFromImages(files);
@@ -308,7 +327,9 @@ class DocumentScannerService {
     } catch (_) {
       tempDir = Directory.systemTemp;
     }
-    final name = outputFileName ?? 'doc_scan_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final name =
+        outputFileName ??
+        'doc_scan_${DateTime.now().millisecondsSinceEpoch}.pdf';
     final pdfFile = File('${tempDir.path}/$name');
 
     final params = _PdfGenerationParams(
@@ -320,7 +341,6 @@ class DocumentScannerService {
     await pdfFile.writeAsBytes(pdfBytes, flush: true);
     return pdfFile;
   }
-
 
   /// Internal worker to generate PDF binary representation from image paths and compression parameters.
   static List<int> _generatePdfBytesFromParams(_PdfGenerationParams params) {
@@ -383,12 +403,17 @@ class DocumentScannerService {
       int height = 1100;
 
       final uint8 = Uint8List.fromList(rawBytes);
-      final isJpeg = rawBytes.length >= 2 && rawBytes[0] == 0xFF && rawBytes[1] == 0xD8;
+      final isJpeg =
+          rawBytes.length >= 2 && rawBytes[0] == 0xFF && rawBytes[1] == 0xD8;
       final header = SafeImageDecoder.readHeaderDimensions(uint8);
 
       // Fast path: if already a valid JPEG, fits within maxDimension, and quality is original/high preset,
       // bypass slow pure-Dart decode/encode cycle and embed directly into PDF stream
-      if (isJpeg && header != null && header.width <= maxDim && header.height <= maxDim && quality >= 90) {
+      if (isJpeg &&
+          header != null &&
+          header.width <= maxDim &&
+          header.height <= maxDim &&
+          quality >= 90) {
         width = header.width;
         height = header.height;
       } else {
@@ -474,9 +499,7 @@ class DocumentScannerService {
   }
 
   /// Legacy alias to preserve compatibility while strictly using ML Kit Document Scanner.
-  Future<File?> scanWithFallback({
-    bool fallbackToCamera = false,
-  }) async {
+  Future<File?> scanWithFallback({bool fallbackToCamera = false}) async {
     return scanSingleDocument();
   }
 }

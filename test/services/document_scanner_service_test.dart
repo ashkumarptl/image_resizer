@@ -30,10 +30,7 @@ class FakeDocumentScanner implements DocumentScanner {
     if (shouldThrow) {
       throw Exception('Google Play Services unavailable');
     }
-    return DocumentScanningResult(
-      pdf: null,
-      images: imagesToReturn,
-    );
+    return DocumentScanningResult(pdf: null, images: imagesToReturn);
   }
 
   @override
@@ -62,22 +59,25 @@ void main() {
   });
 
   group('DocumentScannerService Tests', () {
-    test('scanMultipleDocuments returns files when scanner returns paths', () async {
-      final fakeScanner = FakeDocumentScanner(
-        imagesToReturn: [sampleFile1.path, sampleFile2.path],
-      );
+    test(
+      'scanMultipleDocuments returns files when scanner returns paths',
+      () async {
+        final fakeScanner = FakeDocumentScanner(
+          imagesToReturn: [sampleFile1.path, sampleFile2.path],
+        );
 
-      final service = DocumentScannerService(
-        scannerFactory: (_) => fakeScanner,
-      );
+        final service = DocumentScannerService(
+          scannerFactory: (_) => fakeScanner,
+        );
 
-      final result = await service.scanMultipleDocuments();
+        final result = await service.scanMultipleDocuments();
 
-      expect(result.length, 2);
-      expect(result[0].path, sampleFile1.path);
-      expect(result[1].path, sampleFile2.path);
-      expect(fakeScanner.wasClosed, isTrue);
-    });
+        expect(result.length, 2);
+        expect(result[0].path, sampleFile1.path);
+        expect(result[1].path, sampleFile2.path);
+        expect(fakeScanner.wasClosed, isTrue);
+      },
+    );
 
     test('scanSingleDocument returns the first file', () async {
       final fakeScanner = FakeDocumentScanner(
@@ -95,9 +95,7 @@ void main() {
     });
 
     test('scanSingleDocument returns null when cancelled / empty', () async {
-      final fakeScanner = FakeDocumentScanner(
-        imagesToReturn: [],
-      );
+      final fakeScanner = FakeDocumentScanner(imagesToReturn: []);
 
       final service = DocumentScannerService(
         scannerFactory: (_) => fakeScanner,
@@ -108,23 +106,26 @@ void main() {
       expect(result, isNull);
     });
 
-    test('scanMultipleDocuments returns empty list when PlatformException indicates cancellation', () async {
-      final fakeScanner = FakeDocumentScanner(
-        errorToThrow: PlatformException(
-          code: 'DocumentScanner',
-          message: 'Operation cancelled',
-        ),
-      );
+    test(
+      'scanMultipleDocuments returns empty list when PlatformException indicates cancellation',
+      () async {
+        final fakeScanner = FakeDocumentScanner(
+          errorToThrow: PlatformException(
+            code: 'DocumentScanner',
+            message: 'Operation cancelled',
+          ),
+        );
 
-      final service = DocumentScannerService(
-        scannerFactory: (_) => fakeScanner,
-      );
+        final service = DocumentScannerService(
+          scannerFactory: (_) => fakeScanner,
+        );
 
-      final result = await service.scanMultipleDocuments();
+        final result = await service.scanMultipleDocuments();
 
-      expect(result, isEmpty);
-      expect(fakeScanner.wasClosed, isTrue);
-    });
+        expect(result, isEmpty);
+        expect(fakeScanner.wasClosed, isTrue);
+      },
+    );
 
     test('scanSingleDocument returns null when user cancels scanner', () async {
       final fakeScanner = FakeDocumentScanner(

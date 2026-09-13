@@ -24,13 +24,21 @@ class SizeBadge extends StatelessWidget {
     final Color textColor;
 
     if (isOriginal) {
-      bgColor = isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight;
-      textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+      bgColor = isDark
+          ? AppColors.surfaceVariantDark
+          : AppColors.surfaceVariantLight;
+      textColor = isDark
+          ? AppColors.textSecondaryDark
+          : AppColors.textSecondaryLight;
     } else if (isIncreased) {
-      bgColor = isDark ? Colors.amber.withValues(alpha: 0.15) : Colors.amber.shade100;
+      bgColor = isDark
+          ? Colors.amber.withValues(alpha: 0.15)
+          : Colors.amber.shade100;
       textColor = isDark ? Colors.amber.shade300 : Colors.amber.shade900;
     } else {
-      bgColor = isDark ? AppColors.secondaryContainerDark : AppColors.successContainer;
+      bgColor = isDark
+          ? AppColors.secondaryContainerDark
+          : AppColors.successContainer;
       textColor = isDark ? AppColors.secondaryLight : AppColors.success;
     }
 

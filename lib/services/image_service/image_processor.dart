@@ -21,10 +21,7 @@ class ImageDimensions {
   final int width;
   final int height;
 
-  const ImageDimensions({
-    required this.width,
-    required this.height,
-  });
+  const ImageDimensions({required this.width, required this.height});
 
   @override
   String toString() => '${width}x$height';
@@ -62,7 +59,9 @@ class ImageProcessor {
 
     // Fallback for HEIC/unsupported pure-Dart formats
     try {
-      final compatiblePath = await HeicConverter.ensureCompatibleImage(filePath);
+      final compatiblePath = await HeicConverter.ensureCompatibleImage(
+        filePath,
+      );
       if (compatiblePath != filePath) {
         if (Platform.environment.containsKey('FLUTTER_TEST')) {
           dims = _readDimensionsInternal(compatiblePath);
@@ -80,7 +79,10 @@ class ImageProcessor {
         final bytes = await file.readAsBytes();
         final codec = await ui.instantiateImageCodec(bytes);
         final frame = await codec.getNextFrame();
-        return ImageDimensions(width: frame.image.width, height: frame.image.height);
+        return ImageDimensions(
+          width: frame.image.width,
+          height: frame.image.height,
+        );
       }
     } catch (e) {
       debugPrint('[ImageProcessor] Fallback dimension read error: $e');
@@ -97,7 +99,10 @@ class ImageProcessor {
       // Fast-path: Header decoding without allocating all pixel data in heap
       final headerDims = SafeImageDecoder.readHeaderDimensions(bytes);
       if (headerDims != null) {
-        return ImageDimensions(width: headerDims.width, height: headerDims.height);
+        return ImageDimensions(
+          width: headerDims.width,
+          height: headerDims.height,
+        );
       }
 
       // Safe fallback: decode image within this background isolate
@@ -119,7 +124,9 @@ class ImageProcessor {
     ImageProgressCallback? onProgress,
   }) async {
     // Automatically convert HEIC/unsupported format to compatible format before processing
-    final effectiveSourcePath = await HeicConverter.ensureCompatibleImage(options.sourcePath);
+    final effectiveSourcePath = await HeicConverter.ensureCompatibleImage(
+      options.sourcePath,
+    );
     final effectiveOptions = effectiveSourcePath != options.sourcePath
         ? options.copyWith(sourcePath: effectiveSourcePath)
         : options;
@@ -171,24 +178,29 @@ class ImageProcessor {
     try {
       final completer = Completer<ProcessResult>();
 
-      sub = receivePort.listen((message) {
-        if (message is _WorkerProgress) {
-          onProgress(message.progress, message.stage);
-        } else if (message is ProcessResult) {
-          if (!completer.isCompleted) completer.complete(message);
-        } else if (message is _WorkerError) {
-          if (!completer.isCompleted) {
-            completer.completeError(
-              Exception(message.error),
-              message.stack != null ? StackTrace.fromString(message.stack!) : null,
-            );
+      sub = receivePort.listen(
+        (message) {
+          if (message is _WorkerProgress) {
+            onProgress(message.progress, message.stage);
+          } else if (message is ProcessResult) {
+            if (!completer.isCompleted) completer.complete(message);
+          } else if (message is _WorkerError) {
+            if (!completer.isCompleted) {
+              completer.completeError(
+                Exception(message.error),
+                message.stack != null
+                    ? StackTrace.fromString(message.stack!)
+                    : null,
+              );
+            }
           }
-        }
-      }, onError: (err, stack) {
-        if (!completer.isCompleted) {
-          completer.completeError(err, stack);
-        }
-      });
+        },
+        onError: (err, stack) {
+          if (!completer.isCompleted) {
+            completer.completeError(err, stack);
+          }
+        },
+      );
 
       isolate = await Isolate.spawn(
         _workerIsolateEntryPoint,
@@ -263,11 +275,20 @@ class ImageProcessor {
       workingImage = img.copyRotate(workingImage, angle: angle);
     }
     if (options.flipHorizontal && options.flipVertical) {
-      workingImage = img.copyFlip(workingImage, direction: img.FlipDirection.both);
+      workingImage = img.copyFlip(
+        workingImage,
+        direction: img.FlipDirection.both,
+      );
     } else if (options.flipHorizontal) {
-      workingImage = img.copyFlip(workingImage, direction: img.FlipDirection.horizontal);
+      workingImage = img.copyFlip(
+        workingImage,
+        direction: img.FlipDirection.horizontal,
+      );
     } else if (options.flipVertical) {
-      workingImage = img.copyFlip(workingImage, direction: img.FlipDirection.vertical);
+      workingImage = img.copyFlip(
+        workingImage,
+        direction: img.FlipDirection.vertical,
+      );
     }
 
     // 2. Handle Dimension Resizing if requested
@@ -279,9 +300,12 @@ class ImageProcessor {
 
         if (options.keepAspectRatio) {
           if (options.targetWidth != null && options.targetHeight == null) {
-            targetH = (workingImage.height * (targetW / workingImage.width)).round();
-          } else if (options.targetHeight != null && options.targetWidth == null) {
-            targetW = (workingImage.width * (targetH / workingImage.height)).round();
+            targetH = (workingImage.height * (targetW / workingImage.width))
+                .round();
+          } else if (options.targetHeight != null &&
+              options.targetWidth == null) {
+            targetW = (workingImage.width * (targetH / workingImage.height))
+                .round();
           }
         }
 
@@ -327,7 +351,11 @@ class ImageProcessor {
       workingImage = optResult.image;
     } else {
       // Direct Encoding based on quality
-      encodedBytes = _encodeImage(workingImage, format: format, quality: finalQuality);
+      encodedBytes = _encodeImage(
+        workingImage,
+        format: format,
+        quality: finalQuality,
+      );
 
       // Auto-clamp safeguard: If user did not upscale dimensions and format is lossy,
       // prevent unexpected file size inflation over original input size.
@@ -343,7 +371,11 @@ class ImageProcessor {
 
         while (low <= high) {
           final mid = (low + high) ~/ 2;
-          final testBytes = _encodeImage(workingImage, format: format, quality: mid);
+          final testBytes = _encodeImage(
+            workingImage,
+            format: format,
+            quality: mid,
+          );
           if (testBytes.length <= originalSizeBytes) {
             bestBytes = testBytes;
             bestQuality = mid;
@@ -358,7 +390,11 @@ class ImageProcessor {
           finalQuality = bestQuality;
         } else {
           // If even quality 20 is larger than original, use a moderate quality to minimize bloat
-          final fallbackBytes = _encodeImage(workingImage, format: format, quality: 60);
+          final fallbackBytes = _encodeImage(
+            workingImage,
+            format: format,
+            quality: 60,
+          );
           if (fallbackBytes.length < encodedBytes.length) {
             encodedBytes = fallbackBytes;
             finalQuality = 60;
@@ -446,7 +482,11 @@ class ImageProcessor {
 
       while (low <= high) {
         final midQuality = (low + high) ~/ 2;
-        final encoded = _encodeImage(currentImage, format: format, quality: midQuality);
+        final encoded = _encodeImage(
+          currentImage,
+          format: format,
+          quality: midQuality,
+        );
 
         if (encoded.length <= targetMaxBytes) {
           bestBytes = encoded;
@@ -460,7 +500,11 @@ class ImageProcessor {
       }
     } else {
       // For PNG: Test original resolution first
-      final originalEncoded = _encodeImage(currentImage, format: format, quality: 100);
+      final originalEncoded = _encodeImage(
+        currentImage,
+        format: format,
+        quality: 100,
+      );
       if (originalEncoded.length <= targetMaxBytes) {
         return _OptimizedOutput(
           bytes: originalEncoded,
@@ -472,13 +516,18 @@ class ImageProcessor {
 
     // Step B: If quality adjustment alone isn't enough (or for PNG), scale down dimensions iteratively.
     // If strictDimensions is requested (e.g. for exam portal requirements), do not resize dimensions.
-    if (!strictDimensions && (bestBytes == null || bestBytes.length > targetMaxBytes)) {
+    if (!strictDimensions &&
+        (bestBytes == null || bestBytes.length > targetMaxBytes)) {
       final int stepQuality = isLosslessPng ? 100 : 75;
 
       // Estimate initial scale using area-ratio formula: area ~ bytes, so scale ~ sqrt(target / current)
       final int currentBytes = (bestBytes != null && bestBytes.isNotEmpty)
           ? bestBytes.length
-          : _encodeImage(currentImage, format: format, quality: stepQuality).length;
+          : _encodeImage(
+              currentImage,
+              format: format,
+              quality: stepQuality,
+            ).length;
 
       double scale = 0.90;
       if (currentBytes > targetMaxBytes && currentBytes > 0) {
@@ -500,7 +549,11 @@ class ImageProcessor {
         );
 
         if (isLosslessPng) {
-          final encoded = _encodeImage(scaledImage, format: format, quality: 100);
+          final encoded = _encodeImage(
+            scaledImage,
+            format: format,
+            quality: 100,
+          );
           if (encoded.length <= targetMaxBytes) {
             currentImage = scaledImage;
             bestBytes = encoded;
@@ -509,7 +562,11 @@ class ImageProcessor {
           }
         } else {
           // Test with moderate quality
-          final encoded = _encodeImage(scaledImage, format: format, quality: stepQuality);
+          final encoded = _encodeImage(
+            scaledImage,
+            format: format,
+            quality: stepQuality,
+          );
           if (encoded.length <= targetMaxBytes) {
             currentImage = scaledImage;
             bestBytes = encoded;
@@ -518,7 +575,11 @@ class ImageProcessor {
           }
 
           // Try lower quality 40% on scaled image
-          final lowQualityEncoded = _encodeImage(scaledImage, format: format, quality: 40);
+          final lowQualityEncoded = _encodeImage(
+            scaledImage,
+            format: format,
+            quality: 40,
+          );
           if (lowQualityEncoded.length <= targetMaxBytes) {
             currentImage = scaledImage;
             bestBytes = lowQualityEncoded;
@@ -535,7 +596,11 @@ class ImageProcessor {
     // Fallback if still null
     if (bestBytes == null) {
       bestQuality = isLosslessPng ? 100 : 20;
-      bestBytes = _encodeImage(currentImage, format: format, quality: bestQuality);
+      bestBytes = _encodeImage(
+        currentImage,
+        format: format,
+        quality: bestQuality,
+      );
     }
 
     return _OptimizedOutput(
@@ -568,20 +633,14 @@ class _IsolateParams {
   final ProcessOptions options;
   final String outputDirPath;
 
-  const _IsolateParams({
-    required this.options,
-    required this.outputDirPath,
-  });
+  const _IsolateParams({required this.options, required this.outputDirPath});
 }
 
 class _WorkerArgs {
   final _IsolateParams params;
   final SendPort sendPort;
 
-  const _WorkerArgs({
-    required this.params,
-    required this.sendPort,
-  });
+  const _WorkerArgs({required this.params, required this.sendPort});
 }
 
 class _WorkerProgress {

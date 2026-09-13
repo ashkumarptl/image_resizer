@@ -62,13 +62,31 @@ class AppRadii {
   }
 
   // --- Pre-built BorderRadius Objects ---
-  static const BorderRadius sheetRadius = BorderRadius.vertical(top: Radius.circular(sheet));
-  static const BorderRadius dialogRadius = BorderRadius.all(Radius.circular(dialog));
-  static const BorderRadius cardLargeRadius = BorderRadius.all(Radius.circular(cardLarge));
-  static const BorderRadius cardRadius = BorderRadius.all(Radius.circular(card));
-  static const BorderRadius cardInnerRadius = BorderRadius.all(Radius.circular(cardInner));
-  static const BorderRadius cardSmallRadius = BorderRadius.all(Radius.circular(cardSmall));
-  static const BorderRadius cardInnerSmallRadius = BorderRadius.all(Radius.circular(cardInnerSmall));
-  static const BorderRadius badgeRadius = BorderRadius.all(Radius.circular(badge));
-  static const BorderRadius pillRadius = BorderRadius.all(Radius.circular(pill));
+  static const BorderRadius sheetRadius = BorderRadius.vertical(
+    top: Radius.circular(sheet),
+  );
+  static const BorderRadius dialogRadius = BorderRadius.all(
+    Radius.circular(dialog),
+  );
+  static const BorderRadius cardLargeRadius = BorderRadius.all(
+    Radius.circular(cardLarge),
+  );
+  static const BorderRadius cardRadius = BorderRadius.all(
+    Radius.circular(card),
+  );
+  static const BorderRadius cardInnerRadius = BorderRadius.all(
+    Radius.circular(cardInner),
+  );
+  static const BorderRadius cardSmallRadius = BorderRadius.all(
+    Radius.circular(cardSmall),
+  );
+  static const BorderRadius cardInnerSmallRadius = BorderRadius.all(
+    Radius.circular(cardInnerSmall),
+  );
+  static const BorderRadius badgeRadius = BorderRadius.all(
+    Radius.circular(badge),
+  );
+  static const BorderRadius pillRadius = BorderRadius.all(
+    Radius.circular(pill),
+  );
 }

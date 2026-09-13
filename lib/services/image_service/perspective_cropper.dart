@@ -118,8 +118,11 @@ class PerspectiveCropper {
   PerspectiveCropper._();
 
   /// Rectifies image using perspective transformation in a background isolate
-  static Future<ProcessResult> rectifyImage(PerspectiveCropOptions options) async {
-    final isTest = Platform.environment.containsKey('FLUTTER_TEST') ||
+  static Future<ProcessResult> rectifyImage(
+    PerspectiveCropOptions options,
+  ) async {
+    final isTest =
+        Platform.environment.containsKey('FLUTTER_TEST') ||
         Platform.environment['FLUTTER_TEST'] == 'true' ||
         WidgetsBinding.instance.runtimeType.toString().contains('Test');
 
@@ -145,13 +148,12 @@ class PerspectiveCropper {
       return _rectifyInternal(params);
     }
 
-    return compute(
-      _rectifyInternal,
-      params,
-    );
+    return compute(_rectifyInternal, params);
   }
 
-  static Future<ProcessResult> _rectifyInternal(_PerspectiveIsolateParams params) async {
+  static Future<ProcessResult> _rectifyInternal(
+    _PerspectiveIsolateParams params,
+  ) async {
     final stopwatch = Stopwatch()..start();
     final options = params.options;
     final sourceFile = File(options.sourcePath);
@@ -203,7 +205,11 @@ class PerspectiveCropper {
     final naturalH = math.max(leftDist, rightDist).round().clamp(32, 8192);
 
     // Compute target dimensions based on selected preset
-    final (targetW, targetH) = _computeTargetDimensions(naturalW, naturalH, options.preset);
+    final (targetW, targetH) = _computeTargetDimensions(
+      naturalW,
+      naturalH,
+      options.preset,
+    );
 
     // Allocate output destination frame
     final destImage = img.Image(
@@ -232,13 +238,19 @@ class PerspectiveCropper {
     if (isPng) {
       encodedBytes = img.encodePng(rectified);
     } else {
-      encodedBytes = img.encodeJpg(rectified, quality: options.quality.clamp(10, 100));
+      encodedBytes = img.encodeJpg(
+        rectified,
+        quality: options.quality.clamp(10, 100),
+      );
     }
 
     // Save rectified output
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final ext = isPng ? 'png' : 'jpg';
-    final outputFilePath = p.join(params.outputDirPath, 'perspective_crop_$timestamp.$ext');
+    final outputFilePath = p.join(
+      params.outputDirPath,
+      'perspective_crop_$timestamp.$ext',
+    );
     File(outputFilePath).writeAsBytesSync(encodedBytes);
 
     stopwatch.stop();
@@ -385,7 +397,8 @@ class PerspectiveCropper {
     int quality = 90,
     int quarterTurns = 0,
   }) async {
-    final targetPath = outputPath ??
+    final targetPath =
+        outputPath ??
         '${inputFile.parent.path}/filtered_${DateTime.now().millisecondsSinceEpoch}.jpg';
     final targetFile = File(targetPath);
 
@@ -409,7 +422,8 @@ class PerspectiveCropper {
     int quality = 90,
     int quarterTurns = 0,
   }) async {
-    final isTest = Platform.environment.containsKey('FLUTTER_TEST') ||
+    final isTest =
+        Platform.environment.containsKey('FLUTTER_TEST') ||
         Platform.environment['FLUTTER_TEST'] == 'true' ||
         WidgetsBinding.instance.runtimeType.toString().contains('Test');
 
@@ -426,8 +440,12 @@ class PerspectiveCropper {
       }
     }
 
-    final targetPath = outputPath ??
-        p.join(targetDir, 'doc_filtered_${DateTime.now().millisecondsSinceEpoch}.jpg');
+    final targetPath =
+        outputPath ??
+        p.join(
+          targetDir,
+          'doc_filtered_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
     final targetFile = File(targetPath);
 
     final params = _FilterIsolateParams(
@@ -540,45 +558,141 @@ class DocumentFilterHelper {
     switch (filter) {
       case PerspectiveFilter.none:
         return const <double>[
-          1, 0, 0, 0, 0,
-          0, 1, 0, 0, 0,
-          0, 0, 1, 0, 0,
-          0, 0, 0, 1, 0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ];
       case PerspectiveFilter.vividLight:
         return const <double>[
-          1.30, 0, 0, 0, 18.0,
-          0, 1.30, 0, 0, 18.0,
-          0, 0, 1.30, 0, 18.0,
-          0, 0, 0, 1, 0,
+          1.30,
+          0,
+          0,
+          0,
+          18.0,
+          0,
+          1.30,
+          0,
+          0,
+          18.0,
+          0,
+          0,
+          1.30,
+          0,
+          18.0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ];
       case PerspectiveFilter.contrastBw:
         return const <double>[
-          1.2, 3.8, 0.4, 0, -680.0,
-          1.2, 3.8, 0.4, 0, -680.0,
-          1.2, 3.8, 0.4, 0, -680.0,
-          0,   0,   0,   1, 0,
+          1.2,
+          3.8,
+          0.4,
+          0,
+          -680.0,
+          1.2,
+          3.8,
+          0.4,
+          0,
+          -680.0,
+          1.2,
+          3.8,
+          0.4,
+          0,
+          -680.0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ];
       case PerspectiveFilter.grayscale:
         return const <double>[
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0,      0,      0,      1, 0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ];
       case PerspectiveFilter.documentBw:
         return const <double>[
-          0.8504, 2.8608, 0.2888, 0, -540.0,
-          0.8504, 2.8608, 0.2888, 0, -540.0,
-          0.8504, 2.8608, 0.2888, 0, -540.0,
-          0,      0,      0,      1, 0,
+          0.8504,
+          2.8608,
+          0.2888,
+          0,
+          -540.0,
+          0.8504,
+          2.8608,
+          0.2888,
+          0,
+          -540.0,
+          0.8504,
+          2.8608,
+          0.2888,
+          0,
+          -540.0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ];
       case PerspectiveFilter.enhanced:
         return const <double>[
-          1.3976, -0.1341, -0.0135, 0, -24.0,
-          -0.0399, 1.3034, -0.0135, 0, -24.0,
-          -0.0399, -0.1341, 1.4240, 0, -24.0,
-          0,       0,       0,      1, 0,
+          1.3976,
+          -0.1341,
+          -0.0135,
+          0,
+          -24.0,
+          -0.0399,
+          1.3034,
+          -0.0135,
+          0,
+          -24.0,
+          -0.0399,
+          -0.1341,
+          1.4240,
+          0,
+          -24.0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ];
     }
   }

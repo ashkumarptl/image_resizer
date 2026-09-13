@@ -14,7 +14,7 @@ void main() {
       thumbnailPath: '',
       processedAt: DateTime.now().subtract(const Duration(minutes: 5)),
       originalSizeBytes: 1363148, // 1.3 MB
-      outputSizeBytes: 391577,    // 382.4 KB
+      outputSizeBytes: 391577, // 382.4 KB
       format: 'PNG',
       width: 683,
       height: 384,
@@ -34,39 +34,42 @@ void main() {
   ];
 
   group('RecentFilesSection Responsive & Overflow Tests', () {
-    testWidgets('renders without overflow on narrow width constrained container (98.6px available for text)',
-        (WidgetTester tester) async {
-      // Simulate narrow container width where each cell has tight width ~238px
-      tester.view.physicalSize = const Size(640, 960);
-      tester.view.devicePixelRatio = 2.0; // 320 x 480 dp
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'renders without overflow on narrow width constrained container (98.6px available for text)',
+      (WidgetTester tester) async {
+        // Simulate narrow container width where each cell has tight width ~238px
+        tester.view.physicalSize = const Size(640, 960);
+        tester.view.devicePixelRatio = 2.0; // 320 x 480 dp
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: SizedBox(
-                width: 250, // very tight width
-                child: RecentFilesSection(
-                  historyItems: mockHistoryItems,
-                  onItemTap: (_) {},
-                  onClearHistory: () {},
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: SizedBox(
+                  width: 250, // very tight width
+                  child: RecentFilesSection(
+                    historyItems: mockHistoryItems,
+                    onItemTap: (_) {},
+                    onClearHistory: () {},
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Recent Files'), findsOneWidget);
-      expect(find.text('683x384 · PNG'), findsOneWidget);
-    });
+        expect(tester.takeException(), isNull);
+        expect(find.text('Recent Files'), findsOneWidget);
+        expect(find.text('683x384 · PNG'), findsOneWidget);
+      },
+    );
 
-    testWidgets('renders without overflow on short mobile landscape screen',
-        (WidgetTester tester) async {
+    testWidgets('renders without overflow on short mobile landscape screen', (
+      WidgetTester tester,
+    ) async {
       // Mobile landscape screen: 740 x 360 logical dp
       tester.view.physicalSize = const Size(1480, 720);
       tester.view.devicePixelRatio = 2.0;

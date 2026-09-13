@@ -9,10 +9,7 @@ class ShareService {
     try {
       final file = XFile(filePath);
       await SharePlus.instance.share(
-        ShareParams(
-          files: [file],
-          text: text ?? 'Optimized with Image Tools',
-        ),
+        ShareParams(files: [file], text: text ?? 'Optimized with Image Tools'),
       );
     } catch (e) {
       debugPrint('Error sharing file: $e');

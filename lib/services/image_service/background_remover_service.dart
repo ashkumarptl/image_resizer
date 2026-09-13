@@ -55,7 +55,8 @@ class BackgroundRemoverService {
     final tempDir = await getTemporaryDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
-    final isTransparent = backgroundColor == null ||
+    final isTransparent =
+        backgroundColor == null ||
         backgroundColor == Colors.transparent ||
         backgroundColor.a == 0.0;
 
@@ -74,12 +75,16 @@ class BackgroundRemoverService {
       (backgroundColor.b * 255).round().clamp(0, 255),
     ];
 
-    final outputFormat = preferredFormat.toLowerCase() == 'jpg' ||
+    final outputFormat =
+        preferredFormat.toLowerCase() == 'jpg' ||
             preferredFormat.toLowerCase() == 'jpeg'
         ? 'jpg'
         : 'png';
 
-    final outputPath = p.join(tempDir.path, 'bg_replaced_$timestamp.$outputFormat');
+    final outputPath = p.join(
+      tempDir.path,
+      'bg_replaced_$timestamp.$outputFormat',
+    );
 
     final processedBytes = await compute(_compositeColorBackground, {
       'foregroundBytes': foregroundPngBytes,
@@ -107,11 +112,7 @@ class BackgroundRemoverService {
     }
 
     // Create a new image filled with the solid background color
-    final bg = img.Image(
-      width: fg.width,
-      height: fg.height,
-      numChannels: 4,
-    );
+    final bg = img.Image(width: fg.width, height: fg.height, numChannels: 4);
     img.fill(bg, color: img.ColorRgba8(r, g, b, 255));
 
     // Composite the foreground over the solid background

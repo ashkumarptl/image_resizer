@@ -61,7 +61,10 @@ class GradientButton extends StatelessWidget {
               transitionBuilder: (child, animation) => FadeTransition(
                 opacity: animation,
                 child: ScaleTransition(
-                  scale: Tween<double>(begin: 0.85, end: 1.0).animate(animation),
+                  scale: Tween<double>(
+                    begin: 0.85,
+                    end: 1.0,
+                  ).animate(animation),
                   child: child,
                 ),
               ),
@@ -115,4 +118,3 @@ class GradientButton extends StatelessWidget {
     return buttonContent;
   }
 }
-

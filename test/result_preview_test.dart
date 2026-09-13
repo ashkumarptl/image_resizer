@@ -43,76 +43,82 @@ void main() {
     }
   });
 
-  testWidgets('BeforeAfterCard shows "Tap to preview" badge and opens FullscreenImagePreview on tap', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: BeforeAfterCard(result: sampleResult),
+  testWidgets(
+    'BeforeAfterCard shows "Tap to preview" badge and opens FullscreenImagePreview on tap',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: BeforeAfterCard(result: sampleResult)),
         ),
-      ),
-    );
+      );
 
-    // Verify BeforeAfterCard rendered
-    expect(find.text('Tap to preview'), findsOneWidget);
-    expect(find.text('Tap for Original'), findsOneWidget);
-    expect(find.byIcon(Icons.fullscreen_rounded), findsOneWidget);
+      // Verify BeforeAfterCard rendered
+      expect(find.text('Tap to preview'), findsOneWidget);
+      expect(find.text('Tap for Original'), findsOneWidget);
+      expect(find.byIcon(Icons.fullscreen_rounded), findsOneWidget);
 
-    // Tap on the image area / "Tap to preview"
-    await tester.tap(find.text('Tap to preview'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400)); // finish page transition
+      // Tap on the image area / "Tap to preview"
+      await tester.tap(find.text('Tap to preview'));
+      await tester.pump();
+      await tester.pump(
+        const Duration(milliseconds: 400),
+      ); // finish page transition
 
-    // Verify FullscreenImagePreview is opened
-    expect(find.byType(FullscreenImagePreview), findsOneWidget);
-    expect(find.text('Optimized Image'), findsOneWidget);
-    expect(find.byType(InteractiveViewer), findsOneWidget);
-    expect(find.text('Pinch or double-tap to zoom'), findsOneWidget);
-    expect(find.text('Optimized'), findsOneWidget);
-    expect(find.text('Original'), findsOneWidget);
+      // Verify FullscreenImagePreview is opened
+      expect(find.byType(FullscreenImagePreview), findsOneWidget);
+      expect(find.text('Optimized Image'), findsOneWidget);
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+      expect(find.text('Pinch or double-tap to zoom'), findsOneWidget);
+      expect(find.text('Optimized'), findsOneWidget);
+      expect(find.text('Original'), findsOneWidget);
 
-    // Tap "Original" toggle tab in the fullscreen preview
-    await tester.tap(find.text('Original'));
-    await tester.pump();
+      // Tap "Original" toggle tab in the fullscreen preview
+      await tester.tap(find.text('Original'));
+      await tester.pump();
 
-    // Verify switched to Original Image
-    expect(find.text('Original Image'), findsOneWidget);
+      // Verify switched to Original Image
+      expect(find.text('Original Image'), findsOneWidget);
 
-    // Tap back button to return to result card
-    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+      // Tap back button to return to result card
+      await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.byType(FullscreenImagePreview), findsNothing);
-    expect(find.byType(BeforeAfterCard), findsOneWidget);
-  });
+      expect(find.byType(FullscreenImagePreview), findsNothing);
+      expect(find.byType(BeforeAfterCard), findsOneWidget);
+    },
+  );
 
-  testWidgets('FullscreenImagePreview supports double tap zoom and reset zoom', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: FullscreenImagePreview(
-          result: sampleResult,
-          initialShowOriginal: false,
+  testWidgets(
+    'FullscreenImagePreview supports double tap zoom and reset zoom',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: FullscreenImagePreview(
+            result: sampleResult,
+            initialShowOriginal: false,
+          ),
         ),
-      ),
-    );
+      );
 
-    expect(find.byType(InteractiveViewer), findsOneWidget);
-    expect(find.text('Reset Zoom'), findsNothing);
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+      expect(find.text('Reset Zoom'), findsNothing);
 
-    // Double tap the interactive viewer
-    await tester.tap(find.byType(InteractiveViewer));
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.tap(find.byType(InteractiveViewer));
-    await tester.pump();
+      // Double tap the interactive viewer
+      await tester.tap(find.byType(InteractiveViewer));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.byType(InteractiveViewer));
+      await tester.pump();
 
-    // Now reset zoom button should be visible
-    expect(find.text('Reset Zoom'), findsOneWidget);
+      // Now reset zoom button should be visible
+      expect(find.text('Reset Zoom'), findsOneWidget);
 
-    // Tap Reset Zoom
-    await tester.tap(find.text('Reset Zoom'));
-    await tester.pump();
-    await tester.pumpAndSettle();
+      // Tap Reset Zoom
+      await tester.tap(find.text('Reset Zoom'));
+      await tester.pump();
+      await tester.pumpAndSettle();
 
-    expect(find.text('Reset Zoom'), findsNothing);
-  });
+      expect(find.text('Reset Zoom'), findsNothing);
+    },
+  );
 }

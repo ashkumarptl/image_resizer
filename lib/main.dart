@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -20,43 +21,48 @@ import 'services/storage_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Tune Flutter's decoded raster image cache to protect heap memory on budget devices
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 80 << 20; // 80 MB
+  PaintingBinding.instance.imageCache.maximumSize = 150; // Max 150 cached images
+
   // Disable online font fetching so fonts are loaded 100% offline from bundled assets
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  // ── Apply correct system nav bar color BEFORE first frame ──────────────────
-  // Without this, the OS shows its default (white) nav bar for a brief flash
-  // even when the user has dark theme saved.
-  await _applyInitialSystemUiStyle();
+  // Clean old temporary cache files in background without blocking cold-start frame
+  unawaited(StorageService.cleanOldCacheFiles());
 
-  // Initialize Firebase & Crashlytics
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    await CrashlyticsService.initialize();
-    await AnalyticsService.logAppOpen();
-  } catch (e) {
-    debugPrint('[Firebase] Initialization error: $e');
-    // Still allow app to boot if offline or running in mock environment
-  }
+  // Concurrently initiate SharedPreferences and Firebase to minimize cold boot latency
+  final prefsFuture = SharedPreferences.getInstance().then<SharedPreferences?>((p) => p).catchError((e) {
+    debugPrint('[SharedPreferences] Init error: $e');
+    return null;
+  });
 
-  // Clean old temporary cache files on startup
-  StorageService.cleanOldCacheFiles();
+  final firebaseFuture = _initFirebaseSafely();
 
-  // Pre-load onboarding completion state to prevent cold-start flicker
-  SharedPreferences? prefs;
-  bool initialOnboardingCompleted = false;
-  try {
-    prefs = await SharedPreferences.getInstance();
-    initialOnboardingCompleted =
-        prefs.getBool(kPrefOnboardingCompletedKey) ?? false;
-  } catch (_) {}
+  // Await concurrent startup initializations
+  final results = await Future.wait([prefsFuture, firebaseFuture]);
+  final prefs = results[0] as SharedPreferences?;
+
+  // Apply correct system nav bar color BEFORE first frame and obtain saved mode
+  final savedThemeMode = _applyInitialSystemUiStyle(prefs);
+
+  final initialOnboardingCompleted =
+      prefs?.getBool(kPrefOnboardingCompletedKey) ?? false;
 
   runApp(
     DevicePreview(
-      enabled: !kReleaseMode && !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS,
+      enabled:
+          !kReleaseMode &&
+          !kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.macOS,
       builder: (context) => ProviderScope(
         overrides: [
+          themeModeProvider.overrideWith(
+            (ref) => ThemeModeNotifier(
+              initialMode: savedThemeMode,
+              prefs: prefs,
+            ),
+          ),
           onboardingCompletedProvider.overrideWith(
             (ref) => OnboardingNotifier(
               prefs: prefs,
@@ -70,38 +76,46 @@ void main() async {
   );
 }
 
+Future<void> _initFirebaseSafely() async {
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await CrashlyticsService.initialize();
+    await AnalyticsService.logAppOpen();
+  } catch (e) {
+    debugPrint('[Firebase] Initialization error: $e');
+    // Still allow app to boot if offline or running in mock environment
+  }
+}
+
 /// Reads the saved [ThemeMode] from SharedPreferences and immediately applies
 /// the matching [SystemUiOverlayStyle] so the system navigation bar has the
-/// right color before the first Flutter frame is drawn.
-Future<void> _applyInitialSystemUiStyle() async {
+/// right color before the first Flutter frame is drawn. Returns the resolved [ThemeMode].
+ThemeMode _applyInitialSystemUiStyle(SharedPreferences? prefs) {
+  ThemeMode savedMode = ThemeMode.system;
   try {
-    final prefs = await SharedPreferences.getInstance();
-    final savedIndex = prefs.getInt(ThemeModeNotifier.themePrefKey);
-    final savedMode = (savedIndex != null &&
-            savedIndex >= 0 &&
-            savedIndex < ThemeMode.values.length)
-        ? ThemeMode.values[savedIndex]
-        : ThemeMode.system;
+    final savedIndex = prefs?.getInt(ThemeModeNotifier.themePrefKey);
+    if (savedIndex != null &&
+        savedIndex >= 0 &&
+        savedIndex < ThemeMode.values.length) {
+      savedMode = ThemeMode.values[savedIndex];
+    }
+  } catch (_) {}
 
-    final platformBrightness =
-        WidgetsBinding.instance.platformDispatcher.platformBrightness;
+  final platformBrightness =
+      WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
-    final isDark = savedMode == ThemeMode.dark ||
-        (savedMode == ThemeMode.system &&
-            platformBrightness == Brightness.dark);
+  final isDark =
+      savedMode == ThemeMode.dark ||
+      (savedMode == ThemeMode.system &&
+          platformBrightness == Brightness.dark);
 
-    SystemChrome.setSystemUIOverlayStyle(
-      isDark ? AppTheme.darkSystemUiStyle : AppTheme.lightSystemUiStyle,
-    );
-  } catch (_) {
-    // Fallback: respect platform brightness if prefs unavailable
-    final isDark =
-        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
-            Brightness.dark;
-    SystemChrome.setSystemUIOverlayStyle(
-      isDark ? AppTheme.darkSystemUiStyle : AppTheme.lightSystemUiStyle,
-    );
-  }
+  SystemChrome.setSystemUIOverlayStyle(
+    isDark ? AppTheme.darkSystemUiStyle : AppTheme.lightSystemUiStyle,
+  );
+
+  return savedMode;
 }
 
 class ImageToolsApp extends ConsumerWidget {

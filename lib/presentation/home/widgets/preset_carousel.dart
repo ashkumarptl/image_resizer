@@ -61,7 +61,10 @@ class PresetCarousel extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(16, tabletSize: 20),
+                          fontSize: context.adaptiveFontSize(
+                            16,
+                            tabletSize: 20,
+                          ),
                           fontWeight: FontWeight.bold,
                           color: isDark
                               ? AppColors.textPrimaryDark
@@ -77,13 +80,18 @@ class PresetCarousel extends StatelessWidget {
                           vertical: isWide ? 3 : 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                          color: const Color(
+                            0xFFF59E0B,
+                          ).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           '${favoritePresetIds.length} PINNED',
                           style: TextStyle(
-                            fontSize: context.adaptiveFontSize(9, tabletSize: 11.5),
+                            fontSize: context.adaptiveFontSize(
+                              9,
+                              tabletSize: 11.5,
+                            ),
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFFD97706),
                           ),
@@ -192,7 +200,10 @@ class _PresetCardItem extends StatelessWidget {
                         Text(
                           preset.iconEmoji,
                           style: TextStyle(
-                            fontSize: context.adaptiveFontSize(18, tabletSize: 22),
+                            fontSize: context.adaptiveFontSize(
+                              18,
+                              tabletSize: 22,
+                            ),
                           ),
                         ),
                         if (isPinned) ...[
@@ -223,9 +234,14 @@ class _PresetCardItem extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: context.adaptiveFontSize(10, tabletSize: 12),
+                            fontSize: context.adaptiveFontSize(
+                              10,
+                              tabletSize: 12,
+                            ),
                             fontWeight: FontWeight.bold,
-                            color: isPinned ? const Color(0xFFD97706) : AppColors.primaryDark,
+                            color: isPinned
+                                ? const Color(0xFFD97706)
+                                : AppColors.primaryDark,
                           ),
                         ),
                       ),
@@ -240,7 +256,10 @@ class _PresetCardItem extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5),
+                        fontSize: context.adaptiveFontSize(
+                          13,
+                          tabletSize: 15.5,
+                        ),
                         fontWeight: FontWeight.bold,
                         color: isDark
                             ? AppColors.textPrimaryDark

@@ -30,12 +30,7 @@ import 'widgets/batch_image_preview_dialog.dart';
 import 'widgets/batch_item_settings_sheet.dart';
 import 'widgets/batch_pdf_export_sheet.dart';
 
-
-
-enum BatchMode {
-  targetSize,
-  scalePercentage,
-}
+enum BatchMode { targetSize, scalePercentage }
 
 class BatchScreen extends ConsumerStatefulWidget {
   final List<File>? initialImages;
@@ -62,9 +57,13 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   @override
   void initState() {
     super.initState();
-    _customSizeController = TextEditingController(text: '$_selectedTargetSizeKB');
+    _customSizeController = TextEditingController(
+      text: '$_selectedTargetSizeKB',
+    );
     if (widget.initialImages != null && widget.initialImages!.isNotEmpty) {
-      final initialItems = widget.initialImages!.map((f) => BatchItemModel.fromFile(f)).toList();
+      final initialItems = widget.initialImages!
+          .map((f) => BatchItemModel.fromFile(f))
+          .toList();
       _items.addAll(initialItems);
       _loadDimensionsForItems(initialItems);
     }
@@ -76,8 +75,10 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
     super.dispose();
   }
 
-  int get _totalSelectedBytes => _items.fold(0, (sum, it) => sum + it.fileSizeBytes);
-  int get _customizedItemCount => _items.where((it) => it.hasCustomOptions).length;
+  int get _totalSelectedBytes =>
+      _items.fold(0, (sum, it) => sum + it.fileSizeBytes);
+  int get _customizedItemCount =>
+      _items.where((it) => it.hasCustomOptions).length;
 
   Future<void> _loadDimensionsForItems(List<BatchItemModel> itemsToLoad) async {
     for (final item in itemsToLoad) {
@@ -98,10 +99,14 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
 
     try {
       final scannerService = DocumentScannerService();
-      final scannedFiles = await scannerService.scanMultipleDocuments(pageLimit: 25);
+      final scannedFiles = await scannerService.scanMultipleDocuments(
+        pageLimit: 25,
+      );
 
       if (scannedFiles.isNotEmpty) {
-        final newItems = scannedFiles.map((file) => BatchItemModel.fromFile(file)).toList();
+        final newItems = scannedFiles
+            .map((file) => BatchItemModel.fromFile(file))
+            .toList();
         setState(() {
           if (!append) {
             _items.clear();
@@ -114,7 +119,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('📄 Scanned ${newItems.length} document${newItems.length > 1 ? "s" : ""} added (${_items.length} total)'),
+            content: Text(
+              '📄 Scanned ${newItems.length} document${newItems.length > 1 ? "s" : ""} added (${_items.length} total)',
+            ),
             duration: const Duration(seconds: 2),
             backgroundColor: AppColors.success,
           ),
@@ -125,7 +132,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('⚠️ Document scanner native plugin requires a full app restart. Please stop and re-run the app.'),
+          content: Text(
+            '⚠️ Document scanner native plugin requires a full app restart. Please stop and re-run the app.',
+          ),
           duration: Duration(seconds: 4),
           backgroundColor: AppColors.error,
         ),
@@ -160,7 +169,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('📸 Added ${newItems.length} image${newItems.length > 1 ? "s" : ""} from gallery (${_items.length} total)'),
+          content: Text(
+            '📸 Added ${newItems.length} image${newItems.length > 1 ? "s" : ""} from gallery (${_items.length} total)',
+          ),
           duration: const Duration(seconds: 2),
           backgroundColor: AppColors.success,
         ),
@@ -190,7 +201,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                    color: (isDark ? Colors.white : Colors.black).withValues(
+                      alpha: 0.2,
+                    ),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -199,12 +212,16 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
                 const SizedBox(height: 16),
                 ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   tileColor: isDark
                       ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
                       : AppColors.surfaceVariantLight,
@@ -216,7 +233,11 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
-                    child: const Icon(Icons.document_scanner_rounded, color: Color(0xFF6366F1), size: 24),
+                    child: const Icon(
+                      Icons.document_scanner_rounded,
+                      color: Color(0xFF6366F1),
+                      size: 24,
+                    ),
                   ),
                   title: Row(
                     children: [
@@ -226,16 +247,23 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14.5,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                          color: const Color(
+                            0xFF6366F1,
+                          ).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text(
@@ -253,14 +281,18 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                     'Multi-page camera scanner with auto boundary detection',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                   onTap: () => Navigator.of(ctx).pop('scanner'),
                 ),
                 const SizedBox(height: 10),
                 ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   tileColor: isDark
                       ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
                       : AppColors.surfaceVariantLight,
@@ -272,21 +304,29 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
-                    child: const Icon(Icons.photo_library_rounded, color: Color(0xFF10B981), size: 24),
+                    child: const Icon(
+                      Icons.photo_library_rounded,
+                      color: Color(0xFF10B981),
+                      size: 24,
+                    ),
                   ),
                   title: Text(
                     'Import from Gallery',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14.5,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   subtitle: Text(
                     'Select multiple photos from your device library',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                   onTap: () => Navigator.of(ctx).pop('gallery'),
@@ -381,15 +421,20 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   ProcessOptions _createBaseOptions() {
     return ProcessOptions(
       sourcePath: '',
-      targetSizeKB: _activeMode == BatchMode.targetSize ? _selectedTargetSizeKB : null,
+      targetSizeKB: _activeMode == BatchMode.targetSize
+          ? _selectedTargetSizeKB
+          : null,
       outputFormat: _outputFormat,
-      resizeMode: _activeMode == BatchMode.scalePercentage && _selectedScalePercentage != 100
+      resizeMode:
+          _activeMode == BatchMode.scalePercentage &&
+              _selectedScalePercentage != 100
           ? ResizeMode.percentage
           : ResizeMode.none,
       resizePercentage:
-          _activeMode == BatchMode.scalePercentage && _selectedScalePercentage != 100
-              ? _selectedScalePercentage
-              : null,
+          _activeMode == BatchMode.scalePercentage &&
+              _selectedScalePercentage != 100
+          ? _selectedScalePercentage
+          : null,
       preventSizeIncrease: true,
     );
   }
@@ -485,12 +530,18 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✅ Successfully processed ${result.results.length} images!'),
+          content: Text(
+            '✅ Successfully processed ${result.results.length} images!',
+          ),
           backgroundColor: AppColors.success,
         ),
       );
     } catch (e, stack) {
-      CrashlyticsService.recordNonFatalError(e, stack, reason: 'Batch processing failure');
+      CrashlyticsService.recordNonFatalError(
+        e,
+        stack,
+        reason: 'Batch processing failure',
+      );
       setState(() => _isProcessing = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -518,7 +569,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('💾 Saved $savedCount/${_batchResult!.results.length} images to Gallery!'),
+        content: Text(
+          '💾 Saved $savedCount/${_batchResult!.results.length} images to Gallery!',
+        ),
         backgroundColor: AppColors.success,
       ),
     );
@@ -536,28 +589,25 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
   void _handleSendAllToPc() {
     if (_batchResult == null || _batchResult!.results.isEmpty) return;
     final filePaths = _batchResult!.results.map((r) => r.outputPath).toList();
-    SendToPcSheet.show(
-      context,
-      filePaths: filePaths,
-    );
+    SendToPcSheet.show(context, filePaths: filePaths);
   }
 
   void _handleExportAsPdf({bool fromResults = true}) {
     List<File> filesToExport;
-    if (fromResults && _batchResult != null && _batchResult!.results.isNotEmpty) {
-      filesToExport = _batchResult!.results.map((r) => File(r.outputPath)).toList();
+    if (fromResults &&
+        _batchResult != null &&
+        _batchResult!.results.isNotEmpty) {
+      filesToExport = _batchResult!.results
+          .map((r) => File(r.outputPath))
+          .toList();
     } else if (_items.isNotEmpty) {
       filesToExport = _items.map((it) => it.file).toList();
     } else {
       return;
     }
 
-    BatchPdfExportSheet.show(
-      context,
-      imageFiles: filesToExport,
-    );
+    BatchPdfExportSheet.show(context, imageFiles: filesToExport);
   }
-
 
   Future<void> _handleSaveSingleResult(ProcessResult result) async {
     final ok = await StorageService.saveToGallery(result.outputPath);
@@ -598,11 +648,17 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             ),
             TextButton.icon(
               onPressed: _handleClearAll,
-              icon: const Icon(Icons.clear_all_rounded, size: 18, color: AppColors.error),
-              label: const Text('Clear', style: TextStyle(color: AppColors.error)),
+              icon: const Icon(
+                Icons.clear_all_rounded,
+                size: 18,
+                color: AppColors.error,
+              ),
+              label: const Text(
+                'Clear',
+                style: TextStyle(color: AppColors.error),
+              ),
             ),
           ],
-
         ],
       ),
       body: SafeArea(
@@ -620,62 +676,64 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                 ),
               )
             : isWide
-                ? AdaptiveSupportingPane(
-                    scrollablePrimaryPane: true,
-                    stretchPrimaryPane: false,
-                    primaryFlex: 5,
-                    supportingFlex: 5,
-                    primaryPane: _buildSelectionPaneWide(isDark),
-                    supportingPane: _buildOptionsSection(isDark),
-                    bottomAction: _batchResult == null
-                        ? GradientButton(
-                            text: '⚡ Start Batch Optimization (${_items.length} Images)',
-                            isLoading: _isProcessing,
-                            onPressed: _isProcessing ? null : _handleStartBatch,
-                          )
-                        : null,
-                  )
-                : SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(
-                      16,
-                      16,
-                      16,
-                      32 + MediaQuery.paddingOf(context).bottom,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 1. Selection Section
-                        _buildSelectionStrip(isDark),
-                        const SizedBox(height: 20),
+            ? AdaptiveSupportingPane(
+                scrollablePrimaryPane: true,
+                stretchPrimaryPane: false,
+                primaryFlex: 5,
+                supportingFlex: 5,
+                primaryPane: _buildSelectionPaneWide(isDark),
+                supportingPane: _buildOptionsSection(isDark),
+                bottomAction: _batchResult == null
+                    ? GradientButton(
+                        text:
+                            '⚡ Start Batch Optimization (${_items.length} Images)',
+                        isLoading: _isProcessing,
+                        onPressed: _isProcessing ? null : _handleStartBatch,
+                      )
+                    : null,
+              )
+            : SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  32 + MediaQuery.paddingOf(context).bottom,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. Selection Section
+                    _buildSelectionStrip(isDark),
+                    const SizedBox(height: 20),
 
-                        // 2. Batch Processing Options (shown when items are selected and not yet completed)
-                        if (_batchResult == null) ...[
-                          _buildOptionsSection(isDark),
-                          const SizedBox(height: 24),
+                    // 2. Batch Processing Options (shown when items are selected and not yet completed)
+                    if (_batchResult == null) ...[
+                      _buildOptionsSection(isDark),
+                      const SizedBox(height: 24),
 
-                          // Start Processing Button
-                          GradientButton(
-                            text: '⚡ Start Batch Optimization (${_items.length} Images)',
-                            isLoading: _isProcessing,
-                            onPressed: _isProcessing ? null : _handleStartBatch,
-                          ),
-                        ],
+                      // Start Processing Button
+                      GradientButton(
+                        text:
+                            '⚡ Start Batch Optimization (${_items.length} Images)',
+                        isLoading: _isProcessing,
+                        onPressed: _isProcessing ? null : _handleStartBatch,
+                      ),
+                    ],
 
-                        // 3. Processing Progress
-                        if (_isProcessing && _progress != null) ...[
-                          const SizedBox(height: 24),
-                          _buildProgressCard(isDark),
-                        ],
+                    // 3. Processing Progress
+                    if (_isProcessing && _progress != null) ...[
+                      const SizedBox(height: 24),
+                      _buildProgressCard(isDark),
+                    ],
 
-                        // 4. Batch Results View
-                        if (_batchResult != null) ...[
-                          const SizedBox(height: 24),
-                          _buildResultsView(isDark),
-                        ],
-                      ],
-                    ),
-                  ),
+                    // 4. Batch Results View
+                    if (_batchResult != null) ...[
+                      const SizedBox(height: 24),
+                      _buildResultsView(isDark),
+                    ],
+                  ],
+                ),
+              ),
       ),
     );
   }
@@ -697,14 +755,18 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   Text(
                     'Total: ${_totalSelectedBytes.toReadableFileSize()}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
@@ -714,10 +776,17 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              onPressed: _isProcessing ? null : () => _showAddSourceSheet(append: true),
+              onPressed: _isProcessing
+                  ? null
+                  : () => _showAddSourceSheet(append: true),
               icon: const Icon(Icons.document_scanner_rounded, size: 16),
               label: const Text('+ Scan More'),
             ),
@@ -757,13 +826,21 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainerDark.withValues(alpha: isDark ? 0.3 : 0.15),
+              color: AppColors.primaryContainerDark.withValues(
+                alpha: isDark ? 0.3 : 0.15,
+              ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.tune_rounded, size: 18, color: AppColors.primary),
+                const Icon(
+                  Icons.tune_rounded,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -812,7 +889,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.primaryContainerLight.withValues(alpha: isDark ? 0.2 : 0.6),
+              color: AppColors.primaryContainerLight.withValues(
+                alpha: isDark ? 0.2 : 0.6,
+              ),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -827,7 +906,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              color: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
             ),
           ),
           const SizedBox(height: 6),
@@ -836,7 +917,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(height: 20),
@@ -847,37 +930,71 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
               children: [
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     backgroundColor: const Color(0xFF6366F1),
                     foregroundColor: Colors.white,
                     elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   onPressed: () => _handleCaptureFromScanner(append: false),
                   icon: const Icon(Icons.document_scanner_rounded, size: 20),
                   label: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Smart Document Scanner', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      Text(
+                        'Smart Document Scanner',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
                       SizedBox(width: 8),
-                      Text('ML KIT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white70)),
+                      Text(
+                        'ML KIT',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white70,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    foregroundColor: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    foregroundColor: isDark
+                        ? Colors.white
+                        : AppColors.textPrimaryLight,
                     side: BorderSide(
-                      color: isDark ? AppColors.borderDark : const Color(0xFF6366F1).withValues(alpha: 0.5),
+                      color: isDark
+                          ? AppColors.borderDark
+                          : const Color(0xFF6366F1).withValues(alpha: 0.5),
                       width: 1.2,
                     ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   onPressed: () => _handlePickFromGallery(append: false),
-                  icon: const Icon(Icons.photo_library_rounded, size: 20, color: Color(0xFF6366F1)),
-                  label: const Text('Import from Gallery', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  icon: const Icon(
+                    Icons.photo_library_rounded,
+                    size: 20,
+                    color: Color(0xFF6366F1),
+                  ),
+                  label: const Text(
+                    'Import from Gallery',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                 ),
               ],
             ),
@@ -904,7 +1021,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -913,7 +1032,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                     'Total: ${_totalSelectedBytes.toReadableFileSize()}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
@@ -923,10 +1044,17 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              onPressed: _isProcessing ? null : () => _showAddSourceSheet(append: true),
+              onPressed: _isProcessing
+                  ? null
+                  : () => _showAddSourceSheet(append: true),
               icon: const Icon(Icons.document_scanner_rounded, size: 16),
               label: const Text('+ Scan More'),
             ),
@@ -963,13 +1091,21 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainerDark.withValues(alpha: isDark ? 0.3 : 0.15),
+              color: AppColors.primaryContainerDark.withValues(
+                alpha: isDark ? 0.3 : 0.15,
+              ),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.tune_rounded, size: 16, color: AppColors.primary),
+                const Icon(
+                  Icons.tune_rounded,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -977,7 +1113,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                 ),
@@ -987,7 +1125,10 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                     visualDensity: VisualDensity.compact,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
-                  child: const Text('Reset All', style: TextStyle(fontSize: 12)),
+                  child: const Text(
+                    'Reset All',
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
               ],
             ),
@@ -1001,7 +1142,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
     return Container(
       width: 120,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceVariantDark.withValues(alpha: 0.5) : AppColors.surfaceVariantLight,
+        color: isDark
+            ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
+            : AppColors.surfaceVariantLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark ? AppColors.borderDark : AppColors.borderLight,
@@ -1016,10 +1159,16 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF6366F1).withValues(alpha: isDark ? 0.2 : 0.12),
+                color: const Color(
+                  0xFF6366F1,
+                ).withValues(alpha: isDark ? 0.2 : 0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.add_photo_alternate_rounded, color: Color(0xFF6366F1), size: 24),
+              child: const Icon(
+                Icons.add_photo_alternate_rounded,
+                color: Color(0xFF6366F1),
+                size: 24,
+              ),
             ),
             const SizedBox(height: 10),
             Text(
@@ -1027,7 +1176,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(height: 2),
@@ -1035,7 +1186,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
               'Scanner / Gallery',
               style: TextStyle(
                 fontSize: 10,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
             ),
           ],
@@ -1059,7 +1212,11 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.settings_suggest_rounded, color: AppColors.primary, size: 20),
+              const Icon(
+                Icons.settings_suggest_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -1067,7 +1224,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
               ),
@@ -1108,7 +1267,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(height: 8),
@@ -1125,7 +1286,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                   labelStyle: TextStyle(
                     color: isSelected
                         ? Colors.white
-                        : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                        : (isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
                   onSelected: (sel) {
@@ -1175,7 +1338,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(height: 8),
@@ -1191,7 +1356,9 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                   labelStyle: TextStyle(
                     color: isSelected
                         ? Colors.white
-                        : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                        : (isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
                   onSelected: (sel) {
@@ -1209,34 +1376,41 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              color: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
             ),
           ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            children: [
-              ('jpg', 'JPG (Universal)'),
-              ('webp', 'WEBP (Compact)'),
-              ('png', 'PNG (Sharp)'),
-            ].map((entry) {
-              final isSelected = _outputFormat == entry.$1;
-              return ChoiceChip(
-                label: Text(entry.$2),
-                selected: isSelected,
-                selectedColor: AppColors.primary,
-                checkmarkColor: Colors.white,
-                labelStyle: TextStyle(
-                  color: isSelected
-                      ? Colors.white
-                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-                onSelected: (sel) {
-                  if (sel) setState(() => _outputFormat = entry.$1);
-                },
-              );
-            }).toList(),
+            children:
+                [
+                  ('jpg', 'JPG (Universal)'),
+                  ('webp', 'WEBP (Compact)'),
+                  ('png', 'PNG (Sharp)'),
+                ].map((entry) {
+                  final isSelected = _outputFormat == entry.$1;
+                  return ChoiceChip(
+                    label: Text(entry.$2),
+                    selected: isSelected,
+                    selectedColor: AppColors.primary,
+                    checkmarkColor: Colors.white,
+                    labelStyle: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight),
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                    ),
+                    onSelected: (sel) {
+                      if (sel) setState(() => _outputFormat = entry.$1);
+                    },
+                  );
+                }).toList(),
           ),
         ],
       ),
@@ -1245,127 +1419,15 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
 
   Widget _buildProgressCard(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Optimizing: ${_progress!.completed} / ${_progress!.total}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                ],
-              ),
-              Text(
-                '${(_progress!.percentage * 100).toInt()}%',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          RepaintBoundary(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                height: 8,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    LinearProgressIndicator(
-                      value: _progress!.percentage,
-                      backgroundColor: isDark ? Colors.black38 : Colors.grey.shade200,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                    ),
-                    if (_progress!.percentage > 0.05)
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.transparent,
-                                Colors.white.withValues(alpha: 0.35),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        )
-                            .animate(onPlay: (c) => c.repeat())
-                            .slideX(
-                              begin: -1.0,
-                              end: 1.0,
-                              duration: 1200.ms,
-                              curve: Curves.easeInOut,
-                            ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            _progress!.currentFileName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
-  }
-
-  Widget _buildResultsView(bool isDark) {
-    final results = _batchResult!.results;
-    final totalOrigBytes = results.fold<int>(0, (sum, r) => sum + r.originalSizeBytes);
-    final totalOutBytes = results.fold<int>(0, (sum, r) => sum + r.outputSizeBytes);
-    final savedBytes = totalOrigBytes - totalOutBytes;
-    final savedPct = totalOrigBytes > 0 ? (savedBytes / totalOrigBytes * 100).clamp(0, 100) : 0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Summary Header Card
-        Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.success.withValues(alpha: 0.5)),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
             boxShadow: [
               BoxShadow(
-                color: AppColors.success.withValues(alpha: 0.08),
-                blurRadius: 14,
+                color: AppColors.primary.withValues(alpha: 0.08),
+                blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -1374,151 +1436,312 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 24)
-                      .animate()
-                      .scale(
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Optimizing: ${_progress!.completed} / ${_progress!.total}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '${(_progress!.percentage * 100).toInt()}%',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              RepaintBoundary(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    height: 8,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        LinearProgressIndicator(
+                          value: _progress!.percentage,
+                          backgroundColor: isDark
+                              ? Colors.black38
+                              : Colors.grey.shade200,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                        ),
+                        if (_progress!.percentage > 0.05)
+                          Positioned.fill(
+                            child:
+                                Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.white.withValues(
+                                              alpha: 0.35,
+                                            ),
+                                            Colors.transparent,
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                    .animate(onPlay: (c) => c.repeat())
+                                    .slideX(
+                                      begin: -1.0,
+                                      end: 1.0,
+                                      duration: 1200.ms,
+                                      curve: Curves.easeInOut,
+                                    ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                _progress!.currentFileName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
+              ),
+            ],
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 300.ms)
+        .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
+  }
+
+  Widget _buildResultsView(bool isDark) {
+    final results = _batchResult!.results;
+    final totalOrigBytes = results.fold<int>(
+      0,
+      (sum, r) => sum + r.originalSizeBytes,
+    );
+    final totalOutBytes = results.fold<int>(
+      0,
+      (sum, r) => sum + r.outputSizeBytes,
+    );
+    final savedBytes = totalOrigBytes - totalOutBytes;
+    final savedPct = totalOrigBytes > 0
+        ? (savedBytes / totalOrigBytes * 100).clamp(0, 100)
+        : 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Summary Header Card
+        Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.success.withValues(alpha: 0.5),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.success.withValues(alpha: 0.08),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.success,
+                        size: 24,
+                      ).animate().scale(
                         begin: const Offset(0.5, 0.5),
                         end: const Offset(1, 1),
                         curve: Curves.easeOutBack,
                         duration: 350.ms,
                       ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Batch Complete (${results.length} Files)',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.successContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '-${savedPct.toStringAsFixed(0)}%',
-                      style: const TextStyle(
-                        color: AppColors.success,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  )
-                      .animate()
-                      .scale(delay: 150.ms, curve: Curves.easeOutBack)
-                      .shimmer(delay: 500.ms, duration: 1200.ms),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Total Size: ${totalOrigBytes.toReadableFileSize()} ➔ ${totalOutBytes.toReadableFileSize()}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                  Text(
-                    'Time: ${_batchResult!.totalDuration.inSeconds}s',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-
-              // Individual Results List
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: results.length,
-                separatorBuilder: (_, _) => const Divider(height: 16),
-                itemBuilder: (context, idx) {
-                  final item = results[idx];
-                  return Row(
-                    children: [
-                      // Thumbnail of processed image
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(item.outputPath),
-                          width: 44,
-                          height: 44,
-                          fit: BoxFit.cover,
-                          cacheWidth: 100,
-                          errorBuilder: (_, _, _) => Container(
-                            width: 44,
-                            height: 44,
-                            color: Colors.grey.shade300,
-                            child: const Icon(Icons.image, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Batch Complete (${results.length} Files)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-
-                      // Text details
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Image #${idx + 1} (${item.outputFormat.toUpperCase()})',
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${item.originalSizeBytes.toReadableFileSize()} ➔ ${item.outputSizeBytes.toReadableFileSize()}',
+                            decoration: BoxDecoration(
+                              color: AppColors.successContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '-${savedPct.toStringAsFixed(0)}%',
                               style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
                                 color: AppColors.success,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
                             ),
-                          ],
+                          )
+                          .animate()
+                          .scale(delay: 150.ms, curve: Curves.easeOutBack)
+                          .shimmer(delay: 500.ms, duration: 1200.ms),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Size: ${totalOrigBytes.toReadableFileSize()} ➔ ${totalOutBytes.toReadableFileSize()}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
-
-                      // Action icons
-                      IconButton(
-                        icon: const Icon(Icons.fullscreen_rounded, size: 20),
-                        tooltip: 'Preview',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () {
-                          final batchItem = BatchItemModel.fromFile(File(item.outputPath));
-                          BatchImagePreviewDialog.show(context, item: batchItem);
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.save_alt_rounded, size: 20),
-                        tooltip: 'Save to Gallery',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => _handleSaveSingleResult(item),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.share_outlined, size: 20),
-                        tooltip: 'Share',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => _handleShareSingleResult(item),
+                      Text(
+                        'Time: ${_batchResult!.totalDuration.inSeconds}s',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
                       ),
                     ],
-                  );
-                },
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+
+                  // Individual Results List
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: results.length,
+                    separatorBuilder: (_, _) => const Divider(height: 16),
+                    itemBuilder: (context, idx) {
+                      final item = results[idx];
+                      return Row(
+                        children: [
+                          // Thumbnail of processed image
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(item.outputPath),
+                              width: 44,
+                              height: 44,
+                              fit: BoxFit.cover,
+                              cacheWidth: 100,
+                              errorBuilder: (_, _, _) => Container(
+                                width: 44,
+                                height: 44,
+                                color: Colors.grey.shade300,
+                                child: const Icon(Icons.image, size: 20),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // Text details
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Image #${idx + 1} (${item.outputFormat.toUpperCase()})',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${item.originalSizeBytes.toReadableFileSize()} ➔ ${item.outputSizeBytes.toReadableFileSize()}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.success,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Action icons
+                          IconButton(
+                            icon: const Icon(
+                              Icons.fullscreen_rounded,
+                              size: 20,
+                            ),
+                            tooltip: 'Preview',
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () {
+                              final batchItem = BatchItemModel.fromFile(
+                                File(item.outputPath),
+                              );
+                              BatchImagePreviewDialog.show(
+                                context,
+                                item: batchItem,
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.save_alt_rounded, size: 20),
+                            tooltip: 'Save to Gallery',
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () => _handleSaveSingleResult(item),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.share_outlined, size: 20),
+                            tooltip: 'Share',
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () => _handleShareSingleResult(item),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
-        )
+            )
             .animate()
             .fadeIn(duration: 350.ms)
             .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
@@ -1539,7 +1762,10 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             height: 50,
             child: OutlinedButton.icon(
               onPressed: () => _handleExportAsPdf(fromResults: true),
-              icon: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary),
+              icon: const Icon(
+                Icons.picture_as_pdf_rounded,
+                color: AppColors.primary,
+              ),
               label: const Text(
                 '📄 Export / Save as PDF Document',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -1555,7 +1781,6 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
           ),
         ),
         const SizedBox(height: 12),
-
 
         if (_batchResult?.zipFilePath != null) ...[
           BouncyTap(

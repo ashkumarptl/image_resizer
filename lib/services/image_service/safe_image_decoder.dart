@@ -34,7 +34,9 @@ class SafeImageDecoder {
               final exif = img.ExifData.fromInputBuffer(img.InputBuffer(bytes));
               if (exif.imageIfd.hasOrientation) {
                 final orientation = exif.imageIfd.orientation;
-                if (orientation != null && orientation >= 5 && orientation <= 8) {
+                if (orientation != null &&
+                    orientation >= 5 &&
+                    orientation <= 8) {
                   final temp = w;
                   w = h;
                   h = temp;
@@ -105,7 +107,9 @@ class SafeImageDecoder {
         targetHeight: targetH > 0 ? targetH : null,
       );
       final frame = await codec.getNextFrame();
-      final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.rawRgba);
+      final byteData = await frame.image.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      );
 
       if (byteData != null) {
         return img.Image.fromBytes(
@@ -122,7 +126,8 @@ class SafeImageDecoder {
     // Fallback: standard decode + resize
     try {
       final fallbackImage = img.decodeImage(bytes);
-      if (fallbackImage != null && (targetW < fallbackImage.width || targetH < fallbackImage.height)) {
+      if (fallbackImage != null &&
+          (targetW < fallbackImage.width || targetH < fallbackImage.height)) {
         return img.copyResize(
           fallbackImage,
           width: targetW,
@@ -171,9 +176,15 @@ class SafeImageDecoder {
             }
           }
           final timestamp = DateTime.now().millisecondsSinceEpoch;
-          final downscaledPath = p.join(tempDirPath, 'mlkit_safe_$timestamp.jpg');
+          final downscaledPath = p.join(
+            tempDirPath,
+            'mlkit_safe_$timestamp.jpg',
+          );
           final downscaledFile = File(downscaledPath);
-          await downscaledFile.writeAsBytes(img.encodeJpg(decoded, quality: 92), flush: true);
+          await downscaledFile.writeAsBytes(
+            img.encodeJpg(decoded, quality: 92),
+            flush: true,
+          );
           return downscaledFile;
         }
       }

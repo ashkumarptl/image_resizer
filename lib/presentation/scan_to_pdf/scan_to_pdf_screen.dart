@@ -1573,7 +1573,10 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                     _handleShareProjectPdf(project);
                   } else if (val == 'send_to_pc') {
                     if (project.pdfPath != null) {
-                      SendToPcSheet.show(context, filePaths: [project.pdfPath!]);
+                      SendToPcSheet.show(
+                        context,
+                        filePaths: [project.pdfPath!],
+                      );
                     }
                   } else if (val == 'rename') {
                     _handleRenameProject(project);

@@ -138,19 +138,15 @@ extension AdaptiveLayoutExtension on BuildContext {
 
   /// Standard Material 3 outer margin for content.
   double get adaptiveMargin => responsiveValue<double>(
-        compact: M3Breakpoints.marginCompact,
-        medium: M3Breakpoints.marginMedium,
-        expanded: M3Breakpoints.marginExpanded,
-        large: M3Breakpoints.marginLarge,
-      );
+    compact: M3Breakpoints.marginCompact,
+    medium: M3Breakpoints.marginMedium,
+    expanded: M3Breakpoints.marginExpanded,
+    large: M3Breakpoints.marginLarge,
+  );
 
   /// Standard grid column count for card grids.
-  int get adaptiveGridColumns => responsiveValue<int>(
-        compact: 2,
-        medium: 3,
-        expanded: 4,
-        large: 5,
-      );
+  int get adaptiveGridColumns =>
+      responsiveValue<int>(compact: 2, medium: 3, expanded: 4, large: 5);
 
   /// Scales font size for tablets and larger displays (≥600dp) to maintain readability
   /// at greater viewing distances (16-22 inches vs 10-12 inches on phones).
@@ -165,7 +161,11 @@ extension AdaptiveLayoutExtension on BuildContext {
     double? desktopSize,
   }) {
     if (isLarge || isExtraLarge) {
-      return desktopSize ?? largeTabletSize ?? (tabletSize != null ? (tabletSize * 1.25).roundToDouble() : (compactSize * 1.60));
+      return desktopSize ??
+          largeTabletSize ??
+          (tabletSize != null
+              ? (tabletSize * 1.25).roundToDouble()
+              : (compactSize * 1.60));
     } else if (isLargeTablet || isExpanded) {
       // Large tablets (10–13" tablets like iPad Pro, Galaxy Tab in portrait/landscape)
       if (largeTabletSize != null) return largeTabletSize;
@@ -196,7 +196,11 @@ extension AdaptiveLayoutExtension on BuildContext {
     double? desktopSize,
   }) {
     if (isLarge || isExtraLarge) {
-      return desktopSize ?? largeTabletSize ?? (tabletSize != null ? (tabletSize * 1.28).roundToDouble() : (compactSize * 1.65));
+      return desktopSize ??
+          largeTabletSize ??
+          (tabletSize != null
+              ? (tabletSize * 1.28).roundToDouble()
+              : (compactSize * 1.65));
     } else if (isLargeTablet || isExpanded) {
       // Large tablets (10–13" tablets)
       if (largeTabletSize != null) return largeTabletSize;
@@ -229,19 +233,14 @@ class AdaptivePageContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectivePadding = padding ??
-        EdgeInsets.symmetric(
-          horizontal: context.adaptiveMargin,
-        );
+    final effectivePadding =
+        padding ?? EdgeInsets.symmetric(horizontal: context.adaptiveMargin);
 
     return Align(
       alignment: alignment,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Padding(
-          padding: effectivePadding,
-          child: child,
-        ),
+        child: Padding(padding: effectivePadding, child: child),
       ),
     );
   }
@@ -316,11 +315,14 @@ class AdaptiveSupportingPane extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isLandscape = context.isLandscape;
-        final isWide = constraints.maxWidth >= breakpoint && (!requireLandscape || isLandscape);
+        final isWide =
+            constraints.maxWidth >= breakpoint &&
+            (!requireLandscape || isLandscape);
 
         if (isWide) {
           // Dual-pane side-by-side layout (Material 3 Supporting Pane)
-          final padding = widePadding ??
+          final padding =
+              widePadding ??
               EdgeInsets.symmetric(
                 horizontal: context.adaptiveMargin,
                 vertical: 16.0,
@@ -329,8 +331,8 @@ class AdaptiveSupportingPane extends StatelessWidget {
           final effectivePrimary = stretchPrimaryPane
               ? primaryPane
               : (scrollablePrimaryPane
-                  ? SingleChildScrollView(child: primaryPane)
-                  : primaryPane);
+                    ? SingleChildScrollView(child: primaryPane)
+                    : primaryPane);
 
           return Padding(
             padding: padding,
@@ -340,10 +342,7 @@ class AdaptiveSupportingPane extends StatelessWidget {
                   : CrossAxisAlignment.start,
               children: [
                 // Primary Canvas Pane
-                Expanded(
-                  flex: primaryFlex,
-                  child: effectivePrimary,
-                ),
+                Expanded(flex: primaryFlex, child: effectivePrimary),
                 SizedBox(width: paneSpacing),
                 // Supporting Controls Pane
                 Expanded(
@@ -378,7 +377,9 @@ class AdaptiveSupportingPane extends StatelessWidget {
                 ),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: maxStackedContentWidth),
+                    constraints: BoxConstraints(
+                      maxWidth: maxStackedContentWidth,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

@@ -62,7 +62,11 @@ class BatchImageCard extends StatelessWidget {
                       errorBuilder: (context, error, stackTrace) => Container(
                         color: isDark ? Colors.white10 : Colors.black12,
                         child: const Center(
-                          child: Icon(Icons.broken_image_rounded, color: Colors.grey, size: 36),
+                          child: Icon(
+                            Icons.broken_image_rounded,
+                            color: Colors.grey,
+                            size: 36,
+                          ),
                         ),
                       ),
                     ),
@@ -95,9 +99,7 @@ class BatchImageCard extends StatelessWidget {
                         color: Colors.white,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(color: Colors.black54, blurRadius: 4),
-                        ],
+                        shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
                       ),
                     ),
                   ),
@@ -108,7 +110,10 @@ class BatchImageCard extends StatelessWidget {
                       top: 6,
                       left: 6,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(6),
@@ -167,7 +172,9 @@ class BatchImageCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -177,7 +184,9 @@ class BatchImageCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 10,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -191,7 +200,9 @@ class BatchImageCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                              color: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Center(
@@ -210,9 +221,13 @@ class BatchImageCard extends StatelessWidget {
                               onTap: onTapCrop,
                               borderRadius: BorderRadius.circular(6),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                                  color: isDark
+                                      ? Colors.white10
+                                      : Colors.black.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: const Center(
@@ -233,15 +248,21 @@ class BatchImageCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             decoration: BoxDecoration(
                               color: item.hasCustomOptions
-                                  ? AppColors.primaryContainerDark.withValues(alpha: 0.4)
-                                  : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+                                  ? AppColors.primaryContainerDark.withValues(
+                                      alpha: 0.4,
+                                    )
+                                  : (isDark
+                                        ? Colors.white10
+                                        : Colors.black.withValues(alpha: 0.05)),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Center(
                               child: Icon(
                                 Icons.tune_rounded,
                                 size: 16,
-                                color: item.hasCustomOptions ? AppColors.primaryLight : null,
+                                color: item.hasCustomOptions
+                                    ? AppColors.primaryLight
+                                    : null,
                               ),
                             ),
                           ),

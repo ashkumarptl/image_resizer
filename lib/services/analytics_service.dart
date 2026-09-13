@@ -36,7 +36,9 @@ class AnalyticsService {
           'input_size_kb': sizeKb,
         },
       );
-      debugPrint('[Analytics] Event: image_selected (${width}x$height, ${sizeKb}KB)');
+      debugPrint(
+        '[Analytics] Event: image_selected (${width}x$height, ${sizeKb}KB)',
+      );
     } catch (e) {
       debugPrint('[Analytics] Error: $e');
     }
@@ -59,7 +61,9 @@ class AnalyticsService {
           'resize_mode': resizeMode,
         },
       );
-      debugPrint('[Analytics] Event: resize_started ($outputFormat -> ${targetWidth}x$targetHeight)');
+      debugPrint(
+        '[Analytics] Event: resize_started ($outputFormat -> ${targetWidth}x$targetHeight)',
+      );
     } catch (e) {
       debugPrint('[Analytics] Error: $e');
     }
@@ -101,7 +105,9 @@ class AnalyticsService {
       await _analytics.logEvent(
         name: 'resize_failed',
         parameters: {
-          'failure_reason': reason.length > 90 ? reason.substring(0, 90) : reason,
+          'failure_reason': reason.length > 90
+              ? reason.substring(0, 90)
+              : reason,
           'file_type': fileType.toLowerCase(),
           'input_width': inputWidth,
           'input_height': inputHeight,
@@ -128,7 +134,9 @@ class AnalyticsService {
           'destination': destination,
         },
       );
-      debugPrint('[Analytics] Event: image_saved ($outputFormat, ${sizeKb}KB to $destination)');
+      debugPrint(
+        '[Analytics] Event: image_saved ($outputFormat, ${sizeKb}KB to $destination)',
+      );
     } catch (e) {
       debugPrint('[Analytics] Error: $e');
     }
@@ -186,7 +194,9 @@ class AnalyticsService {
           'savings_percent': savingsPercent,
         },
       );
-      debugPrint('[Analytics] Event: compression_used (Quality $targetQuality, Saved $savingsPercent%)');
+      debugPrint(
+        '[Analytics] Event: compression_used (Quality $targetQuality, Saved $savingsPercent%)',
+      );
     } catch (e) {
       debugPrint('[Analytics] Error: $e');
     }
@@ -221,7 +231,9 @@ class AnalyticsService {
           'duration_ms': durationMs,
         },
       );
-      debugPrint('[Analytics] Event: batch_resize_completed (Success: $successCount, Failed: $failedCount in ${durationMs}ms)');
+      debugPrint(
+        '[Analytics] Event: batch_resize_completed (Success: $successCount, Failed: $failedCount in ${durationMs}ms)',
+      );
     } catch (e) {
       debugPrint('[Analytics] Error: $e');
     }
@@ -265,10 +277,11 @@ class AnalyticsService {
           'action': action,
         },
       );
-      debugPrint('[Analytics] Event: batch_export_pdf ($pageCount pages, $quality, $action)');
+      debugPrint(
+        '[Analytics] Event: batch_export_pdf ($pageCount pages, $quality, $action)',
+      );
     } catch (e) {
       debugPrint('[Analytics] Error: $e');
     }
   }
 }
-

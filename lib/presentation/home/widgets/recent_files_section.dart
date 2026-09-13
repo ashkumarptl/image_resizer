@@ -28,8 +28,12 @@ class RecentFilesSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final maxItems = context.isLargeTablet ? 10 : (context.isMediumOrWider ? 8 : 6);
-    final displayItems = historyItems.length > maxItems ? historyItems.sublist(0, maxItems) : historyItems;
+    final maxItems = context.isLargeTablet
+        ? 10
+        : (context.isMediumOrWider ? 8 : 6);
+    final displayItems = historyItems.length > maxItems
+        ? historyItems.sublist(0, maxItems)
+        : historyItems;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,7 +49,11 @@ class RecentFilesSection extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: context.adaptiveFontSize(16, tabletSize: 22, largeTabletSize: 26),
+                    fontSize: context.adaptiveFontSize(
+                      16,
+                      tabletSize: 22,
+                      largeTabletSize: 26,
+                    ),
                     fontWeight: FontWeight.bold,
                     color: isDark
                         ? AppColors.textPrimaryDark
@@ -64,8 +72,14 @@ class RecentFilesSection extends StatelessWidget {
                 child: Text(
                   'Clear',
                   style: TextStyle(
-                    fontSize: context.adaptiveFontSize(13, tabletSize: 16, largeTabletSize: 18),
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    fontSize: context.adaptiveFontSize(
+                      13,
+                      tabletSize: 16,
+                      largeTabletSize: 18,
+                    ),
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
               ),
@@ -80,19 +94,26 @@ class RecentFilesSection extends StatelessWidget {
               // 2-column grid is only used on wide displays with at least 720px available width (e.g. landscape tablets / desktop).
               // On portrait screens (including 800x1280 tablets where content width is ~664px), a single column is used.
               final useGrid = constraints.maxWidth >= 720.0;
-              final gridExtent = context.isLargeTablet ? 104.0 : (context.isMediumOrWider ? 92.0 : 78.0);
+              final gridExtent = context.isLargeTablet
+                  ? 104.0
+                  : (context.isMediumOrWider ? 92.0 : 78.0);
               if (useGrid) {
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: context.isLargeTablet ? 14 : (context.isMediumOrWider ? 12 : 10),
-                    crossAxisSpacing: context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12),
+                    mainAxisSpacing: context.isLargeTablet
+                        ? 14
+                        : (context.isMediumOrWider ? 12 : 10),
+                    crossAxisSpacing: context.isLargeTablet
+                        ? 16
+                        : (context.isMediumOrWider ? 14 : 12),
                     mainAxisExtent: gridExtent,
                   ),
                   itemCount: displayItems.length,
-                  itemBuilder: (context, index) => _buildItemTile(context, displayItems[index], isDark),
+                  itemBuilder: (context, index) =>
+                      _buildItemTile(context, displayItems[index], isDark),
                 );
               }
               return ListView.separated(
@@ -100,7 +121,8 @@ class RecentFilesSection extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: displayItems.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 8),
-                itemBuilder: (context, index) => _buildItemTile(context, displayItems[index], isDark),
+                itemBuilder: (context, index) =>
+                    _buildItemTile(context, displayItems[index], isDark),
               );
             },
           ),
@@ -111,25 +133,39 @@ class RecentFilesSection extends StatelessWidget {
 
   Widget _buildItemTile(BuildContext context, HistoryItem item, bool isDark) {
     final thumbPath = item.thumbnailPath;
-    final thumbFile = (thumbPath != null && thumbPath.isNotEmpty) ? File(thumbPath) : null;
+    final thumbFile = (thumbPath != null && thumbPath.isNotEmpty)
+        ? File(thumbPath)
+        : null;
     final fullFile = File(item.filePath);
     final displayFile = (thumbFile != null && thumbFile.existsSync())
         ? thumbFile
         : (fullFile.existsSync() ? fullFile : null);
     final timeAgo = _formatTimeAgo(item.processedAt);
-    final thumbSize = context.isLargeTablet ? 64.0 : (context.isMediumOrWider ? 56.0 : 48.0);
-    final brokenIconSize = context.adaptiveIconSize(20, tabletSize: 26, largeTabletSize: 28);
+    final thumbSize = context.isLargeTablet
+        ? 64.0
+        : (context.isMediumOrWider ? 56.0 : 48.0);
+    final brokenIconSize = context.adaptiveIconSize(
+      20,
+      tabletSize: 26,
+      largeTabletSize: 28,
+    );
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () => onItemTap(item),
-        borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12)),
+        borderRadius: BorderRadius.circular(
+          context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12),
+        ),
         child: Ink(
-          padding: EdgeInsets.all(context.isLargeTablet ? 12 : (context.isMediumOrWider ? 12 : 10)),
+          padding: EdgeInsets.all(
+            context.isLargeTablet ? 12 : (context.isMediumOrWider ? 12 : 10),
+          ),
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12)),
+            borderRadius: BorderRadius.circular(
+              context.isLargeTablet ? 16 : (context.isMediumOrWider ? 14 : 12),
+            ),
             border: Border.all(
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
             ),
@@ -137,7 +173,11 @@ class RecentFilesSection extends StatelessWidget {
           child: Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(context.isLargeTablet ? 12 : (context.isMediumOrWider ? 10 : 8)),
+                borderRadius: BorderRadius.circular(
+                  context.isLargeTablet
+                      ? 12
+                      : (context.isMediumOrWider ? 10 : 8),
+                ),
                 child: displayFile != null
                     ? Image.file(
                         displayFile,
@@ -179,7 +219,11 @@ class RecentFilesSection extends StatelessWidget {
                         maxLines: 1,
                         softWrap: false,
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(13, tabletSize: 14.5, largeTabletSize: 15.5),
+                          fontSize: context.adaptiveFontSize(
+                            13,
+                            tabletSize: 14.5,
+                            largeTabletSize: 15.5,
+                          ),
                           fontWeight: FontWeight.w600,
                           color: isDark
                               ? AppColors.textPrimaryDark
@@ -196,7 +240,11 @@ class RecentFilesSection extends StatelessWidget {
                         maxLines: 1,
                         softWrap: false,
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(12, tabletSize: 13.0, largeTabletSize: 14.0),
+                          fontSize: context.adaptiveFontSize(
+                            12,
+                            tabletSize: 13.0,
+                            largeTabletSize: 14.0,
+                          ),
                           fontWeight: FontWeight.bold,
                           color: AppColors.success,
                         ),
@@ -209,7 +257,11 @@ class RecentFilesSection extends StatelessWidget {
               Text(
                 timeAgo,
                 style: TextStyle(
-                  fontSize: context.adaptiveFontSize(11, tabletSize: 12.0, largeTabletSize: 12.5),
+                  fontSize: context.adaptiveFontSize(
+                    11,
+                    tabletSize: 12.0,
+                    largeTabletSize: 12.5,
+                  ),
                   color: isDark
                       ? AppColors.textSecondaryDark
                       : AppColors.textSecondaryLight,

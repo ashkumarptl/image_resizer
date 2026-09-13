@@ -23,8 +23,9 @@ class BatchItemModel {
   String get readableSize => fileSizeBytes.toReadableFileSize();
   bool get hasCustomOptions => customOptions != null;
 
-  String get resolutionString =>
-      dimensions != null ? '${dimensions!.width}×${dimensions!.height}' : 'Loading...';
+  String get resolutionString => dimensions != null
+      ? '${dimensions!.width}×${dimensions!.height}'
+      : 'Loading...';
 
   BatchItemModel copyWith({
     File? file,
@@ -37,7 +38,9 @@ class BatchItemModel {
       file: file ?? this.file,
       fileSizeBytes: fileSizeBytes ?? this.fileSizeBytes,
       dimensions: dimensions ?? this.dimensions,
-      customOptions: clearCustomOptions ? null : (customOptions ?? this.customOptions),
+      customOptions: clearCustomOptions
+          ? null
+          : (customOptions ?? this.customOptions),
     );
   }
 
@@ -50,9 +53,6 @@ class BatchItemModel {
       }
     } catch (_) {}
 
-    return BatchItemModel(
-      file: file,
-      fileSizeBytes: size,
-    );
+    return BatchItemModel(file: file, fileSizeBytes: size);
   }
 }

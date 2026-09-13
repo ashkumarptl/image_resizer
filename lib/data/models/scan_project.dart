@@ -23,8 +23,8 @@ class ScanProject {
     this.isPdfDirty = false,
     required this.createdAt,
     required this.updatedAt,
-  })  : originalPagePaths = originalPagePaths ?? pagePaths,
-        pageFilters = pageFilters ?? const {};
+  }) : originalPagePaths = originalPagePaths ?? pagePaths,
+       pageFilters = pageFilters ?? const {};
 
   int get pageCount => pagePaths.length;
 
@@ -82,18 +82,22 @@ class ScanProject {
   }
 
   factory ScanProject.fromJson(Map<String, dynamic> json) {
-    final pages = (json['pagePaths'] as List<dynamic>?)
+    final pages =
+        (json['pagePaths'] as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
         [];
 
-    final origPages = (json['originalPagePaths'] as List<dynamic>?)
+    final origPages =
+        (json['originalPagePaths'] as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
         pages;
 
-    final filters = (json['pageFilters'] as Map<String, dynamic>?)
-            ?.map((k, v) => MapEntry(k, v.toString())) ??
+    final filters =
+        (json['pageFilters'] as Map<String, dynamic>?)?.map(
+          (k, v) => MapEntry(k, v.toString()),
+        ) ??
         <String, String>{};
 
     return ScanProject(
@@ -105,8 +109,12 @@ class ScanProject {
       pdfQuality: (json['pdfQuality'] as String?) ?? 'medium',
       pdfPath: json['pdfPath'] as String?,
       isPdfDirty: (json['isPdfDirty'] as bool?) ?? false,
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }

@@ -46,7 +46,10 @@ class ToolInstructionSheet extends StatelessWidget {
         barrierDismissible: true,
         builder: (dialogCtx) => Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 32,
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 500),
             child: Material(
@@ -76,7 +79,9 @@ class ToolInstructionSheet extends StatelessWidget {
             margin: const EdgeInsets.only(top: 12),
             decoration: BoxDecoration(
               color: Theme.of(sheetCtx).scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.18),
@@ -135,11 +140,7 @@ class ToolInstructionSheet extends StatelessWidget {
                   width: 1.2,
                 ),
               ),
-              child: Icon(
-                guideData.toolIcon,
-                color: primaryColor,
-                size: 24,
-              ),
+              child: Icon(guideData.toolIcon, color: primaryColor, size: 24),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -159,7 +160,10 @@ class ToolInstructionSheet extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
                         decoration: BoxDecoration(
                           color: primaryColor.withValues(alpha: 0.14),
                           borderRadius: BorderRadius.circular(6),
@@ -181,7 +185,9 @@ class ToolInstructionSheet extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 17.5,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -190,7 +196,9 @@ class ToolInstructionSheet extends StatelessWidget {
                     guideData.subtitle,
                     style: TextStyle(
                       fontSize: 12.5,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                       height: 1.25,
                     ),
                   ),
@@ -217,92 +225,95 @@ class ToolInstructionSheet extends StatelessWidget {
           final step = entry.value;
 
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.04)
-                    : Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.grey.shade200,
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Number badge
-                  Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: primaryColor.withValues(alpha: 0.35),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.04)
+                        : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.grey.shade200,
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${step.stepNumber}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Number badge
+                      Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          color: primaryColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryColor.withValues(alpha: 0.35),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${step.stepNumber}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Icon
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      step.icon,
-                      size: 16,
-                      color: primaryColor,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  // Text content
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          step.title,
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                          ),
+                      const SizedBox(width: 12),
+                      // Icon
+                      Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          step.description,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                            height: 1.35,
-                          ),
+                        child: Icon(step.icon, size: 16, color: primaryColor),
+                      ),
+                      const SizedBox(width: 10),
+                      // Text content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              step.title,
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              step.description,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ).animate().fadeIn(delay: (index * 80).ms, duration: 250.ms).slideY(begin: 0.1, end: 0);
+                ),
+              )
+              .animate()
+              .fadeIn(delay: (index * 80).ms, duration: 250.ms)
+              .slideY(begin: 0.1, end: 0);
         }),
 
         const SizedBox(height: 4),
@@ -311,14 +322,10 @@ class ToolInstructionSheet extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF1E293B)
-                : const Color(0xFFF0FDF4),
+            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF0FDF4),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isDark
-                  ? const Color(0xFF334155)
-                  : const Color(0xFFBBF7D0),
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFBBF7D0),
             ),
           ),
           child: Row(
@@ -331,7 +338,9 @@ class ToolInstructionSheet extends StatelessWidget {
                   text: TextSpan(
                     style: TextStyle(
                       fontSize: 11.5,
-                      color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF166534),
+                      color: isDark
+                          ? const Color(0xFFE2E8F0)
+                          : const Color(0xFF166534),
                       height: 1.35,
                     ),
                     children: [

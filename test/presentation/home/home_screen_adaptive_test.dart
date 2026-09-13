@@ -32,17 +32,15 @@ void main() {
 
   Widget buildHomeScreen() {
     return ProviderScope(
-      overrides: [
-        authServiceProvider.overrideWithValue(MockAuthService()),
-      ],
-      child: const MaterialApp(
-        home: HomeScreen(),
-      ),
+      overrides: [authServiceProvider.overrideWithValue(MockAuthService())],
+      child: const MaterialApp(home: HomeScreen()),
     );
   }
 
   group('HomeScreen Adaptive Tablet Layout Tests', () {
-    testWidgets('renders cleanly on Small Tablet (600x900dp)', (WidgetTester tester) async {
+    testWidgets('renders cleanly on Small Tablet (600x900dp)', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(600, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -59,105 +57,121 @@ void main() {
       expect(find.text('Quick Utilities'), findsOneWidget);
     });
 
-    testWidgets('renders single-column stacked hero cards on Medium Tablet Portrait (768x1024dp)', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(768, 1024);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'renders single-column stacked hero cards on Medium Tablet Portrait (768x1024dp)',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(768, 1024);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(buildHomeScreen());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildHomeScreen());
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Select Photo to Optimize'), findsOneWidget);
-      expect(find.text('Single Photo'), findsOneWidget);
-      expect(find.text('Batch (Multi)'), findsOneWidget);
-      expect(find.text('Scan to PDF'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        expect(find.text('Select Photo to Optimize'), findsOneWidget);
+        expect(find.text('Single Photo'), findsOneWidget);
+        expect(find.text('Batch (Multi)'), findsOneWidget);
+        expect(find.text('Scan to PDF'), findsOneWidget);
 
-      // Verify single-column stacked layout (hero card above scan to pdf)
-      final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
-      final scanToPdfPos = tester.getCenter(find.text('Scan to PDF'));
-      expect(singlePhotoPos.dy, lessThan(scanToPdfPos.dy));
-    });
+        // Verify single-column stacked layout (hero card above scan to pdf)
+        final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
+        final scanToPdfPos = tester.getCenter(find.text('Scan to PDF'));
+        expect(singlePhotoPos.dy, lessThan(scanToPdfPos.dy));
+      },
+    );
 
-    testWidgets('renders side-by-side hero cards on Large Display (1024x1366dp)', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1024, 1366);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'renders side-by-side hero cards on Large Display (1024x1366dp)',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1024, 1366);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(buildHomeScreen());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildHomeScreen());
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Select Photo to Optimize'), findsOneWidget);
-      expect(find.text('Single Photo'), findsOneWidget);
-      expect(find.text('Batch (Multi)'), findsOneWidget);
-      expect(find.text('Scan Documents to PDF'), findsOneWidget);
-      expect(find.text('Open Document Scanner'), findsOneWidget);
-      expect(find.text('Quick Utilities'), findsOneWidget);
-      expect(find.text('Signature'), findsOneWidget);
-      expect(find.text('Photo Stamp'), findsOneWidget);
-      expect(find.text('Deskew Doc'), findsNothing);
-      expect(find.text('Doc Filter'), findsNothing);
+        expect(tester.takeException(), isNull);
+        expect(find.text('Select Photo to Optimize'), findsOneWidget);
+        expect(find.text('Single Photo'), findsOneWidget);
+        expect(find.text('Batch (Multi)'), findsOneWidget);
+        expect(find.text('Scan Documents to PDF'), findsOneWidget);
+        expect(find.text('Open Document Scanner'), findsOneWidget);
+        expect(find.text('Quick Utilities'), findsOneWidget);
+        expect(find.text('Signature'), findsOneWidget);
+        expect(find.text('Photo Stamp'), findsOneWidget);
+        expect(find.text('Deskew Doc'), findsNothing);
+        expect(find.text('Doc Filter'), findsNothing);
 
-      // Verify side-by-side layout (horizontal)
-      final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
-      final openScannerPos = tester.getCenter(find.text('Open Document Scanner'));
-      expect(singlePhotoPos.dx, lessThan(openScannerPos.dx));
-    });
+        // Verify side-by-side layout (horizontal)
+        final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
+        final openScannerPos = tester.getCenter(
+          find.text('Open Document Scanner'),
+        );
+        expect(singlePhotoPos.dx, lessThan(openScannerPos.dx));
+      },
+    );
 
-    testWidgets('renders cleanly in single-column layout on 800x1280dp tablet screen', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(800, 1280);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'renders cleanly in single-column layout on 800x1280dp tablet screen',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(800, 1280);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(buildHomeScreen());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildHomeScreen());
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Select Photo to Optimize'), findsOneWidget);
-      expect(find.text('Single Photo'), findsOneWidget);
-      expect(find.text('Batch (Multi)'), findsOneWidget);
-      expect(find.text('Scan to PDF'), findsOneWidget);
-      expect(find.text('Quick Utilities'), findsOneWidget);
-      expect(find.text('Signature'), findsOneWidget);
-      expect(find.text('Photo Stamp'), findsOneWidget);
-      expect(find.text('Deskew Doc'), findsNothing);
-      expect(find.text('Doc Filter'), findsNothing);
+        expect(tester.takeException(), isNull);
+        expect(find.text('Select Photo to Optimize'), findsOneWidget);
+        expect(find.text('Single Photo'), findsOneWidget);
+        expect(find.text('Batch (Multi)'), findsOneWidget);
+        expect(find.text('Scan to PDF'), findsOneWidget);
+        expect(find.text('Quick Utilities'), findsOneWidget);
+        expect(find.text('Signature'), findsOneWidget);
+        expect(find.text('Photo Stamp'), findsOneWidget);
+        expect(find.text('Deskew Doc'), findsNothing);
+        expect(find.text('Doc Filter'), findsNothing);
 
-      // Verify single-column stacked layout (hero card above scan to pdf card)
-      final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
-      final scanToPdfPos = tester.getCenter(find.text('Scan to PDF'));
-      expect(singlePhotoPos.dy, lessThan(scanToPdfPos.dy));
-    });
+        // Verify single-column stacked layout (hero card above scan to pdf card)
+        final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
+        final scanToPdfPos = tester.getCenter(find.text('Scan to PDF'));
+        expect(singlePhotoPos.dy, lessThan(scanToPdfPos.dy));
+      },
+    );
 
-    testWidgets('renders gracefully and adaptively on 1280x1880dp large display screen', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1280, 1880);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'renders gracefully and adaptively on 1280x1880dp large display screen',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1280, 1880);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(buildHomeScreen());
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(buildHomeScreen());
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Select Photo to Optimize'), findsOneWidget);
-      expect(find.text('Single Photo'), findsOneWidget);
-      expect(find.text('Batch (Multi)'), findsOneWidget);
-      expect(find.text('Scan Documents to PDF'), findsOneWidget);
-      expect(find.text('Open Document Scanner'), findsOneWidget);
-      expect(find.text('Quick Utilities'), findsOneWidget);
-      expect(find.text('Signature'), findsOneWidget);
-      expect(find.text('Photo Stamp'), findsOneWidget);
-      expect(find.text('Deskew Doc'), findsNothing);
-      expect(find.text('Doc Filter'), findsNothing);
+        expect(tester.takeException(), isNull);
+        expect(find.text('Select Photo to Optimize'), findsOneWidget);
+        expect(find.text('Single Photo'), findsOneWidget);
+        expect(find.text('Batch (Multi)'), findsOneWidget);
+        expect(find.text('Scan Documents to PDF'), findsOneWidget);
+        expect(find.text('Open Document Scanner'), findsOneWidget);
+        expect(find.text('Quick Utilities'), findsOneWidget);
+        expect(find.text('Signature'), findsOneWidget);
+        expect(find.text('Photo Stamp'), findsOneWidget);
+        expect(find.text('Deskew Doc'), findsNothing);
+        expect(find.text('Doc Filter'), findsNothing);
 
-      // Verify side-by-side layout (since width 1280 >= 840)
-      final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
-      final openScannerPos = tester.getCenter(find.text('Open Document Scanner'));
-      expect(singlePhotoPos.dx, lessThan(openScannerPos.dx));
-    });
+        // Verify side-by-side layout (since width 1280 >= 840)
+        final singlePhotoPos = tester.getCenter(find.text('Single Photo'));
+        final openScannerPos = tester.getCenter(
+          find.text('Open Document Scanner'),
+        );
+        expect(singlePhotoPos.dx, lessThan(openScannerPos.dx));
+      },
+    );
   });
 }

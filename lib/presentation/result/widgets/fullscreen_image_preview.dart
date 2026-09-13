@@ -55,7 +55,11 @@ class _FullscreenImagePreviewState extends State<FullscreenImagePreview> {
       if (_isZoomedIn) {
         _transformationController.value = Matrix4.identity();
       } else {
-        _transformationController.value = Matrix4.diagonal3Values(2.5, 2.5, 1.0);
+        _transformationController.value = Matrix4.diagonal3Values(
+          2.5,
+          2.5,
+          1.0,
+        );
       }
     });
   }
@@ -69,10 +73,7 @@ class _FullscreenImagePreviewState extends State<FullscreenImagePreview> {
 
   void _handleShare(String path) {
     HapticFeedback.selectionClick();
-    ShareService.shareImage(
-      path,
-      text: 'Resized with Image Tools',
-    );
+    ShareService.shareImage(path, text: 'Resized with Image Tools');
   }
 
   @override
@@ -80,9 +81,15 @@ class _FullscreenImagePreviewState extends State<FullscreenImagePreview> {
     final result = widget.result;
     final currentPath = _showOriginal ? result.originalPath : result.outputPath;
     final currentFile = File(currentPath);
-    final currentWidth = _showOriginal ? result.originalWidth : result.outputWidth;
-    final currentHeight = _showOriginal ? result.originalHeight : result.outputHeight;
-    final currentSize = _showOriginal ? result.originalSizeBytes : result.outputSizeBytes;
+    final currentWidth = _showOriginal
+        ? result.originalWidth
+        : result.outputWidth;
+    final currentHeight = _showOriginal
+        ? result.originalHeight
+        : result.outputHeight;
+    final currentSize = _showOriginal
+        ? result.originalSizeBytes
+        : result.outputSizeBytes;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -141,12 +148,13 @@ class _FullscreenImagePreviewState extends State<FullscreenImagePreview> {
                 child: currentFile.existsSync()
                     ? Hero(
                         tag: widget.heroTag,
-                        child: Image.file(
-                          currentFile,
-                          fit: BoxFit.contain,
-                        ),
+                        child: Image.file(currentFile, fit: BoxFit.contain),
                       )
-                    : const Icon(Icons.broken_image, size: 64, color: Colors.white54),
+                    : const Icon(
+                        Icons.broken_image,
+                        size: 64,
+                        color: Colors.white54,
+                      ),
               ),
             ),
           ),
@@ -163,7 +171,10 @@ class _FullscreenImagePreviewState extends State<FullscreenImagePreview> {
                   onTap: _resetZoom,
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
@@ -173,7 +184,11 @@ class _FullscreenImagePreviewState extends State<FullscreenImagePreview> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.restart_alt_rounded, size: 15, color: Colors.white),
+                        Icon(
+                          Icons.restart_alt_rounded,
+                          size: 15,
+                          color: Colors.white,
+                        ),
                         SizedBox(width: 5),
                         Text(
                           'Reset Zoom',
@@ -251,7 +266,10 @@ class _FullscreenImagePreviewState extends State<FullscreenImagePreview> {
                 const SizedBox(height: 10),
                 // Pinch / Double-tap hint
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
@@ -303,7 +321,9 @@ class _ToggleTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: isSelected ? accentColor.withValues(alpha: 0.25) : Colors.transparent,
+      color: isSelected
+          ? accentColor.withValues(alpha: 0.25)
+          : Colors.transparent,
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         onTap: onTap,
@@ -313,7 +333,10 @@ class _ToggleTab extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             border: isSelected
-                ? Border.all(color: accentColor.withValues(alpha: 0.6), width: 1.2)
+                ? Border.all(
+                    color: accentColor.withValues(alpha: 0.6),
+                    width: 1.2,
+                  )
                 : Border.all(color: Colors.transparent, width: 1.2),
           ),
           child: Row(

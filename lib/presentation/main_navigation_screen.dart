@@ -28,7 +28,8 @@ class MainNavigationScreen extends ConsumerStatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainNavigationScreen> createState() =>
+      _MainNavigationScreenState();
 }
 
 class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
@@ -84,7 +85,8 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
     final platformBrightness =
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
 
-    final isDark = themeMode == ThemeMode.dark ||
+    final isDark =
+        themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system &&
             platformBrightness == Brightness.dark);
 
@@ -132,9 +134,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
     if (!file.existsSync()) return;
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ImageStudioScreen(initialImage: file),
-      ),
+      MaterialPageRoute(builder: (_) => ImageStudioScreen(initialImage: file)),
     );
   }
 
@@ -251,48 +251,77 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
                   return SingleChildScrollView(
                     physics: const ClampingScrollPhysics(),
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: railConstraints.maxHeight),
+                      constraints: BoxConstraints(
+                        minHeight: railConstraints.maxHeight,
+                      ),
                       child: IntrinsicHeight(
                         child: NavigationRail(
-                          minWidth: isShort ? 64.0 : (context.screenWidth >= 1000 ? 104.0 : 88.0),
-                          groupAlignment: isShort ? -1.0 : (context.isLargeTablet ? -0.4 : -0.6),
+                          minWidth: isShort
+                              ? 64.0
+                              : (context.screenWidth >= 1000 ? 104.0 : 88.0),
+                          groupAlignment: isShort
+                              ? -1.0
+                              : (context.isLargeTablet ? -0.4 : -0.6),
                           selectedIndex: currentIndex,
                           onDestinationSelected: (index) {
-                            ref.read(navigationIndexProvider.notifier).state = index;
+                            ref.read(navigationIndexProvider.notifier).state =
+                                index;
                           },
                           labelType: NavigationRailLabelType.all,
                           selectedIconTheme: IconThemeData(
                             size: context.isLargeTablet ? 34.0 : 28.0,
-                            color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
+                            color: isDark
+                                ? AppColors.primaryLight
+                                : AppColors.primaryDark,
                           ),
                           unselectedIconTheme: IconThemeData(
                             size: context.isLargeTablet ? 34.0 : 28.0,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
                           ),
                           selectedLabelTextStyle: GoogleFonts.outfit(
                             fontSize: context.isLargeTablet ? 15.0 : 13.5,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.primaryLight : AppColors.primaryDark,
+                            color: isDark
+                                ? AppColors.primaryLight
+                                : AppColors.primaryDark,
                           ),
                           unselectedLabelTextStyle: GoogleFonts.outfit(
                             fontSize: context.isLargeTablet ? 14.0 : 13.0,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
                           ),
                           leading: Padding(
                             padding: EdgeInsets.only(
-                              top: isShort ? 4 : (context.isLargeTablet ? 14 : 10),
-                              bottom: isShort ? 8 : (context.isLargeTablet ? 24 : 18),
+                              top: isShort
+                                  ? 4
+                                  : (context.isLargeTablet ? 14 : 10),
+                              bottom: isShort
+                                  ? 8
+                                  : (context.isLargeTablet ? 24 : 18),
                             ),
                             child: Container(
-                              width: isShort ? 36.0 : (context.isLargeTablet ? 60.0 : 52.0),
-                              height: isShort ? 36.0 : (context.isLargeTablet ? 60.0 : 52.0),
+                              width: isShort
+                                  ? 36.0
+                                  : (context.isLargeTablet ? 60.0 : 52.0),
+                              height: isShort
+                                  ? 36.0
+                                  : (context.isLargeTablet ? 60.0 : 52.0),
                               decoration: BoxDecoration(
                                 gradient: AppColors.primaryGradient,
-                                borderRadius: BorderRadius.circular(isShort ? 10 : (context.isLargeTablet ? 20 : 16)),
+                                borderRadius: BorderRadius.circular(
+                                  isShort
+                                      ? 10
+                                      : (context.isLargeTablet ? 20 : 16),
+                                ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.25),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.25,
+                                    ),
                                     blurRadius: 10,
                                     offset: const Offset(0, 3),
                                   ),
@@ -302,7 +331,9 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
                                 child: Icon(
                                   Icons.photo_size_select_large_rounded,
                                   color: Colors.white,
-                                  size: isShort ? 18.0 : (context.isLargeTablet ? 36.0 : 28.0),
+                                  size: isShort
+                                      ? 18.0
+                                      : (context.isLargeTablet ? 36.0 : 28.0),
                                 ),
                               ),
                             ),
@@ -312,25 +343,35 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
                               icon: const Icon(Icons.home_outlined),
                               selectedIcon: const Icon(Icons.home_rounded),
                               label: const Text('Home'),
-                              padding: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 12 : 6),
+                              padding: EdgeInsets.symmetric(
+                                vertical: context.isLargeTablet ? 12 : 6,
+                              ),
                             ),
                             NavigationRailDestination(
                               icon: const Icon(Icons.picture_as_pdf_outlined),
-                              selectedIcon: const Icon(Icons.picture_as_pdf_rounded),
+                              selectedIcon: const Icon(
+                                Icons.picture_as_pdf_rounded,
+                              ),
                               label: const Text('Scan to PDF'),
-                              padding: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 12 : 6),
+                              padding: EdgeInsets.symmetric(
+                                vertical: context.isLargeTablet ? 12 : 6,
+                              ),
                             ),
                             NavigationRailDestination(
                               icon: const Icon(Icons.draw_outlined),
                               selectedIcon: const Icon(Icons.draw_rounded),
                               label: const Text('Exam Tools'),
-                              padding: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 12 : 6),
+                              padding: EdgeInsets.symmetric(
+                                vertical: context.isLargeTablet ? 12 : 6,
+                              ),
                             ),
                             NavigationRailDestination(
                               icon: const Icon(Icons.settings_outlined),
                               selectedIcon: const Icon(Icons.settings_rounded),
                               label: const Text('Settings'),
-                              padding: EdgeInsets.symmetric(vertical: context.isLargeTablet ? 12 : 6),
+                              padding: EdgeInsets.symmetric(
+                                vertical: context.isLargeTablet ? 12 : 6,
+                              ),
                             ),
                           ],
                         ),
@@ -345,9 +386,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
               width: 1,
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
             ),
-            Expanded(
-              child: pageView,
-            ),
+            Expanded(child: pageView),
           ],
         ),
       );
@@ -388,4 +427,3 @@ class _KeepAlivePageState extends State<_KeepAlivePage>
     return widget.child;
   }
 }
-

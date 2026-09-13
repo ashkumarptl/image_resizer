@@ -201,7 +201,9 @@ class DpiService {
 
     while (offset + 8 <= len) {
       final chunkLength = _readUint32BigEndian(bytes, offset);
-      final chunkType = String.fromCharCodes(bytes.sublist(offset + 4, offset + 8));
+      final chunkType = String.fromCharCodes(
+        bytes.sublist(offset + 4, offset + 8),
+      );
 
       if (chunkType == 'pHYs' && chunkLength >= 9 && offset + 8 + 9 <= len) {
         final dataOffset = offset + 8;
@@ -259,7 +261,9 @@ class DpiService {
 
     while (offset + 8 <= len) {
       final chunkLen = _readUint32BigEndian(bytes, offset);
-      final chunkType = String.fromCharCodes(bytes.sublist(offset + 4, offset + 8));
+      final chunkType = String.fromCharCodes(
+        bytes.sublist(offset + 4, offset + 8),
+      );
 
       if (chunkType == 'pHYs') {
         existingPhysOffset = offset;

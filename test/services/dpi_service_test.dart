@@ -19,49 +19,62 @@ void main() {
   });
 
   group('DpiService Physical Dimension Calculations', () {
-    test('calculatePixelsFromPhysicalSize correctly calculates pixels for inch units', () {
-      final dims = DpiService.calculatePixelsFromPhysicalSize(
-        width: 2.0,
-        height: 2.0,
-        unit: 'inch',
-        dpi: 300,
-      );
-      expect(dims.width, 600);
-      expect(dims.height, 600);
-    });
+    test(
+      'calculatePixelsFromPhysicalSize correctly calculates pixels for inch units',
+      () {
+        final dims = DpiService.calculatePixelsFromPhysicalSize(
+          width: 2.0,
+          height: 2.0,
+          unit: 'inch',
+          dpi: 300,
+        );
+        expect(dims.width, 600);
+        expect(dims.height, 600);
+      },
+    );
 
-    test('calculatePixelsFromPhysicalSize calculates pixels for cm units at 200 DPI', () {
-      // 3.5cm x 4.5cm at 200 DPI (SSC / Indian Exam standard)
-      // 3.5 * (200 / 2.54) = 275.59 -> 276
-      // 4.5 * (200 / 2.54) = 354.33 -> 354
-      final dims = DpiService.calculatePixelsFromPhysicalSize(
-        width: 3.5,
-        height: 4.5,
-        unit: 'cm',
-        dpi: 200,
-      );
-      expect(dims.width, 276);
-      expect(dims.height, 354);
-    });
+    test(
+      'calculatePixelsFromPhysicalSize calculates pixels for cm units at 200 DPI',
+      () {
+        // 3.5cm x 4.5cm at 200 DPI (SSC / Indian Exam standard)
+        // 3.5 * (200 / 2.54) = 275.59 -> 276
+        // 4.5 * (200 / 2.54) = 354.33 -> 354
+        final dims = DpiService.calculatePixelsFromPhysicalSize(
+          width: 3.5,
+          height: 4.5,
+          unit: 'cm',
+          dpi: 200,
+        );
+        expect(dims.width, 276);
+        expect(dims.height, 354);
+      },
+    );
 
-    test('calculatePixelsFromPhysicalSize calculates pixels for mm units at 300 DPI', () {
-      // 35mm x 45mm at 300 DPI (Passport standard)
-      // 35 * (300 / 25.4) = 413.38 -> 413
-      // 45 * (300 / 25.4) = 531.49 -> 531
-      final dims = DpiService.calculatePixelsFromPhysicalSize(
-        width: 35,
-        height: 45,
-        unit: 'mm',
-        dpi: 300,
-      );
-      expect(dims.width, 413);
-      expect(dims.height, 531);
-    });
+    test(
+      'calculatePixelsFromPhysicalSize calculates pixels for mm units at 300 DPI',
+      () {
+        // 35mm x 45mm at 300 DPI (Passport standard)
+        // 35 * (300 / 25.4) = 413.38 -> 413
+        // 45 * (300 / 25.4) = 531.49 -> 531
+        final dims = DpiService.calculatePixelsFromPhysicalSize(
+          width: 35,
+          height: 45,
+          unit: 'mm',
+          dpi: 300,
+        );
+        expect(dims.width, 413);
+        expect(dims.height, 531);
+      },
+    );
   });
 
   group('DpiService JPEG DPI Tests', () {
     test('Injects and reads 200 DPI into JPEG', () {
-      final updatedBytes = DpiService.setDpi(standardJpgBytes, 200, format: 'jpg');
+      final updatedBytes = DpiService.setDpi(
+        standardJpgBytes,
+        200,
+        format: 'jpg',
+      );
       expect(updatedBytes.length >= standardJpgBytes.length, isTrue);
 
       final readDpi = DpiService.readDpi(updatedBytes);
@@ -75,7 +88,11 @@ void main() {
     });
 
     test('Injects and reads 300 DPI into JPEG', () {
-      final updatedBytes = DpiService.setDpi(standardJpgBytes, 300, format: 'jpeg');
+      final updatedBytes = DpiService.setDpi(
+        standardJpgBytes,
+        300,
+        format: 'jpeg',
+      );
       final readDpi = DpiService.readDpi(updatedBytes);
       expect(readDpi, 300);
 
@@ -95,7 +112,11 @@ void main() {
 
   group('DpiService PNG DPI Tests', () {
     test('Injects and reads 200 DPI into PNG via pHYs chunk', () {
-      final updatedBytes = DpiService.setDpi(standardPngBytes, 200, format: 'png');
+      final updatedBytes = DpiService.setDpi(
+        standardPngBytes,
+        200,
+        format: 'png',
+      );
       expect(updatedBytes.length, greaterThan(standardPngBytes.length));
 
       final readDpi = DpiService.readDpi(updatedBytes);
@@ -110,7 +131,11 @@ void main() {
     });
 
     test('Injects and reads 300 DPI into PNG via pHYs chunk', () {
-      final updatedBytes = DpiService.setDpi(standardPngBytes, 300, format: 'png');
+      final updatedBytes = DpiService.setDpi(
+        standardPngBytes,
+        300,
+        format: 'png',
+      );
       final readDpi = DpiService.readDpi(updatedBytes);
       expect((readDpi! - 300).abs() <= 1, isTrue);
 

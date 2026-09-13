@@ -23,14 +23,17 @@ void main() {
   });
 
   group('UsageLimitRepository & Providers Tests', () {
-    test('Initial usage count is 0 and canUseFeature is true for guest', () async {
-      final repo = UsageLimitRepository();
-      final count = await repo.getUsageCount();
-      expect(count, 0);
+    test(
+      'Initial usage count is 0 and canUseFeature is true for guest',
+      () async {
+        final repo = UsageLimitRepository();
+        final count = await repo.getUsageCount();
+        expect(count, 0);
 
-      final canUse = await repo.canUseFeature(isAuthenticated: false);
-      expect(canUse, isTrue);
-    });
+        final canUse = await repo.canUseFeature(isAuthenticated: false);
+        expect(canUse, isTrue);
+      },
+    );
 
     test('Incrementing reaches limit of maxFreeGuestUses (3)', () async {
       final repo = UsageLimitRepository();
@@ -64,68 +67,78 @@ void main() {
       expect(await repo.canUseFeature(isAuthenticated: false), isTrue);
     });
 
-    test('GuestUsageNotifier updates state properly with Riverpod container', () async {
-      final container = ProviderContainer(
-        overrides: [
-          authServiceProvider.overrideWithValue(MockAuthService()),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'GuestUsageNotifier updates state properly with Riverpod container',
+      () async {
+        final container = ProviderContainer(
+          overrides: [authServiceProvider.overrideWithValue(MockAuthService())],
+        );
+        addTearDown(container.dispose);
 
-      // Initial state
-      final initialCount = container.read(guestUsageCountProvider);
-      expect(initialCount, 0);
+        // Initial state
+        final initialCount = container.read(guestUsageCountProvider);
+        expect(initialCount, 0);
 
-      // Remaining uses
-      expect(container.read(remainingFreeUsesProvider), AppConstants.maxFreeGuestUses);
-      expect(container.read(isUsageLimitReachedProvider), isFalse);
+        // Remaining uses
+        expect(
+          container.read(remainingFreeUsesProvider),
+          AppConstants.maxFreeGuestUses,
+        );
+        expect(container.read(isUsageLimitReachedProvider), isFalse);
 
-      // Increment 3 times
-      final notifier = container.read(guestUsageCountProvider.notifier);
-      await notifier.increment();
-      expect(container.read(guestUsageCountProvider), 1);
-      expect(container.read(remainingFreeUsesProvider), 2);
+        // Increment 3 times
+        final notifier = container.read(guestUsageCountProvider.notifier);
+        await notifier.increment();
+        expect(container.read(guestUsageCountProvider), 1);
+        expect(container.read(remainingFreeUsesProvider), 2);
 
-      await notifier.increment();
-      expect(container.read(guestUsageCountProvider), 2);
-      expect(container.read(remainingFreeUsesProvider), 1);
+        await notifier.increment();
+        expect(container.read(guestUsageCountProvider), 2);
+        expect(container.read(remainingFreeUsesProvider), 1);
 
-      await notifier.increment();
-      expect(container.read(guestUsageCountProvider), 3);
-      expect(container.read(remainingFreeUsesProvider), 0);
-      expect(container.read(isUsageLimitReachedProvider), isTrue);
-    });
+        await notifier.increment();
+        expect(container.read(guestUsageCountProvider), 3);
+        expect(container.read(remainingFreeUsesProvider), 0);
+        expect(container.read(isUsageLimitReachedProvider), isTrue);
+      },
+    );
 
-    test('Developer mode bypasses usage limits and provides unlimited access', () async {
-      final container = ProviderContainer(
-        overrides: [
-          authServiceProvider.overrideWithValue(MockAuthService()),
-        ],
-      );
-      addTearDown(container.dispose);
+    test(
+      'Developer mode bypasses usage limits and provides unlimited access',
+      () async {
+        final container = ProviderContainer(
+          overrides: [authServiceProvider.overrideWithValue(MockAuthService())],
+        );
+        addTearDown(container.dispose);
 
-      // Increment 3 times to exhaust free limit
-      final notifier = container.read(guestUsageCountProvider.notifier);
-      await notifier.increment();
-      await notifier.increment();
-      await notifier.increment();
-      expect(container.read(guestUsageCountProvider), 3);
+        // Increment 3 times to exhaust free limit
+        final notifier = container.read(guestUsageCountProvider.notifier);
+        await notifier.increment();
+        await notifier.increment();
+        await notifier.increment();
+        expect(container.read(guestUsageCountProvider), 3);
 
-      // For standard guest, limit is reached
-      expect(container.read(isUsageLimitReachedProvider), isTrue);
+        // For standard guest, limit is reached
+        expect(container.read(isUsageLimitReachedProvider), isTrue);
 
-      // Enable Developer Mode
-      await container.read(developerModeProvider.notifier).setDeveloperMode(true);
-      expect(container.read(isDeveloperProvider), isTrue);
+        // Enable Developer Mode
+        await container
+            .read(developerModeProvider.notifier)
+            .setDeveloperMode(true);
+        expect(container.read(isDeveloperProvider), isTrue);
 
-      // With developer mode active, limit is NOT reached and uses are unlimited (-1)
-      expect(container.read(isUsageLimitReachedProvider), isFalse);
-      expect(container.read(remainingFreeUsesProvider), -1);
+        // With developer mode active, limit is NOT reached and uses are unlimited (-1)
+        expect(container.read(isUsageLimitReachedProvider), isFalse);
+        expect(container.read(remainingFreeUsesProvider), -1);
 
-      // canUseFeature returns true for developer even when limit count is reached
-      final repo = container.read(usageLimitRepositoryProvider);
-      final canUse = await repo.canUseFeature(isAuthenticated: false, isDeveloper: true);
-      expect(canUse, isTrue);
-    });
+        // canUseFeature returns true for developer even when limit count is reached
+        final repo = container.read(usageLimitRepositoryProvider);
+        final canUse = await repo.canUseFeature(
+          isAuthenticated: false,
+          isDeveloper: true,
+        );
+        expect(canUse, isTrue);
+      },
+    );
   });
 }

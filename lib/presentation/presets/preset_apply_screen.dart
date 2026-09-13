@@ -42,7 +42,8 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
 
   Future<void> _handleReCrop() async {
     final preset = widget.preset;
-    final hasDimensions = preset.targetWidth != null && preset.targetHeight != null;
+    final hasDimensions =
+        preset.targetWidth != null && preset.targetHeight != null;
 
     final cropped = await ImageCropper().cropImage(
       sourcePath: _currentImage.path,
@@ -148,12 +149,14 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
       setState(() => _isProcessing = false);
 
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => ResultScreen(result: result),
-        ),
+        MaterialPageRoute(builder: (_) => ResultScreen(result: result)),
       );
     } catch (e, stack) {
-      CrashlyticsService.recordNonFatalError(e, stack, reason: 'Preset processing error');
+      CrashlyticsService.recordNonFatalError(
+        e,
+        stack,
+        reason: 'Preset processing error',
+      );
 
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -244,10 +247,7 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             alignment: Alignment.center,
-            child: Text(
-              preset.iconEmoji,
-              style: const TextStyle(fontSize: 24),
-            ),
+            child: Text(preset.iconEmoji, style: const TextStyle(fontSize: 24)),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -269,7 +269,10 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(6),
@@ -355,9 +358,15 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
                 TextButton.icon(
                   onPressed: _isProcessing ? null : _handleReCrop,
                   icon: const Icon(Icons.crop, size: 15),
-                  label: const Text('Adjust Crop', style: TextStyle(fontSize: 12)),
+                  label: const Text(
+                    'Adjust Crop',
+                    style: TextStyle(fontSize: 12),
+                  ),
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -376,9 +385,7 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,7 +489,9 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
           '$title: ',
           style: TextStyle(
             fontSize: 13,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
         ),
         Expanded(
@@ -491,7 +500,9 @@ class _PresetApplyScreenState extends ConsumerState<PresetApplyScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              color: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
             ),
           ),
         ),

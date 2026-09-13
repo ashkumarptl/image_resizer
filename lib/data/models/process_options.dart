@@ -1,8 +1,4 @@
-enum ResizeMode {
-  none,
-  exactPixels,
-  percentage,
-}
+enum ResizeMode { none, exactPixels, percentage }
 
 class ProcessOptions {
   final String sourcePath;

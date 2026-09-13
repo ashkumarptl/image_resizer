@@ -29,7 +29,11 @@ class ImageMetadataInfo {
 
   /// True if image contains either GPS coordinates or identifiable camera/device tags
   bool get hasSensitiveData =>
-      hasGps || cameraMake != null || cameraModel != null || latitude != null || longitude != null;
+      hasGps ||
+      cameraMake != null ||
+      cameraModel != null ||
+      latitude != null ||
+      longitude != null;
 
   @override
   String toString() {
@@ -86,7 +90,8 @@ class MetadataStripper {
 
       // Also check top-level GPS tag or directories
       if (!hasGps) {
-        hasGps = exif.hasTag(0x8825) ||
+        hasGps =
+            exif.hasTag(0x8825) ||
             exif.directories.containsKey('gps') ||
             (exif.hasTag(0x0001) && exif.hasTag(0x0002));
       }
@@ -116,7 +121,10 @@ class MetadataStripper {
   }
 
   /// Convenience utility to scrub metadata from an existing file and write out a sanitized copy
-  static Future<File> stripFileMetadata(File inputFile, {String? outputPath}) async {
+  static Future<File> stripFileMetadata(
+    File inputFile, {
+    String? outputPath,
+  }) async {
     final bytes = await inputFile.readAsBytes();
     final image = img.decodeImage(bytes);
     if (image == null) {
@@ -136,7 +144,10 @@ class MetadataStripper {
       }
       final filename = p.basenameWithoutExtension(inputFile.path);
       final ext = p.extension(inputFile.path).toLowerCase();
-      outPath = p.join(basePath, '${filename}_clean_${DateTime.now().millisecondsSinceEpoch}$ext');
+      outPath = p.join(
+        basePath,
+        '${filename}_clean_${DateTime.now().millisecondsSinceEpoch}$ext',
+      );
     }
 
     final ext = p.extension(outPath).toLowerCase();

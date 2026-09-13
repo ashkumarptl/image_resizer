@@ -22,7 +22,9 @@ class InAppUpdateService {
       if (isManualCheck && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('In-app updates are only available on Android via Google Play.'),
+            content: Text(
+              'In-app updates are only available on Android via Google Play.',
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );

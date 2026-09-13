@@ -88,35 +88,42 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
 
     _hintSlideAnim = TweenSequence<Offset>([
       TweenSequenceItem(
-        tween: Tween<Offset>(begin: const Offset(0.25, 0), end: const Offset(-0.25, 0))
-            .chain(CurveTween(curve: Curves.easeInOutCubic)),
+        tween: Tween<Offset>(
+          begin: const Offset(0.25, 0),
+          end: const Offset(-0.25, 0),
+        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
         weight: 40,
       ),
       TweenSequenceItem(
-        tween: Tween<Offset>(begin: const Offset(-0.25, 0), end: const Offset(0.1, 0))
-            .chain(CurveTween(curve: Curves.easeInOutCubic)),
+        tween: Tween<Offset>(
+          begin: const Offset(-0.25, 0),
+          end: const Offset(0.1, 0),
+        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
         weight: 30,
       ),
       TweenSequenceItem(
-        tween: Tween<Offset>(begin: const Offset(0.1, 0), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<Offset>(
+          begin: const Offset(0.1, 0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 30,
       ),
     ]).animate(_hintAnimController);
 
     _hintFadeAnim = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 15,
       ),
+      TweenSequenceItem(tween: ConstantTween<double>(1.0), weight: 55),
       TweenSequenceItem(
-        tween: ConstantTween<double>(1.0),
-        weight: 55,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 30,
       ),
     ]).animate(_hintAnimController);
@@ -144,13 +151,15 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
 
   void _scrollToActiveTool() {
     if (!mounted || !_scrollController.hasClients) return;
-    if (widget.activeTool == StudioActiveTool.flip || widget.activeTool == StudioActiveTool.rotate) {
+    if (widget.activeTool == StudioActiveTool.flip ||
+        widget.activeTool == StudioActiveTool.rotate) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
       );
-    } else if (widget.activeTool == StudioActiveTool.compress || widget.activeTool == StudioActiveTool.resize) {
+    } else if (widget.activeTool == StudioActiveTool.compress ||
+        widget.activeTool == StudioActiveTool.resize) {
       _scrollController.animateTo(
         0.0,
         duration: const Duration(milliseconds: 300),
@@ -174,21 +183,23 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
         setState(() => _showSwipeHint = true);
         _hintAnimController.forward(from: 0.0);
 
-        _scrollController.animateTo(
-          55.0,
-          duration: const Duration(milliseconds: 450),
-          curve: Curves.easeOutCubic,
-        ).then((_) {
-          if (!mounted || !_scrollController.hasClients) return;
-          _peekHoldTimer = Timer(const Duration(milliseconds: 300), () {
-            if (!mounted || !_scrollController.hasClients) return;
-            _scrollController.animateTo(
-              0.0,
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOutCubic,
-            );
-          });
-        });
+        _scrollController
+            .animateTo(
+              55.0,
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeOutCubic,
+            )
+            .then((_) {
+              if (!mounted || !_scrollController.hasClients) return;
+              _peekHoldTimer = Timer(const Duration(milliseconds: 300), () {
+                if (!mounted || !_scrollController.hasClients) return;
+                _scrollController.animateTo(
+                  0.0,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOutCubic,
+                );
+              });
+            });
       }
     });
   }
@@ -242,7 +253,9 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black45 : Colors.black.withValues(alpha: 0.05),
+            color: isDark
+                ? Colors.black45
+                : Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -255,194 +268,225 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
           heightFactor: 1.0,
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: context.isLargeTablet ? 1000 : (context.isMediumOrWider ? 900 : 800),
+              maxWidth: context.isLargeTablet
+                  ? 1000
+                  : (context.isMediumOrWider ? 900 : 800),
             ),
             child: Stack(
               alignment: Alignment.center,
               children: [
-            // Scrollable Tools Row
-            NotificationListener<ScrollNotification>(
-              onNotification: (notification) {
-                if (notification is UserScrollNotification) {
-                  _dismissHint();
-                }
-                return false;
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildToolButton(
-                        context,
-                        icon: Icons.compress_rounded,
-                        label: 'COMPRESS',
-                        isActive: widget.activeTool == StudioActiveTool.compress,
-                        onTap: () {
-                          _dismissHint();
-                          widget.onCompress();
-                        },
-                        onLongPress: widget.onCompressLongPress,
-                      ),
-                      _buildToolButton(
-                        context,
-                        icon: Icons.open_in_full_rounded,
-                        label: 'RESIZE',
-                        isActive: widget.activeTool == StudioActiveTool.resize,
-                        onTap: () {
-                          _dismissHint();
-                          widget.onResize();
-                        },
-                      ),
-                      _buildToolButton(
-                        context,
-                        icon: Icons.tune_rounded,
-                        label: 'FORMAT',
-                        isActive: widget.activeTool == StudioActiveTool.format,
-                        onTap: () {
-                          _dismissHint();
-                          widget.onFormat();
-                        },
-                      ),
-                      _buildToolButton(
-                        context,
-                        icon: Icons.auto_fix_high_rounded,
-                        label: 'BG REMOVE',
-                        isActive: widget.activeTool == StudioActiveTool.bgRemover || widget.hasRemovedBg,
-                        badgeText: widget.hasRemovedBg ? 'DONE' : null,
-                        onTap: () {
-                          _dismissHint();
-                          widget.onBgRemover();
-                        },
-                      ),
-                      if (widget.onDocFilter != null)
-                        _buildToolButton(
-                          context,
-                          icon: Icons.document_scanner_rounded,
-                          label: 'DOC FILTER',
-                          isActive: widget.activeTool == StudioActiveTool.docFilter || widget.hasAppliedFilter,
-                          badgeText: widget.hasAppliedFilter ? 'DONE' : null,
-                          onTap: () {
-                            _dismissHint();
-                            widget.onDocFilter!();
-                          },
-                        ),
-                      if (widget.onUpscale != null)
-                        _buildToolButton(
-                          context,
-                          icon: Icons.auto_awesome_rounded,
-                          label: 'AI UPSCALE',
-                          isActive: widget.activeTool == StudioActiveTool.upscale || widget.hasUpscaled,
-                          badgeText: widget.hasUpscaled ? 'DONE' : 'BETA',
-                          onTap: () {
-                            _dismissHint();
-                            widget.onUpscale!();
-                          },
-                        ),
-                      _buildToolButton(
-                        context,
-                        icon: Icons.crop_outlined,
-                        label: 'CROP',
-                        isActive: widget.activeTool == StudioActiveTool.crop || widget.hasCropped,
-                        badgeText: widget.hasCropped ? 'DONE' : null,
-                        onTap: () {
-                          _dismissHint();
-                          widget.onCrop();
-                        },
-                      ),
-                      _buildToolButton(
-                        context,
-                        icon: Icons.rotate_90_degrees_cw_outlined,
-                        label: 'ROTATE',
-                        isActive: widget.activeTool == StudioActiveTool.rotate || widget.hasRotated,
-                        badgeText: widget.hasRotated ? 'ACTIVE' : null,
-                        onTap: () {
-                          _dismissHint();
-                          widget.onRotate();
-                        },
-                      ),
-                      _buildToolButton(
-                        context,
-                        icon: Icons.flip_outlined,
-                        label: 'FLIP',
-                        isActive: widget.activeTool == StudioActiveTool.flip || widget.hasFlipped,
-                        badgeText: widget.hasFlipped ? 'FLIPPED' : null,
-                        onTap: () {
-                          _dismissHint();
-                          widget.onFlip();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Left Edge Scroll Indicator & Tappable Chevron
-            _buildScrollEdgeIndicator(isRight: false, isDark: isDark),
-
-            // Right Edge Scroll Indicator & Tappable Chevron
-            _buildScrollEdgeIndicator(isRight: true, isDark: isDark),
-
-            // Animated Swipe Cue Banner
-            if (_showSwipeHint)
-              Positioned(
-                top: 4,
-                child: IgnorePointer(
-                  child: FadeTransition(
-                    opacity: _hintFadeAnim,
-                    child: SlideTransition(
-                      position: _hintSlideAnim,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3.5),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.85),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white24, width: 0.8),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black38,
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
+                // Scrollable Tools Row
+                NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    if (notification is UserScrollNotification) {
+                      _dismissHint();
+                    }
+                    return false;
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 4,
+                    ),
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildToolButton(
+                            context,
+                            icon: Icons.compress_rounded,
+                            label: 'COMPRESS',
+                            isActive:
+                                widget.activeTool == StudioActiveTool.compress,
+                            onTap: () {
+                              _dismissHint();
+                              widget.onCompress();
+                            },
+                            onLongPress: widget.onCompressLongPress,
+                          ),
+                          _buildToolButton(
+                            context,
+                            icon: Icons.open_in_full_rounded,
+                            label: 'RESIZE',
+                            isActive:
+                                widget.activeTool == StudioActiveTool.resize,
+                            onTap: () {
+                              _dismissHint();
+                              widget.onResize();
+                            },
+                          ),
+                          _buildToolButton(
+                            context,
+                            icon: Icons.tune_rounded,
+                            label: 'FORMAT',
+                            isActive:
+                                widget.activeTool == StudioActiveTool.format,
+                            onTap: () {
+                              _dismissHint();
+                              widget.onFormat();
+                            },
+                          ),
+                          _buildToolButton(
+                            context,
+                            icon: Icons.auto_fix_high_rounded,
+                            label: 'BG REMOVE',
+                            isActive:
+                                widget.activeTool ==
+                                    StudioActiveTool.bgRemover ||
+                                widget.hasRemovedBg,
+                            badgeText: widget.hasRemovedBg ? 'DONE' : null,
+                            onTap: () {
+                              _dismissHint();
+                              widget.onBgRemover();
+                            },
+                          ),
+                          if (widget.onDocFilter != null)
+                            _buildToolButton(
+                              context,
+                              icon: Icons.document_scanner_rounded,
+                              label: 'DOC FILTER',
+                              isActive:
+                                  widget.activeTool ==
+                                      StudioActiveTool.docFilter ||
+                                  widget.hasAppliedFilter,
+                              badgeText: widget.hasAppliedFilter
+                                  ? 'DONE'
+                                  : null,
+                              onTap: () {
+                                _dismissHint();
+                                widget.onDocFilter!();
+                              },
                             ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.swipe_left_rounded,
-                              size: 13,
-                              color: Colors.white,
+                          if (widget.onUpscale != null)
+                            _buildToolButton(
+                              context,
+                              icon: Icons.auto_awesome_rounded,
+                              label: 'AI UPSCALE',
+                              isActive:
+                                  widget.activeTool ==
+                                      StudioActiveTool.upscale ||
+                                  widget.hasUpscaled,
+                              badgeText: widget.hasUpscaled ? 'DONE' : 'BETA',
+                              onTap: () {
+                                _dismissHint();
+                                widget.onUpscale!();
+                              },
                             ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Swipe for more tools',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                            SizedBox(width: 3),
-                            Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 8,
-                              color: Colors.white70,
-                            ),
-                          ],
-                        ),
+                          _buildToolButton(
+                            context,
+                            icon: Icons.crop_outlined,
+                            label: 'CROP',
+                            isActive:
+                                widget.activeTool == StudioActiveTool.crop ||
+                                widget.hasCropped,
+                            badgeText: widget.hasCropped ? 'DONE' : null,
+                            onTap: () {
+                              _dismissHint();
+                              widget.onCrop();
+                            },
+                          ),
+                          _buildToolButton(
+                            context,
+                            icon: Icons.rotate_90_degrees_cw_outlined,
+                            label: 'ROTATE',
+                            isActive:
+                                widget.activeTool == StudioActiveTool.rotate ||
+                                widget.hasRotated,
+                            badgeText: widget.hasRotated ? 'ACTIVE' : null,
+                            onTap: () {
+                              _dismissHint();
+                              widget.onRotate();
+                            },
+                          ),
+                          _buildToolButton(
+                            context,
+                            icon: Icons.flip_outlined,
+                            label: 'FLIP',
+                            isActive:
+                                widget.activeTool == StudioActiveTool.flip ||
+                                widget.hasFlipped,
+                            badgeText: widget.hasFlipped ? 'FLIPPED' : null,
+                            onTap: () {
+                              _dismissHint();
+                              widget.onFlip();
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              ),
-          ],
+
+                // Left Edge Scroll Indicator & Tappable Chevron
+                _buildScrollEdgeIndicator(isRight: false, isDark: isDark),
+
+                // Right Edge Scroll Indicator & Tappable Chevron
+                _buildScrollEdgeIndicator(isRight: true, isDark: isDark),
+
+                // Animated Swipe Cue Banner
+                if (_showSwipeHint)
+                  Positioned(
+                    top: 4,
+                    child: IgnorePointer(
+                      child: FadeTransition(
+                        opacity: _hintFadeAnim,
+                        child: SlideTransition(
+                          position: _hintSlideAnim,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 3.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white24,
+                                width: 0.8,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black38,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.swipe_left_rounded,
+                                  size: 13,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Swipe for more tools',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                                SizedBox(width: 3),
+                                Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 8,
+                                  color: Colors.white70,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -450,7 +494,10 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
     );
   }
 
-  Widget _buildScrollEdgeIndicator({required bool isRight, required bool isDark}) {
+  Widget _buildScrollEdgeIndicator({
+    required bool isRight,
+    required bool isDark,
+  }) {
     final canScroll = isRight ? _canScrollRight : _canScrollLeft;
     final bgColor = isDark ? AppColors.surfaceDark : Colors.white;
     final iconColor = isDark ? Colors.white70 : AppColors.textSecondaryLight;
@@ -470,8 +517,14 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
               if (!_scrollController.hasClients) return;
               _dismissHint();
               final target = isRight
-                  ? (_scrollController.offset + 120).clamp(0.0, _scrollController.position.maxScrollExtent)
-                  : (_scrollController.offset - 120).clamp(0.0, _scrollController.position.maxScrollExtent);
+                  ? (_scrollController.offset + 120).clamp(
+                      0.0,
+                      _scrollController.position.maxScrollExtent,
+                    )
+                  : (_scrollController.offset - 120).clamp(
+                      0.0,
+                      _scrollController.position.maxScrollExtent,
+                    );
               _scrollController.animateTo(
                 target,
                 duration: const Duration(milliseconds: 300),
@@ -492,9 +545,15 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
               ),
               child: Center(
                 child: Icon(
-                  isRight ? Icons.chevron_right_rounded : Icons.chevron_left_rounded,
+                  isRight
+                      ? Icons.chevron_right_rounded
+                      : Icons.chevron_left_rounded,
                   color: iconColor,
-                  size: context.adaptiveIconSize(18, tabletSize: 24, largeTabletSize: 26),
+                  size: context.adaptiveIconSize(
+                    18,
+                    tabletSize: 24,
+                    largeTabletSize: 26,
+                  ),
                 ),
               ),
             ),
@@ -517,16 +576,34 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
     final activeBg = isDark
         ? AppColors.primary.withValues(alpha: 0.22)
         : AppColors.primary.withValues(alpha: 0.12);
-    final unselectedColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final unselectedColor = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondaryLight;
     const selectedColor = AppColors.primary;
 
-    final minWidth = context.isLargeTablet ? 92.0 : (context.isMediumOrWider ? 80.0 : 64.0);
-    final iconSize = context.adaptiveIconSize(24, tabletSize: 30, largeTabletSize: 34);
-    final labelFontSize = context.adaptiveFontSize(10, tabletSize: 13, largeTabletSize: 14.5);
-    final badgeFontSize = context.adaptiveFontSize(8, tabletSize: 10.5, largeTabletSize: 12);
+    final minWidth = context.isLargeTablet
+        ? 92.0
+        : (context.isMediumOrWider ? 80.0 : 64.0);
+    final iconSize = context.adaptiveIconSize(
+      24,
+      tabletSize: 30,
+      largeTabletSize: 34,
+    );
+    final labelFontSize = context.adaptiveFontSize(
+      10,
+      tabletSize: 13,
+      largeTabletSize: 14.5,
+    );
+    final badgeFontSize = context.adaptiveFontSize(
+      8,
+      tabletSize: 10.5,
+      largeTabletSize: 12,
+    );
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: context.isMediumOrWider ? 6 : 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: context.isMediumOrWider ? 6 : 4,
+      ),
       child: Material(
         color: isActive ? activeBg : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
@@ -565,7 +642,9 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                       label,
                       style: TextStyle(
                         fontSize: labelFontSize,
-                        fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+                        fontWeight: isActive
+                            ? FontWeight.w800
+                            : FontWeight.w600,
                         letterSpacing: 0.5,
                         color: isActive ? selectedColor : unselectedColor,
                       ),

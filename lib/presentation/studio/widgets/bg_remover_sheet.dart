@@ -20,10 +20,7 @@ class BgRemoverResult {
 class BgRemoverSheet extends StatefulWidget {
   final File imageFile;
 
-  const BgRemoverSheet({
-    super.key,
-    required this.imageFile,
-  });
+  const BgRemoverSheet({super.key, required this.imageFile});
 
   static Future<BgRemoverResult?> show(
     BuildContext context, {
@@ -75,7 +72,9 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
     });
 
     try {
-      final bytes = await BackgroundRemoverService.extractForeground(widget.imageFile);
+      final bytes = await BackgroundRemoverService.extractForeground(
+        widget.imageFile,
+      );
       if (!mounted) return;
 
       if (bytes != null && bytes.isNotEmpty) {
@@ -224,7 +223,10 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
             // Content Body
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: _buildBody(isDark),
               ),
             ),
@@ -237,7 +239,9 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                   color: isDark ? AppColors.surfaceDark : Colors.white,
                   border: Border(
                     top: BorderSide(
-                      color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                      color: isDark
+                          ? Colors.white10
+                          : Colors.black.withValues(alpha: 0.05),
                     ),
                   ),
                 ),
@@ -246,7 +250,9 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                     Expanded(
                       flex: 1,
                       child: OutlinedButton(
-                        onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+                        onPressed: _isSaving
+                            ? null
+                            : () => Navigator.of(context).pop(),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -303,10 +309,7 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
             const SizedBox(height: 20),
             const Text(
               'Separating subject from background...',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
             Text(
@@ -376,11 +379,7 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
             children: [
               // Background Layer (Checkerboard for transparent, solid color otherwise)
               if (_selectedBgColor == null)
-                CustomPaint(
-                  painter: _CheckerboardPainter(
-                    isDark: isDark,
-                  ),
-                )
+                CustomPaint(painter: _CheckerboardPainter(isDark: isDark))
               else
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
@@ -403,13 +402,18 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                 top: 8,
                 right: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.65),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    _selectedBgColor == null ? 'PNG (Transparent)' : 'Solid Color',
+                    _selectedBgColor == null
+                        ? 'PNG (Transparent)'
+                        : 'Solid Color',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,
@@ -430,20 +434,18 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
           children: [
             const Text(
               'Background Style',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             Text(
               _selectedBgColor == null
                   ? 'Transparent Cutout'
                   : (_colorOptions
-                          .firstWhere(
-                            (o) => o.color == _selectedBgColor,
-                            orElse: () => const _BgColorOption(name: 'Custom', color: null),
-                          )
-                          .name),
+                        .firstWhere(
+                          (o) => o.color == _selectedBgColor,
+                          orElse: () =>
+                              const _BgColorOption(name: 'Custom', color: null),
+                        )
+                        .name),
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.primary,
@@ -464,8 +466,10 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final option = _colorOptions[index];
-              final isSelected = (_selectedBgColor == null && option.isTransparent) ||
-                  (_selectedBgColor != null && _selectedBgColor == option.color);
+              final isSelected =
+                  (_selectedBgColor == null && option.isTransparent) ||
+                  (_selectedBgColor != null &&
+                      _selectedBgColor == option.color);
 
               return GestureDetector(
                 onTap: () {
@@ -491,7 +495,9 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.35),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.35,
+                                  ),
                                   blurRadius: 8,
                                   spreadRadius: 1,
                                 ),
@@ -501,9 +507,16 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                       child: ClipOval(
                         child: option.isTransparent
                             ? CustomPaint(
-                                painter: _CheckerboardPainter(isDark: isDark, squareSize: 6),
+                                painter: _CheckerboardPainter(
+                                  isDark: isDark,
+                                  squareSize: 6,
+                                ),
                                 child: isSelected
-                                    ? const Icon(Icons.check, size: 20, color: AppColors.primary)
+                                    ? const Icon(
+                                        Icons.check,
+                                        size: 20,
+                                        color: AppColors.primary,
+                                      )
                                     : null,
                               )
                             : Container(
@@ -512,8 +525,11 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                                     ? Icon(
                                         Icons.check,
                                         size: 20,
-                                        color: option.color == const Color(0xFFFFFFFF) ||
-                                                option.color == const Color(0xFFE5E7EB)
+                                        color:
+                                            option.color ==
+                                                    const Color(0xFFFFFFFF) ||
+                                                option.color ==
+                                                    const Color(0xFFE5E7EB)
                                             ? Colors.black87
                                             : Colors.white,
                                       )
@@ -526,7 +542,9 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                       option.name,
                       style: TextStyle(
                         fontSize: 10,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                         color: isSelected
                             ? AppColors.primary
                             : (isDark ? Colors.white70 : Colors.black87),
@@ -546,10 +564,14 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.grey.shade100,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+              color: isDark
+                  ? Colors.white10
+                  : Colors.black.withValues(alpha: 0.05),
             ),
           ),
           child: Row(
@@ -595,10 +617,7 @@ class _CheckerboardPainter extends CustomPainter {
   final bool isDark;
   final double squareSize;
 
-  _CheckerboardPainter({
-    required this.isDark,
-    this.squareSize = 10.0,
-  });
+  _CheckerboardPainter({required this.isDark, this.squareSize = 10.0});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -617,7 +636,12 @@ class _CheckerboardPainter extends CustomPainter {
       for (int j = 0; j < numY; j++) {
         if ((i + j) % 2 == 1) {
           canvas.drawRect(
-            Rect.fromLTWH(i * squareSize, j * squareSize, squareSize, squareSize),
+            Rect.fromLTWH(
+              i * squareSize,
+              j * squareSize,
+              squareSize,
+              squareSize,
+            ),
             paint1,
           );
         }

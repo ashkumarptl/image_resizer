@@ -84,7 +84,9 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
         sourcePath: widget.item.path,
         targetSizeKB: _targetSizeKB,
         outputFormat: _format,
-        resizeMode: _scalePercentage == 100 ? ResizeMode.none : ResizeMode.percentage,
+        resizeMode: _scalePercentage == 100
+            ? ResizeMode.none
+            : ResizeMode.percentage,
         resizePercentage: _scalePercentage == 100 ? null : _scalePercentage,
         preventSizeIncrease: true,
       );
@@ -153,7 +155,9 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -161,7 +165,9 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                         '${widget.item.readableSize} • ${widget.item.resolutionString}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                     ],
@@ -177,7 +183,9 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+                color: isDark
+                    ? AppColors.surfaceVariantDark
+                    : AppColors.surfaceVariantLight,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
@@ -191,14 +199,20 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                       ),
                       Text(
-                        _isCustom ? 'Override batch defaults' : 'Inherits batch settings',
+                        _isCustom
+                            ? 'Override batch defaults'
+                            : 'Inherits batch settings',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                     ],
@@ -224,7 +238,9 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 8),
@@ -241,9 +257,13 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                     labelStyle: TextStyle(
                       color: isSelected
                           ? Colors.white
-                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                          : (isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight),
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                     onSelected: (sel) {
                       if (sel) {
@@ -287,7 +307,9 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 8),
@@ -303,9 +325,13 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                     labelStyle: TextStyle(
                       color: isSelected
                           ? Colors.white
-                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                          : (isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight),
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                     onSelected: (sel) {
                       if (sel) setState(() => _format = fmt);
@@ -321,7 +347,9 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 8),
@@ -337,9 +365,13 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                     labelStyle: TextStyle(
                       color: isSelected
                           ? Colors.white
-                          : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                          : (isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight),
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                     onSelected: (sel) {
                       if (sel) setState(() => _scalePercentage = pct);

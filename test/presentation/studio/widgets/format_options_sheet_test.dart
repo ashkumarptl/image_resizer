@@ -36,7 +36,9 @@ void main() {
   }
 
   group('FormatOptionsSheet Tests', () {
-    testWidgets('Renders minimal header, 3 format tabs, and Apply button', (tester) async {
+    testWidgets('Renders minimal header, 3 format tabs, and Apply button', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
@@ -65,7 +67,9 @@ void main() {
       expect(find.text('Apply Format'), findsOneWidget);
     });
 
-    testWidgets('Switching to PNG hides slider and shows lossless note', (tester) async {
+    testWidgets('Switching to PNG hides slider and shows lossless note', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
@@ -78,7 +82,10 @@ void main() {
 
       // Slider is hidden
       expect(find.byType(Slider), findsNothing);
-      expect(find.textContaining('PNG preserves full lossless transparency'), findsOneWidget);
+      expect(
+        find.textContaining('PNG preserves full lossless transparency'),
+        findsOneWidget,
+      );
 
       // Switch back to WebP
       await tester.tap(find.text('WebP'));
@@ -88,40 +95,43 @@ void main() {
       expect(find.byType(Slider), findsOneWidget);
     });
 
-    testWidgets('Selecting DPI and tapping Apply Format calls onApply with correct values', (tester) async {
-      String? appliedFormat;
-      double? appliedQuality;
-      int? appliedDpi;
+    testWidgets(
+      'Selecting DPI and tapping Apply Format calls onApply with correct values',
+      (tester) async {
+        String? appliedFormat;
+        double? appliedQuality;
+        int? appliedDpi;
 
-      await tester.pumpWidget(
-        buildTestWidget(
-          onApply: (f, q, d) {
-            appliedFormat = f;
-            appliedQuality = q;
-            appliedDpi = d;
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          buildTestWidget(
+            onApply: (f, q, d) {
+              appliedFormat = f;
+              appliedQuality = q;
+              appliedDpi = d;
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Open Format Sheet'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Open Format Sheet'));
+        await tester.pumpAndSettle();
 
-      // Select WebP
-      await tester.tap(find.text('WebP'));
-      await tester.pumpAndSettle();
+        // Select WebP
+        await tester.tap(find.text('WebP'));
+        await tester.pumpAndSettle();
 
-      // Select 300 DPI
-      await tester.tap(find.text('300 (UPSC) ★'));
-      await tester.pumpAndSettle();
+        // Select 300 DPI
+        await tester.tap(find.text('300 (UPSC) ★'));
+        await tester.pumpAndSettle();
 
-      // Tap Apply
-      await tester.tap(find.text('Apply Format'));
-      await tester.pumpAndSettle();
+        // Tap Apply
+        await tester.tap(find.text('Apply Format'));
+        await tester.pumpAndSettle();
 
-      expect(appliedFormat, equals('webp'));
-      expect(appliedQuality, equals(85.0));
-      expect(appliedDpi, equals(300));
-    });
+        expect(appliedFormat, equals('webp'));
+        expect(appliedQuality, equals(85.0));
+        expect(appliedDpi, equals(300));
+      },
+    );
   });
 }

@@ -8,7 +8,8 @@ class PresetFavoritesRepository {
 
   final SharedPreferences? _prefsOverride;
 
-  PresetFavoritesRepository({SharedPreferences? prefs}) : _prefsOverride = prefs;
+  PresetFavoritesRepository({SharedPreferences? prefs})
+    : _prefsOverride = prefs;
 
   Future<SharedPreferences> _getPrefs() async {
     return _prefsOverride ?? await SharedPreferences.getInstance();
@@ -56,12 +57,16 @@ class PresetFavoritesRepository {
       }
       await prefs.setStringList(_recentKey, current);
     } catch (e) {
-      debugPrint('[PresetFavoritesRepository] Error recording recent preset: $e');
+      debugPrint(
+        '[PresetFavoritesRepository] Error recording recent preset: $e',
+      );
     }
   }
 }
 
-final presetFavoritesRepositoryProvider = Provider<PresetFavoritesRepository>((ref) {
+final presetFavoritesRepositoryProvider = Provider<PresetFavoritesRepository>((
+  ref,
+) {
   return PresetFavoritesRepository();
 });
 
@@ -108,6 +113,6 @@ class FavoritePresetIdsNotifier extends StateNotifier<Set<String>> {
 
 final favoritePresetIdsProvider =
     StateNotifierProvider<FavoritePresetIdsNotifier, Set<String>>((ref) {
-  final repo = ref.watch(presetFavoritesRepositoryProvider);
-  return FavoritePresetIdsNotifier(repo);
-});
+      final repo = ref.watch(presetFavoritesRepositoryProvider);
+      return FavoritePresetIdsNotifier(repo);
+    });

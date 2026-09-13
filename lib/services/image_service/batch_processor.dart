@@ -71,7 +71,9 @@ class BatchProcessor {
 
     final isTest = Platform.environment.containsKey('FLUTTER_TEST');
     // Concurrency limit: 2 to 3 parallel workers on multi-core systems, avoiding OOM while boosting speed
-    final concurrency = isTest ? 1 : math.min(math.max(1, Platform.numberOfProcessors - 1), 3);
+    final concurrency = isTest
+        ? 1
+        : math.min(math.max(1, Platform.numberOfProcessors - 1), 3);
 
     Future<void> worker() async {
       while (true) {
@@ -80,7 +82,8 @@ class BatchProcessor {
         final path = sourceFilePaths[i];
         final fileName = p.basename(path);
 
-        final itemOptions = (itemOverrides != null && itemOverrides.containsKey(path))
+        final itemOptions =
+            (itemOverrides != null && itemOverrides.containsKey(path))
             ? itemOverrides[path]!.copyWith(sourcePath: path)
             : baseOptions.copyWith(sourcePath: path);
 
@@ -103,7 +106,9 @@ class BatchProcessor {
       }
     }
 
-    await Future.wait(List.generate(math.min(concurrency, total), (_) => worker()));
+    await Future.wait(
+      List.generate(math.min(concurrency, total), (_) => worker()),
+    );
 
     final results = indexedResults.whereType<ProcessResult>().toList();
 
@@ -121,10 +126,11 @@ class BatchProcessor {
     );
   }
 
-  /// Create a zip archive containing all output files
+  /// Create a zip archive containing all output files in a background isolate
   static Future<String> _createZipArchive(List<ProcessResult> results) async {
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
     String cacheDirPath;
-    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+    if (isTest) {
       cacheDirPath = Directory.systemTemp.path;
     } else {
       try {
@@ -135,19 +141,52 @@ class BatchProcessor {
       }
     }
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final zipFile = File(p.join(cacheDirPath, 'image_tools_batch_$timestamp.zip'));
+    final zipFilePath = p.join(cacheDirPath, 'image_tools_batch_$timestamp.zip');
 
-    final encoder = ZipFileEncoder();
-    encoder.create(zipFile.path);
+    final filePaths = results
+        .map((r) => r.outputPath)
+        .where((path) => File(path).existsSync())
+        .toList();
 
-    for (final result in results) {
-      final file = File(result.outputPath);
-      if (file.existsSync()) {
-        encoder.addFile(file);
-      }
+    final params = _ZipWorkerParams(
+      zipFilePath: zipFilePath,
+      filePaths: filePaths,
+    );
+
+    if (isTest) {
+      return _runZipWorker(params);
     }
 
-    encoder.close();
-    return zipFile.path;
+    return compute(_runZipWorker, params);
   }
+}
+
+class _ZipWorkerParams {
+  final String zipFilePath;
+  final List<String> filePaths;
+
+  const _ZipWorkerParams({
+    required this.zipFilePath,
+    required this.filePaths,
+  });
+}
+
+String _runZipWorker(_ZipWorkerParams params) {
+  final zipFile = File(params.zipFilePath);
+  if (!zipFile.parent.existsSync()) {
+    zipFile.parent.createSync(recursive: true);
+  }
+
+  final encoder = ZipFileEncoder();
+  encoder.create(zipFile.path);
+
+  for (final path in params.filePaths) {
+    final file = File(path);
+    if (file.existsSync()) {
+      encoder.addFile(file);
+    }
+  }
+
+  encoder.close();
+  return zipFile.path;
 }

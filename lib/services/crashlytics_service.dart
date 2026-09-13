@@ -54,7 +54,9 @@ class CrashlyticsService {
       if (outputFormat != null) {
         await _crashlytics.setCustomKey('output_format', outputFormat);
       }
-      await _crashlytics.log('Starting $operation on ${inputWidth}x$inputHeight (${inputSizeKb}KB)');
+      await _crashlytics.log(
+        'Starting $operation on ${inputWidth}x$inputHeight (${inputSizeKb}KB)',
+      );
     } catch (e) {
       debugPrint('[Crashlytics] Failed to set processing context: $e');
     }
@@ -80,7 +82,9 @@ class CrashlyticsService {
         reason: reason,
         fatal: false,
       );
-      debugPrint('[Crashlytics] Recorded non-fatal error: $reason | $exception');
+      debugPrint(
+        '[Crashlytics] Recorded non-fatal error: $reason | $exception',
+      );
     } catch (e) {
       debugPrint('[Crashlytics] Error recording non-fatal: $e');
     }

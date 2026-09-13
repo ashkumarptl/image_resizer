@@ -27,7 +27,9 @@ class HeicConverter {
         if (header.length >= 12) {
           final ftyp = String.fromCharCodes(header.sublist(4, 8));
           if (ftyp == 'ftyp') {
-            final brand = String.fromCharCodes(header.sublist(8, 12)).toLowerCase();
+            final brand = String.fromCharCodes(
+              header.sublist(8, 12),
+            ).toLowerCase();
             if (brand.contains('hei') ||
                 brand.contains('mif') ||
                 brand.contains('msf') ||
@@ -75,13 +77,17 @@ class HeicConverter {
       }
 
       // 1. Try native platform conversion (Android hardware-accelerated decoder)
-      if (!kIsWeb && Platform.isAndroid && !Platform.environment.containsKey('FLUTTER_TEST')) {
-        final converted = await SystemIntegrationService.instance.convertHeicToJpeg(
-          filePath,
-          targetPath: destPath,
-        );
-        if (converted != null && File(converted).existsSync() && File(converted).lengthSync() > 0) {
-          debugPrint('[HeicConverter] Converted HEIC via native Android decoder: $converted');
+      if (!kIsWeb &&
+          Platform.isAndroid &&
+          !Platform.environment.containsKey('FLUTTER_TEST')) {
+        final converted = await SystemIntegrationService.instance
+            .convertHeicToJpeg(filePath, targetPath: destPath);
+        if (converted != null &&
+            File(converted).existsSync() &&
+            File(converted).lengthSync() > 0) {
+          debugPrint(
+            '[HeicConverter] Converted HEIC via native Android decoder: $converted',
+          );
           return converted;
         }
       }
@@ -90,7 +96,9 @@ class HeicConverter {
       final bytes = await sourceFile.readAsBytes();
       final codec = await ui.instantiateImageCodec(bytes);
       final frame = await codec.getNextFrame();
-      final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.png);
+      final byteData = await frame.image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
 
       if (byteData != null) {
         final pngBytes = byteData.buffer.asUint8List();
@@ -99,7 +107,9 @@ class HeicConverter {
           final jpgBytes = img.encodeJpg(decoded, quality: 85);
           await cachedFile.parent.create(recursive: true);
           await cachedFile.writeAsBytes(jpgBytes);
-          debugPrint('[HeicConverter] Converted HEIC via engine fallback: $destPath');
+          debugPrint(
+            '[HeicConverter] Converted HEIC via engine fallback: $destPath',
+          );
           return destPath;
         }
       }

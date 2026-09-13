@@ -52,7 +52,8 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
   }
 
   Future<void> _loadImageDimensions() async {
-    final isTest = Platform.environment.containsKey('FLUTTER_TEST') ||
+    final isTest =
+        Platform.environment.containsKey('FLUTTER_TEST') ||
         Platform.environment['FLUTTER_TEST'] == 'true' ||
         WidgetsBinding.instance.runtimeType.toString().contains('Test');
     if (isTest) {
@@ -196,9 +197,7 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
         Navigator.of(context).pop(File(result.outputPath));
       } else {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => ResultScreen(result: result),
-          ),
+          MaterialPageRoute(builder: (_) => ResultScreen(result: result)),
         );
       }
     } catch (e) {
@@ -219,7 +218,9 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
     final isWide = context.isMediumOrWider;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF1E293B),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFF1E293B),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -240,10 +241,7 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
             ),
             Text(
               'Drag 4 corners to align document boundaries',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.white70,
-              ),
+              style: TextStyle(fontSize: 11, color: Colors.white70),
             ),
           ],
         ),
@@ -280,12 +278,14 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
         child: isWide
             ? Row(
                 children: [
-                  Expanded(
-                    child: _buildCanvas(),
-                  ),
+                  Expanded(child: _buildCanvas()),
                   Container(
                     width: 340,
-                    margin: const EdgeInsets.only(right: 16, top: 8, bottom: 16),
+                    margin: const EdgeInsets.only(
+                      right: 16,
+                      top: 8,
+                      bottom: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -307,9 +307,7 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
             : Column(
                 children: [
                   // 1. Interactive 4-Corner Gesture Canvas
-                  Expanded(
-                    child: _buildCanvas(),
-                  ),
+                  Expanded(child: _buildCanvas()),
 
                   // 2. Bottom Settings Panel
                   _buildBottomControls(isDark),
@@ -350,7 +348,10 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
               right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.72),
                     borderRadius: BorderRadius.circular(20),
@@ -438,16 +439,14 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
         ),
         const SizedBox(height: 6),
         if (isWide)
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: ratioChips,
-          )
+          Wrap(spacing: 6, runSpacing: 6, children: ratioChips)
         else
           Row(
             children: [

@@ -33,14 +33,13 @@ class NameDateStamper {
 
     return compute(
       _stampPhotoInternal,
-      _StampIsolateParams(
-        options: options,
-        outputDirPath: outputDirPath,
-      ),
+      _StampIsolateParams(options: options, outputDirPath: outputDirPath),
     );
   }
 
-  static Future<ProcessResult> _stampPhotoInternal(_StampIsolateParams params) async {
+  static Future<ProcessResult> _stampPhotoInternal(
+    _StampIsolateParams params,
+  ) async {
     final stopwatch = Stopwatch()..start();
     final options = params.options;
     final sourceFile = File(options.sourcePath);
@@ -97,7 +96,9 @@ class NameDateStamper {
 
     // Calculate centering (approx character width ~8-12px)
     final charWidth = font == img.arial24 ? 14 : 9;
-    final nameX = ((working.width - (nameText.length * charWidth)) / 2).round().clamp(10, working.width - 20);
+    final nameX = ((working.width - (nameText.length * charWidth)) / 2)
+        .round()
+        .clamp(10, working.width - 20);
     final nameY = footerStartY + (footerHeight * 0.18).round();
 
     img.drawString(
@@ -109,7 +110,9 @@ class NameDateStamper {
       color: img.ColorRgba8(0, 0, 0, 255),
     );
 
-    final dateX = ((working.width - (dateText.length * charWidth)) / 2).round().clamp(10, working.width - 20);
+    final dateX = ((working.width - (dateText.length * charWidth)) / 2)
+        .round()
+        .clamp(10, working.width - 20);
     final dateY = footerStartY + (footerHeight * 0.55).round();
 
     img.drawString(
@@ -133,7 +136,10 @@ class NameDateStamper {
 
     // 5. Save output file
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final outputFilePath = p.join(params.outputDirPath, 'photo_stamped_$timestamp.jpg');
+    final outputFilePath = p.join(
+      params.outputDirPath,
+      'photo_stamped_$timestamp.jpg',
+    );
     await File(outputFilePath).writeAsBytes(encoded);
 
     stopwatch.stop();

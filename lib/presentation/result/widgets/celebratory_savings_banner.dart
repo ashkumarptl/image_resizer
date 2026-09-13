@@ -8,13 +8,11 @@ import '../../../data/models/process_result.dart';
 class CelebratorySavingsBanner extends StatefulWidget {
   final ProcessResult result;
 
-  const CelebratorySavingsBanner({
-    super.key,
-    required this.result,
-  });
+  const CelebratorySavingsBanner({super.key, required this.result});
 
   @override
-  State<CelebratorySavingsBanner> createState() => _CelebratorySavingsBannerState();
+  State<CelebratorySavingsBanner> createState() =>
+      _CelebratorySavingsBannerState();
 }
 
 class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
@@ -31,7 +29,8 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
     );
 
     final ratio = widget.result.originalSizeBytes > 0
-        ? (widget.result.outputSizeBytes / widget.result.originalSizeBytes).clamp(0.02, 1.0)
+        ? (widget.result.outputSizeBytes / widget.result.originalSizeBytes)
+              .clamp(0.02, 1.0)
         : 1.0;
 
     _progressAnimation = Tween<double>(begin: 0.0, end: ratio).animate(
@@ -68,7 +67,11 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
         ),
         child: Row(
           children: [
-            const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.primary),
+            const Icon(
+              Icons.info_outline_rounded,
+              size: 18,
+              color: AppColors.primary,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -76,7 +79,9 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textPrimaryDark : Colors.blue.shade900,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : Colors.blue.shade900,
                 ),
               ),
             ),
@@ -101,10 +106,7 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
                   const Color(0xFF064E3B).withValues(alpha: 0.55),
                   const Color(0xFF0F766E).withValues(alpha: 0.35),
                 ]
-              : [
-                  const Color(0xFFECFDF5),
-                  const Color(0xFFF0FDFA),
-                ],
+              : [const Color(0xFFECFDF5), const Color(0xFFF0FDFA)],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
@@ -115,7 +117,9 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.12 : 0.08),
+            color: const Color(
+              0xFF10B981,
+            ).withValues(alpha: isDark ? 0.12 : 0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -132,11 +136,17 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.25 : 0.15),
+                  color: const Color(
+                    0xFF10B981,
+                  ).withValues(alpha: isDark ? 0.25 : 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Text('🎉', style: TextStyle(fontSize: 16)),
-              ).animate().scale(delay: 100.ms, duration: 350.ms, curve: Curves.easeOutBack),
+              ).animate().scale(
+                delay: 100.ms,
+                duration: 350.ms,
+                curve: Curves.easeOutBack,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -150,27 +160,39 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? const Color(0xFF34D399) : const Color(0xFF065F46),
+                              color: isDark
+                                  ? const Color(0xFF34D399)
+                                  : const Color(0xFF065F46),
                               letterSpacing: -0.2,
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.25 : 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '-${savedBytes.toReadableFileSize()}',
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
-                            ),
-                          ),
-                        ).animate().fadeIn(delay: 200.ms).shimmer(delay: 600.ms, duration: 1200.ms),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFF10B981,
+                                ).withValues(alpha: isDark ? 0.25 : 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '-${savedBytes.toReadableFileSize()}',
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? const Color(0xFF6EE7B7)
+                                      : const Color(0xFF047857),
+                                ),
+                              ),
+                            )
+                            .animate()
+                            .fadeIn(delay: 200.ms)
+                            .shimmer(delay: 600.ms, duration: 1200.ms),
                       ],
                     ),
                     const SizedBox(height: 2),
@@ -179,7 +201,9 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
                       style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textSecondaryDark : const Color(0xFF047857),
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : const Color(0xFF047857),
                       ),
                     ),
                   ],
@@ -205,7 +229,10 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
                       builder: (context, child) {
                         return FractionallySizedBox(
                           alignment: Alignment.centerLeft,
-                          widthFactor: _progressAnimation.value.clamp(0.02, 1.0),
+                          widthFactor: _progressAnimation.value.clamp(
+                            0.02,
+                            1.0,
+                          ),
                           child: Container(
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
@@ -230,7 +257,9 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
                       style: TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                   ),
@@ -244,7 +273,9 @@ class _CelebratorySavingsBannerState extends State<CelebratorySavingsBanner>
                       style: TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                   ),

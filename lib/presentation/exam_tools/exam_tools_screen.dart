@@ -7,10 +7,7 @@ import '../presets/presets_hub_screen.dart';
 class ExamToolsScreen extends StatelessWidget {
   final VoidCallback? onNavigateToPresets;
 
-  const ExamToolsScreen({
-    super.key,
-    this.onNavigateToPresets,
-  });
+  const ExamToolsScreen({super.key, this.onNavigateToPresets});
 
   @override
   Widget build(BuildContext context) {

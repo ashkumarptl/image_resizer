@@ -4,21 +4,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_theme.dart';
 
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
+  ref,
+) {
   return ThemeModeNotifier();
 });
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   static const String themePrefKey = 'image_tools_theme_mode';
+  final SharedPreferences? _prefs;
 
-  ThemeModeNotifier() : super(ThemeMode.system) {
-    _loadSavedTheme();
+  ThemeModeNotifier({
+    ThemeMode initialMode = ThemeMode.system,
+    SharedPreferences? prefs,
+  })  : _prefs = prefs,
+        super(initialMode) {
+    if (prefs == null) {
+      _loadSavedTheme();
+    }
   }
 
   static void applySystemUiOverlay(ThemeMode mode) {
     final platformBrightness =
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    final isDark = mode == ThemeMode.dark ||
+    final isDark =
+        mode == ThemeMode.dark ||
         (mode == ThemeMode.system && platformBrightness == Brightness.dark);
     SystemChrome.setSystemUIOverlayStyle(
       isDark ? AppTheme.darkSystemUiStyle : AppTheme.lightSystemUiStyle,
@@ -27,9 +37,11 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 
   Future<void> _loadSavedTheme() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = _prefs ?? await SharedPreferences.getInstance();
       final savedIndex = prefs.getInt(themePrefKey);
-      if (savedIndex != null && savedIndex >= 0 && savedIndex < ThemeMode.values.length) {
+      if (savedIndex != null &&
+          savedIndex >= 0 &&
+          savedIndex < ThemeMode.values.length) {
         state = ThemeMode.values[savedIndex];
         applySystemUiOverlay(state);
       }
@@ -40,7 +52,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     state = mode;
     applySystemUiOverlay(mode);
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = _prefs ?? await SharedPreferences.getInstance();
       await prefs.setInt(themePrefKey, mode.index);
     } catch (_) {}
   }

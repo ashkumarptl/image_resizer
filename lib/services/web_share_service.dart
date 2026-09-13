@@ -163,7 +163,9 @@ class WebShareService {
         );
       }
     } catch (e) {
-      debugPrint('[WebShareService] Error getting Wi-Fi IP via NetworkInfo: $e');
+      debugPrint(
+        '[WebShareService] Error getting Wi-Fi IP via NetworkInfo: $e',
+      );
     }
 
     // If still empty, search all non-loopback IPv4 as fallback
@@ -260,11 +262,7 @@ class WebShareService {
       );
     } catch (_) {
       // Ephemeral port allocation
-      _server = await HttpServer.bind(
-        InternetAddress.anyIPv4,
-        0,
-        shared: true,
-      );
+      _server = await HttpServer.bind(InternetAddress.anyIPv4, 0, shared: true);
     }
 
     _port = _server!.port;
@@ -376,7 +374,8 @@ class WebShareService {
 
     final totalSizeStr = _formatBytes(totalBytes);
 
-    final html = '''
+    final html =
+        '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -693,7 +692,9 @@ class WebShareService {
       final path = _filePaths[i];
       final file = File(path);
       final fileName = p.basename(path);
-      final sizeStr = file.existsSync() ? _formatBytes(file.lengthSync()) : '0 B';
+      final sizeStr = file.existsSync()
+          ? _formatBytes(file.lengthSync())
+          : '0 B';
 
       buffer.writeln('''
       <div class="image-card">
@@ -741,7 +742,10 @@ class WebShareService {
     request.response
       ..statusCode = HttpStatus.ok
       ..headers.set(HttpHeaders.contentTypeHeader, mimeType)
-      ..headers.set(HttpHeaders.contentLengthHeader, file.lengthSync().toString())
+      ..headers.set(
+        HttpHeaders.contentLengthHeader,
+        file.lengthSync().toString(),
+      )
       ..headers.set(HttpHeaders.cacheControlHeader, 'public, max-age=3600');
 
     await file.openRead().pipe(request.response);
@@ -775,11 +779,11 @@ class WebShareService {
     request.response
       ..statusCode = HttpStatus.ok
       ..headers.set(HttpHeaders.contentTypeHeader, mimeType)
-      ..headers.set(HttpHeaders.contentLengthHeader, file.lengthSync().toString())
       ..headers.set(
-        'Content-Disposition',
-        'attachment; filename="$fileName"',
-      );
+        HttpHeaders.contentLengthHeader,
+        file.lengthSync().toString(),
+      )
+      ..headers.set('Content-Disposition', 'attachment; filename="$fileName"');
 
     await file.openRead().pipe(request.response);
 

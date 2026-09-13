@@ -92,9 +92,7 @@ void main() {
       final result = await BatchProcessor.processBatch(
         sourceFilePaths: [sampleImage1.path, sampleImage2.path],
         baseOptions: baseOptions,
-        itemOverrides: {
-          sampleImage2.path: overrideForImg2,
-        },
+        itemOverrides: {sampleImage2.path: overrideForImg2},
         createZip: true,
       );
 
@@ -108,118 +106,122 @@ void main() {
   });
 
   group('BatchImageCard Widget Tests', () {
-    testWidgets('Renders thumbnail, metadata, custom badge, and handles actions', (tester) async {
-      var removed = false;
-      var previewed = false;
-      var cropped = false;
-      var customized = false;
+    testWidgets(
+      'Renders thumbnail, metadata, custom badge, and handles actions',
+      (tester) async {
+        var removed = false;
+        var previewed = false;
+        var cropped = false;
+        var customized = false;
 
-      final item = BatchItemModel(
-        file: sampleImage1,
-        fileSizeBytes: 2048,
-        dimensions: const ImageDimensions(width: 80, height: 60),
-        customOptions: const ProcessOptions(sourcePath: '', targetSizeKB: 50),
-      );
+        final item = BatchItemModel(
+          file: sampleImage1,
+          fileSizeBytes: 2048,
+          dimensions: const ImageDimensions(width: 80, height: 60),
+          customOptions: const ProcessOptions(sourcePath: '', targetSizeKB: 50),
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: BatchImageCard(
-              item: item,
-              onRemove: () => removed = true,
-              onTapPreview: () => previewed = true,
-              onTapCrop: () => cropped = true,
-              onCustomize: () => customized = true,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: BatchImageCard(
+                item: item,
+                onRemove: () => removed = true,
+                onTapPreview: () => previewed = true,
+                onTapCrop: () => cropped = true,
+                onCustomize: () => customized = true,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('img_1.png'), findsOneWidget);
-      expect(find.text('80×60'), findsOneWidget);
-      expect(find.text('CUSTOM'), findsOneWidget);
+        expect(find.text('img_1.png'), findsOneWidget);
+        expect(find.text('80×60'), findsOneWidget);
+        expect(find.text('CUSTOM'), findsOneWidget);
 
-      // Tap remove button
-      await tester.tap(find.byIcon(Icons.close_rounded));
-      await tester.pump();
-      expect(removed, true);
+        // Tap remove button
+        await tester.tap(find.byIcon(Icons.close_rounded));
+        await tester.pump();
+        expect(removed, true);
 
-      // Tap preview button
-      await tester.tap(find.byIcon(Icons.fullscreen_rounded));
-      await tester.pump();
-      expect(previewed, true);
+        // Tap preview button
+        await tester.tap(find.byIcon(Icons.fullscreen_rounded));
+        await tester.pump();
+        expect(previewed, true);
 
-      // Tap crop button
-      await tester.tap(find.byIcon(Icons.crop_rounded));
-      await tester.pump();
-      expect(cropped, true);
+        // Tap crop button
+        await tester.tap(find.byIcon(Icons.crop_rounded));
+        await tester.pump();
+        expect(cropped, true);
 
-      // Tap customize button
-      await tester.tap(find.byIcon(Icons.tune_rounded));
-      await tester.pump();
-      expect(customized, true);
-    });
+        // Tap customize button
+        await tester.tap(find.byIcon(Icons.tune_rounded));
+        await tester.pump();
+        expect(customized, true);
+      },
+    );
   });
 
   group('BatchItemSettingsSheet Widget Tests', () {
-    testWidgets('Toggles customize switch, modifies KB, and saves custom options', (tester) async {
-      ProcessOptions? savedOptions;
+    testWidgets(
+      'Toggles customize switch, modifies KB, and saves custom options',
+      (tester) async {
+        ProcessOptions? savedOptions;
 
-      final item = BatchItemModel(
-        file: sampleImage1,
-        fileSizeBytes: 2048,
-        dimensions: const ImageDimensions(width: 80, height: 60),
-      );
+        final item = BatchItemModel(
+          file: sampleImage1,
+          fileSizeBytes: 2048,
+          dimensions: const ImageDimensions(width: 80, height: 60),
+        );
 
-      const defaultOptions = ProcessOptions(
-        sourcePath: '/path/to/img_1.png',
-        targetSizeKB: 100,
-        outputFormat: 'jpg',
-      );
+        const defaultOptions = ProcessOptions(
+          sourcePath: '/path/to/img_1.png',
+          targetSizeKB: 100,
+          outputFormat: 'jpg',
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: BatchItemSettingsSheet(
-              item: item,
-              defaultOptions: defaultOptions,
-              onSave: (opts) => savedOptions = opts,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: BatchItemSettingsSheet(
+                item: item,
+                defaultOptions: defaultOptions,
+                onSave: (opts) => savedOptions = opts,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('Customize for this image'), findsOneWidget);
-      expect(find.text('Keep Default'), findsOneWidget);
+        expect(find.text('Customize for this image'), findsOneWidget);
+        expect(find.text('Keep Default'), findsOneWidget);
 
-      // Toggle switch to enable customization
-      await tester.tap(find.byType(Switch));
-      await tester.pumpAndSettle();
+        // Toggle switch to enable customization
+        await tester.tap(find.byType(Switch));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Apply Custom'), findsOneWidget);
-      expect(find.text('Target Size (KB)'), findsOneWidget);
+        expect(find.text('Apply Custom'), findsOneWidget);
+        expect(find.text('Target Size (KB)'), findsOneWidget);
 
-      // Select 50 KB chip
-      await tester.tap(find.text('50 KB'));
-      await tester.pumpAndSettle();
+        // Select 50 KB chip
+        await tester.tap(find.text('50 KB'));
+        await tester.pumpAndSettle();
 
-      // Tap Apply Custom
-      await tester.tap(find.text('Apply Custom'));
-      await tester.pumpAndSettle();
+        // Tap Apply Custom
+        await tester.tap(find.text('Apply Custom'));
+        await tester.pumpAndSettle();
 
-      expect(savedOptions, isNotNull);
-      expect(savedOptions?.targetSizeKB, 50);
-    });
+        expect(savedOptions, isNotNull);
+        expect(savedOptions?.targetSizeKB, 50);
+      },
+    );
   });
 
   group('BatchScreen Widget Tests', () {
-    testWidgets('Renders empty state with Smart Document Scanner option', (tester) async {
+    testWidgets('Renders empty state with Smart Document Scanner option', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
-            home: BatchScreen(),
-          ),
-        ),
+        const ProviderScope(child: MaterialApp(home: BatchScreen())),
       );
 
       expect(find.text('Batch Processing'), findsOneWidget);
@@ -231,13 +233,13 @@ void main() {
       expect(find.text('Take Photo'), findsNothing);
     });
 
-    testWidgets('Renders cards and options when initialized with images', (tester) async {
+    testWidgets('Renders cards and options when initialized with images', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: BatchScreen(
-              initialImages: [sampleImage1, sampleImage2],
-            ),
+            home: BatchScreen(initialImages: [sampleImage1, sampleImage2]),
           ),
         ),
       );
@@ -279,7 +281,9 @@ void main() {
   });
 
   group('BatchPdfExportSheet Widget Tests', () {
-    testWidgets('Renders correctly with presets and custom filename', (tester) async {
+    testWidgets('Renders correctly with presets and custom filename', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -316,34 +320,31 @@ void main() {
   });
 
   group('BatchScreen Small Screen Overflow Tests', () {
-    testWidgets('BatchScreen empty card does not overflow on 360px and 320px narrow screens',
-        (WidgetTester tester) async {
-      // 1. Test on standard small phone screen (360x640)
-      tester.view.physicalSize = const Size(360, 640);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+    testWidgets(
+      'BatchScreen empty card does not overflow on 360px and 320px narrow screens',
+      (WidgetTester tester) async {
+        // 1. Test on standard small phone screen (360x640)
+        tester.view.physicalSize = const Size(360, 640);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
 
-      await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
-            home: BatchScreen(),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          const ProviderScope(child: MaterialApp(home: BatchScreen())),
+        );
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Smart Document Scanner'), findsOneWidget);
-      expect(find.text('ML KIT'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        expect(find.text('Smart Document Scanner'), findsOneWidget);
+        expect(find.text('ML KIT'), findsOneWidget);
 
-      // 2. Test on ultra-narrow 320px screen
-      tester.view.physicalSize = const Size(320, 640);
-      await tester.pumpAndSettle();
+        // 2. Test on ultra-narrow 320px screen
+        tester.view.physicalSize = const Size(320, 640);
+        await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Smart Document Scanner'), findsOneWidget);
-      expect(find.text('ML KIT'), findsOneWidget);
-    });
+        expect(tester.takeException(), isNull);
+        expect(find.text('Smart Document Scanner'), findsOneWidget);
+        expect(find.text('ML KIT'), findsOneWidget);
+      },
+    );
   });
 }
-

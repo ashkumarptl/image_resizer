@@ -27,7 +27,10 @@ class StorageService {
   }
 
   /// Save a PDF file to the device's public Downloads or Documents folder
-  static Future<File?> savePdfToDevice(String sourcePdfPath, {String? customFileName}) async {
+  static Future<File?> savePdfToDevice(
+    String sourcePdfPath, {
+    String? customFileName,
+  }) async {
     try {
       final sourceFile = File(sourcePdfPath);
       if (!await sourceFile.exists()) {
@@ -64,20 +67,23 @@ class StorageService {
     }
   }
 
-  /// Clean old temporary processed files to free device storage
-  static Future<void> cleanOldCacheFiles({Duration maxAge = const Duration(days: 7)}) async {
+  /// Clean old temporary processed files to free device storage without blocking UI thread
+  static Future<void> cleanOldCacheFiles({
+    Duration maxAge = const Duration(days: 7),
+  }) async {
     try {
       final cacheDir = await getTemporaryDirectory();
       final now = DateTime.now();
 
-      if (cacheDir.existsSync()) {
-        final files = cacheDir.listSync();
-        for (final entity in files) {
+      if (await cacheDir.exists()) {
+        await for (final entity in cacheDir.list(followLinks: false)) {
           if (entity is File && entity.path.contains('img_tool_')) {
-            final stat = entity.statSync();
-            if (now.difference(stat.modified) > maxAge) {
-              entity.deleteSync();
-            }
+            try {
+              final stat = await entity.stat();
+              if (now.difference(stat.modified) > maxAge) {
+                await entity.delete();
+              }
+            } catch (_) {}
           }
         }
       }

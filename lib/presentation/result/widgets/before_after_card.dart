@@ -9,10 +9,7 @@ import 'fullscreen_image_preview.dart';
 class BeforeAfterCard extends StatefulWidget {
   final ProcessResult result;
 
-  const BeforeAfterCard({
-    super.key,
-    required this.result,
-  });
+  const BeforeAfterCard({super.key, required this.result});
 
   @override
   State<BeforeAfterCard> createState() => _BeforeAfterCardState();
@@ -70,7 +67,9 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(18),
+                ),
                 child: Material(
                   color: isDark ? Colors.black26 : Colors.grey.shade100,
                   child: InkWell(
@@ -84,9 +83,12 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                               child: Image.file(
                                 currentFile,
                                 fit: BoxFit.contain,
+                                cacheWidth: 800,
                               ),
                             )
-                          : const Center(child: Icon(Icons.broken_image, size: 40)),
+                          : const Center(
+                              child: Icon(Icons.broken_image, size: 40),
+                            ),
                     ),
                   ),
                 ),
@@ -106,7 +108,11 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.fullscreen_rounded, color: Colors.white, size: 14),
+                          Icon(
+                            Icons.fullscreen_rounded,
+                            color: Colors.white,
+                            size: 14,
+                          ),
                           SizedBox(width: 4),
                           Text(
                             'Tap to preview',
@@ -137,7 +143,10 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                       });
                     },
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -148,7 +157,9 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            _showOriginal ? 'Viewing Original' : 'Tap for Original',
+                            _showOriginal
+                                ? 'Viewing Original'
+                                : 'Tap for Original',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 11,
@@ -175,9 +186,14 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                     // Original Size Tile
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.surfaceVariantDark : Colors.grey.shade100,
+                          color: isDark
+                              ? AppColors.surfaceVariantDark
+                              : Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Column(
@@ -189,7 +205,9 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
                                 letterSpacing: 0.4,
                               ),
                             ),
@@ -199,7 +217,9 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
-                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight,
                               ),
                             ),
                           ],
@@ -217,14 +237,28 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                     // Output Size Tile
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: result.isSizeReduced
-                              ? (isDark ? const Color(0xFF14532D).withValues(alpha: 0.35) : AppColors.successContainer)
-                              : (isDark ? AppColors.surfaceVariantDark : Colors.grey.shade100),
+                              ? (isDark
+                                    ? const Color(
+                                        0xFF14532D,
+                                      ).withValues(alpha: 0.35)
+                                    : AppColors.successContainer)
+                              : (isDark
+                                    ? AppColors.surfaceVariantDark
+                                    : Colors.grey.shade100),
                           borderRadius: BorderRadius.circular(10),
                           border: result.isSizeReduced
-                              ? Border.all(color: AppColors.success.withValues(alpha: 0.3), width: 0.8)
+                              ? Border.all(
+                                  color: AppColors.success.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  width: 0.8,
+                                )
                               : null,
                         ),
                         child: Column(
@@ -232,13 +266,19 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              result.isSizeReduced ? 'OPTIMIZED' : 'OUTPUT SIZE',
+                              result.isSizeReduced
+                                  ? 'OPTIMIZED'
+                                  : 'OUTPUT SIZE',
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
                                 color: result.isSizeReduced
-                                    ? (isDark ? const Color(0xFF4ADE80) : AppColors.success)
-                                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                                    ? (isDark
+                                          ? const Color(0xFF4ADE80)
+                                          : AppColors.success)
+                                    : (isDark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondaryLight),
                                 letterSpacing: 0.4,
                               ),
                             ),
@@ -249,8 +289,12 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 color: result.isSizeReduced
-                                    ? (isDark ? const Color(0xFF4ADE80) : AppColors.success)
-                                    : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                                    ? (isDark
+                                          ? const Color(0xFF4ADE80)
+                                          : AppColors.success)
+                                    : (isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimaryLight),
                               ),
                             ),
                           ],
@@ -265,15 +309,24 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF14532D).withValues(alpha: 0.25) : AppColors.successContainer.withValues(alpha: 0.7),
+                      color: isDark
+                          ? const Color(0xFF14532D).withValues(alpha: 0.25)
+                          : AppColors.successContainer.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.check_circle_rounded, size: 14, color: AppColors.success),
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          size: 14,
+                          color: AppColors.success,
+                        ),
                         const SizedBox(width: 5),
                         Flexible(
                           child: Text(
@@ -281,7 +334,9 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                             style: TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? const Color(0xFF4ADE80) : AppColors.success,
+                              color: isDark
+                                  ? const Color(0xFF4ADE80)
+                                  : AppColors.success,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -290,18 +345,26 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                       ],
                     ),
                   ),
-                ] else if (result.outputSizeBytes > result.originalSizeBytes) ...[
+                ] else if (result.outputSizeBytes >
+                    result.originalSizeBytes) ...[
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.amber.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info_outline_rounded, size: 14, color: Colors.amber),
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          size: 14,
+                          color: Colors.amber,
+                        ),
                         const SizedBox(width: 5),
                         Expanded(
                           child: Text(
@@ -309,7 +372,9 @@ class _BeforeAfterCardState extends State<BeforeAfterCard> {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.textPrimaryDark : Colors.amber.shade900,
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : Colors.amber.shade900,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

@@ -46,9 +46,10 @@ class DeveloperModeNotifier extends StateNotifier<bool> {
 }
 
 /// Provider for DeveloperModeNotifier
-final developerModeProvider = StateNotifierProvider<DeveloperModeNotifier, bool>((ref) {
-  return DeveloperModeNotifier();
-});
+final developerModeProvider =
+    StateNotifierProvider<DeveloperModeNotifier, bool>((ref) {
+      return DeveloperModeNotifier();
+    });
 
 /// Provider to determine if the user has developer privileges.
 /// When true:
@@ -64,9 +65,7 @@ final isDeveloperProvider = Provider<bool>((ref) {
   // 2. Check if logged in with developer email
   final user = ref.watch(currentUserProvider);
   if (user?.email != null) {
-    const developerEmails = [
-      'ashkumarptl@gmail.com',
-    ];
+    const developerEmails = ['ashkumarptl@gmail.com'];
     if (developerEmails.contains(user!.email!.toLowerCase().trim())) {
       return true;
     }
@@ -104,7 +103,9 @@ class GuestUsageNotifier extends StateNotifier<int> {
 }
 
 /// Provider for guest usage count state
-final guestUsageCountProvider = StateNotifierProvider<GuestUsageNotifier, int>((ref) {
+final guestUsageCountProvider = StateNotifierProvider<GuestUsageNotifier, int>((
+  ref,
+) {
   final repo = ref.watch(usageLimitRepositoryProvider);
   return GuestUsageNotifier(repo);
 });

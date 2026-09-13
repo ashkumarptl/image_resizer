@@ -22,14 +22,14 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('First-time launch renders OnboardingScreen', (WidgetTester tester) async {
+  testWidgets('First-time launch renders OnboardingScreen', (
+    WidgetTester tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          authServiceProvider.overrideWithValue(MockAuthService()),
-        ],
+        overrides: [authServiceProvider.overrideWithValue(MockAuthService())],
         child: const ImageToolsApp(),
       ),
     );
@@ -42,16 +42,14 @@ void main() {
     expect(find.text('Skip'), findsOneWidget);
   });
 
-  testWidgets('Returning user launch renders MainNavigationScreen', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({
-      'pref_onboarding_completed': true,
-    });
+  testWidgets('Returning user launch renders MainNavigationScreen', (
+    WidgetTester tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'pref_onboarding_completed': true});
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          authServiceProvider.overrideWithValue(MockAuthService()),
-        ],
+        overrides: [authServiceProvider.overrideWithValue(MockAuthService())],
         child: const ImageToolsApp(),
       ),
     );

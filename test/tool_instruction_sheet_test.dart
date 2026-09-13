@@ -15,11 +15,26 @@ void main() {
     test('All ToolGuideType values have complete guide configurations', () {
       for (final type in ToolGuideType.values) {
         final data = ToolGuideData.getGuide(type);
-        expect(data.title.isNotEmpty, isTrue, reason: 'Title for ${type.name} is empty');
-        expect(data.subtitle.isNotEmpty, isTrue, reason: 'Subtitle for ${type.name} is empty');
-        expect(data.proTip.isNotEmpty, isTrue, reason: 'ProTip for ${type.name} is empty');
-        expect(data.steps.length, greaterThanOrEqualTo(3),
-            reason: 'Steps for ${type.name} should be at least 3');
+        expect(
+          data.title.isNotEmpty,
+          isTrue,
+          reason: 'Title for ${type.name} is empty',
+        );
+        expect(
+          data.subtitle.isNotEmpty,
+          isTrue,
+          reason: 'Subtitle for ${type.name} is empty',
+        );
+        expect(
+          data.proTip.isNotEmpty,
+          isTrue,
+          reason: 'ProTip for ${type.name} is empty',
+        );
+        expect(
+          data.steps.length,
+          greaterThanOrEqualTo(3),
+          reason: 'Steps for ${type.name} should be at least 3',
+        );
 
         for (final step in data.steps) {
           expect(step.title.isNotEmpty, isTrue);
@@ -29,37 +44,57 @@ void main() {
       }
     });
 
-    test('ToolGuideRepository tracks seen status and resets correctly', () async {
-      final repo = ToolGuideRepository();
+    test(
+      'ToolGuideRepository tracks seen status and resets correctly',
+      () async {
+        final repo = ToolGuideRepository();
 
-      // Initially, guide should be shown
-      expect(await repo.shouldShowGuide(ToolGuideType.signatureCleaner), isTrue);
+        // Initially, guide should be shown
+        expect(
+          await repo.shouldShowGuide(ToolGuideType.signatureCleaner),
+          isTrue,
+        );
 
-      // Mark as seen
-      await repo.markGuideAsSeen(ToolGuideType.signatureCleaner);
-      expect(await repo.shouldShowGuide(ToolGuideType.signatureCleaner), isFalse);
+        // Mark as seen
+        await repo.markGuideAsSeen(ToolGuideType.signatureCleaner);
+        expect(
+          await repo.shouldShowGuide(ToolGuideType.signatureCleaner),
+          isFalse,
+        );
 
-      // Other guides remain unaffected
-      expect(await repo.shouldShowGuide(ToolGuideType.editStudio), isTrue);
+        // Other guides remain unaffected
+        expect(await repo.shouldShowGuide(ToolGuideType.editStudio), isTrue);
 
-      // Reset single guide
-      await repo.resetGuide(ToolGuideType.signatureCleaner);
-      expect(await repo.shouldShowGuide(ToolGuideType.signatureCleaner), isTrue);
+        // Reset single guide
+        await repo.resetGuide(ToolGuideType.signatureCleaner);
+        expect(
+          await repo.shouldShowGuide(ToolGuideType.signatureCleaner),
+          isTrue,
+        );
 
-      // Mark multiple as seen and reset all
-      await repo.markGuideAsSeen(ToolGuideType.signatureCleaner);
-      await repo.markGuideAsSeen(ToolGuideType.editStudio);
-      expect(await repo.shouldShowGuide(ToolGuideType.signatureCleaner), isFalse);
-      expect(await repo.shouldShowGuide(ToolGuideType.editStudio), isFalse);
+        // Mark multiple as seen and reset all
+        await repo.markGuideAsSeen(ToolGuideType.signatureCleaner);
+        await repo.markGuideAsSeen(ToolGuideType.editStudio);
+        expect(
+          await repo.shouldShowGuide(ToolGuideType.signatureCleaner),
+          isFalse,
+        );
+        expect(await repo.shouldShowGuide(ToolGuideType.editStudio), isFalse);
 
-      await repo.resetAllGuides();
-      expect(await repo.shouldShowGuide(ToolGuideType.signatureCleaner), isTrue);
-      expect(await repo.shouldShowGuide(ToolGuideType.editStudio), isTrue);
-    });
+        await repo.resetAllGuides();
+        expect(
+          await repo.shouldShowGuide(ToolGuideType.signatureCleaner),
+          isTrue,
+        );
+        expect(await repo.shouldShowGuide(ToolGuideType.editStudio), isTrue);
+      },
+    );
   });
 
   group('ToolInstructionSheet Widget Tests', () {
-    testWidgets('renders all steps, pro tip, and calls onDismiss', (tester) async {
+    testWidgets('renders all steps, pro tip, and calls onDismiss', (
+      tester,
+    ) async {
       bool dismissed = false;
       final guide = ToolGuideData.getGuide(ToolGuideType.signatureCleaner);
 

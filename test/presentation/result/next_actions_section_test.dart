@@ -12,8 +12,9 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('NextActionsSection renders all smart action suggestions',
-      (WidgetTester tester) async {
+  testWidgets('NextActionsSection renders all smart action suggestions', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -23,9 +24,7 @@ void main() {
       const ProviderScope(
         child: MaterialApp(
           home: Scaffold(
-            body: SingleChildScrollView(
-              child: NextActionsSection(),
-            ),
+            body: SingleChildScrollView(child: NextActionsSection()),
           ),
         ),
       ),
@@ -42,8 +41,9 @@ void main() {
     expect(find.text('Straighten / Deskew Document'), findsOneWidget);
   });
 
-  testWidgets('Tapping Scan another document opens ScanToPdfScreen',
-      (WidgetTester tester) async {
+  testWidgets('Tapping Scan another document opens ScanToPdfScreen', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -53,9 +53,7 @@ void main() {
       const ProviderScope(
         child: MaterialApp(
           home: Scaffold(
-            body: SingleChildScrollView(
-              child: NextActionsSection(),
-            ),
+            body: SingleChildScrollView(child: NextActionsSection()),
           ),
         ),
       ),

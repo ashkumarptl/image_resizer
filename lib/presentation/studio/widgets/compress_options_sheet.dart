@@ -10,7 +10,8 @@ class CompressOptionsSheet extends StatefulWidget {
   final int initialTargetSizeKB;
   final double initialQuality;
   final int originalSizeBytes;
-  final Function(CompressionSheetMode mode, int targetSizeKB, double quality) onApply;
+  final Function(CompressionSheetMode mode, int targetSizeKB, double quality)
+  onApply;
 
   const CompressOptionsSheet({
     super.key,
@@ -27,7 +28,12 @@ class CompressOptionsSheet extends StatefulWidget {
     required int initialTargetSizeKB,
     required double initialQuality,
     required int originalSizeBytes,
-    required Function(CompressionSheetMode mode, int targetSizeKB, double quality) onApply,
+    required Function(
+      CompressionSheetMode mode,
+      int targetSizeKB,
+      double quality,
+    )
+    onApply,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -61,7 +67,9 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
     _mode = widget.initialMode;
     _targetSizeKB = widget.initialTargetSizeKB;
     _quality = widget.initialQuality;
-    _customSizeController = TextEditingController(text: _targetSizeKB.toString());
+    _customSizeController = TextEditingController(
+      text: _targetSizeKB.toString(),
+    );
   }
 
   @override
@@ -132,7 +140,11 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(Icons.compress_rounded, color: AppColors.primary, size: 22),
+                    const Icon(
+                      Icons.compress_rounded,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: FittedBox(
@@ -143,7 +155,9 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
                         ),
                       ),
@@ -167,7 +181,10 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
               style: SegmentedButton.styleFrom(
                 visualDensity: VisualDensity.compact,
                 padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
-                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               segments: const [
                 ButtonSegment(
@@ -213,11 +230,16 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
@@ -244,7 +266,10 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
                     child: ChoiceChip(
                       visualDensity: VisualDensity.compact,
                       avatar: const Icon(Icons.image_outlined, size: 15),
-                      label: const Text('Original', style: TextStyle(fontSize: 12)),
+                      label: const Text(
+                        'Original',
+                        style: TextStyle(fontSize: 12),
+                      ),
                       selected: _mode == CompressionSheetMode.none,
                       onSelected: (selected) {
                         if (selected) {
@@ -255,12 +280,17 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
                     ),
                   ),
                   ..._presetSizes.map((size) {
-                    final isSelected = _mode == CompressionSheetMode.targetSize && _targetSizeKB == size;
+                    final isSelected =
+                        _mode == CompressionSheetMode.targetSize &&
+                        _targetSizeKB == size;
                     return Padding(
                       padding: const EdgeInsets.only(right: 6),
                       child: ChoiceChip(
                         visualDensity: VisualDensity.compact,
-                        label: Text('$size KB', style: const TextStyle(fontSize: 12)),
+                        label: Text(
+                          '$size KB',
+                          style: const TextStyle(fontSize: 12),
+                        ),
                         selected: isSelected,
                         onSelected: (selected) {
                           if (selected) {
@@ -326,7 +356,9 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
                 hintText: 'Enter size e.g. 50',
                 suffixText: 'KB',
                 prefixIcon: const Icon(Icons.data_usage_rounded),
-                border: const OutlineInputBorder(borderRadius: AppRadii.cardSmallRadius),
+                border: const OutlineInputBorder(
+                  borderRadius: AppRadii.cardSmallRadius,
+                ),
               ),
               onChanged: (val) {
                 final parsed = int.tryParse(val);
@@ -402,7 +434,11 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.insights_rounded, size: 16, color: AppColors.primary),
+                const Icon(
+                  Icons.insights_rounded,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -426,7 +462,9 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
               onPressed: () {
                 HapticFeedback.lightImpact();
                 final customVal = int.tryParse(_customSizeController.text);
-                final finalSize = (customVal != null && customVal > 0) ? customVal : _targetSizeKB;
+                final finalSize = (customVal != null && customVal > 0)
+                    ? customVal
+                    : _targetSizeKB;
                 widget.onApply(_mode, finalSize, _quality);
                 Navigator.of(context).pop();
               },

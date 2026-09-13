@@ -9,8 +9,8 @@ class OnboardingNotifier extends StateNotifier<bool> {
   final SharedPreferences? _prefsOverride;
 
   OnboardingNotifier({SharedPreferences? prefs, bool? initialValue})
-      : _prefsOverride = prefs,
-        super(initialValue ?? false) {
+    : _prefsOverride = prefs,
+      super(initialValue ?? false) {
     if (initialValue == null) {
       _loadStatus();
     }
@@ -51,5 +51,5 @@ class OnboardingNotifier extends StateNotifier<bool> {
 /// Global provider for onboarding completion status
 final onboardingCompletedProvider =
     StateNotifierProvider<OnboardingNotifier, bool>((ref) {
-  return OnboardingNotifier();
-});
+      return OnboardingNotifier();
+    });

@@ -112,7 +112,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   int _historyIndex = -1;
 
   bool get _canUndo => _historyIndex > 0;
-  bool get _canRedo => _historyIndex >= 0 && _historyIndex < _history.length - 1;
+  bool get _canRedo =>
+      _historyIndex >= 0 && _historyIndex < _history.length - 1;
 
   @override
   void initState() {
@@ -125,7 +126,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     _activeTool = widget.initialTool;
 
     // Auto-detect format from file extension
-    final ext = p.extension(_currentImage.path).replaceAll('.', '').toLowerCase();
+    final ext = p
+        .extension(_currentImage.path)
+        .replaceAll('.', '')
+        .toLowerCase();
     if (ext == 'png' || ext == 'webp') {
       _outputFormat = ext;
     } else {
@@ -143,6 +147,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     _previewDebounceTimer?.cancel();
     _transformationController.removeListener(_onTransformationChanged);
     _transformationController.dispose();
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
     super.dispose();
   }
 
@@ -172,8 +178,12 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         quality: _quality.round(),
         outputFormat: _outputFormat,
         resizeMode: _getResizeMode(),
-        targetWidth: _resizeOption == ResizeSheetOption.exactPixels ? _targetWidth : null,
-        targetHeight: _resizeOption == ResizeSheetOption.exactPixels ? _targetHeight : null,
+        targetWidth: _resizeOption == ResizeSheetOption.exactPixels
+            ? _targetWidth
+            : null,
+        targetHeight: _resizeOption == ResizeSheetOption.exactPixels
+            ? _targetHeight
+            : null,
         resizePercentage: _resizeOption == ResizeSheetOption.percentage
             ? _selectedPercentage
             : null,
@@ -216,7 +226,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       if (_isZoomedIn) {
         _transformationController.value = Matrix4.identity();
       } else {
-        _transformationController.value = Matrix4.diagonal3Values(2.5, 2.5, 1.0);
+        _transformationController.value = Matrix4.diagonal3Values(
+          2.5,
+          2.5,
+          1.0,
+        );
       }
     });
   }
@@ -256,7 +270,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
   void _recordHistory() {
     final current = _createCurrentSnapshot();
-    if (_history.isNotEmpty && _historyIndex >= 0 && _historyIndex < _history.length) {
+    if (_history.isNotEmpty &&
+        _historyIndex >= 0 &&
+        _historyIndex < _history.length) {
       if (_history[_historyIndex].matches(current)) {
         return;
       }
@@ -321,7 +337,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   Future<void> _loadImageMetadata() async {
     try {
       if (HeicConverter.isHeicFile(_currentImage.path)) {
-        final converted = await HeicConverter.ensureCompatibleImage(_currentImage.path);
+        final converted = await HeicConverter.ensureCompatibleImage(
+          _currentImage.path,
+        );
         if (mounted && converted != _currentImage.path) {
           _currentImage = File(converted);
         }
@@ -343,7 +361,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             _originalHeight = dims.height;
             _targetWidth = (_originalWidth * 0.5).round();
             _targetHeight = (_originalHeight * 0.5).round();
-            _fileSizeBytes = _currentImage.existsSync() ? _currentImage.lengthSync() : 0;
+            _fileSizeBytes = _currentImage.existsSync()
+                ? _currentImage.lengthSync()
+                : 0;
             _imageDpi = detectedDpi;
           });
           if (_hasUnsavedChanges) {
@@ -411,8 +431,6 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       await _handleStandardCrop();
     }
   }
-
-
 
   Future<void> _handleDocumentFilter() async {
     final filteredFile = await Navigator.of(context).push<File>(
@@ -516,19 +534,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     } catch (e) {
       debugPrint('Image Cropper error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open crop tool: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not open crop tool: $e')));
       }
     }
   }
 
   Future<void> _handleBgRemover() async {
     setState(() => _activeTool = StudioActiveTool.bgRemover);
-    final result = await BgRemoverSheet.show(
-      context,
-      imageFile: _currentImage,
-    );
+    final result = await BgRemoverSheet.show(context, imageFile: _currentImage);
 
     if (result != null && mounted) {
       setState(() {
@@ -584,7 +599,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     setState(() {
       _isUpscaling = true;
       _upscaleProgress = 0.02;
-      _upscaleStatus = 'Initializing neural engine (${_upscaleSelectedScale}x)...';
+      _upscaleStatus =
+          'Initializing neural engine (${_upscaleSelectedScale}x)...';
     });
 
     try {
@@ -670,7 +686,6 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     }
   }
 
-
   void _handleRotate() {
     HapticFeedback.lightImpact();
     setState(() {
@@ -746,24 +761,25 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       initialTargetHeight: _targetHeight,
       initialPercentage: _selectedPercentage,
       initialKeepAspectRatio: _keepAspectRatio,
-      onApply: ({
-        required option,
-        required targetWidth,
-        required targetHeight,
-        required percentage,
-        required keepAspectRatio,
-      }) {
-        setState(() {
-          _resizeOption = option;
-          _targetWidth = targetWidth;
-          _targetHeight = targetHeight;
-          _selectedPercentage = percentage;
-          _keepAspectRatio = keepAspectRatio;
-          _showOriginal = false;
-        });
-        _recordHistory();
-        _triggerPreviewUpdate(debounce: false);
-      },
+      onApply:
+          ({
+            required option,
+            required targetWidth,
+            required targetHeight,
+            required percentage,
+            required keepAspectRatio,
+          }) {
+            setState(() {
+              _resizeOption = option;
+              _targetWidth = targetWidth;
+              _targetHeight = targetHeight;
+              _selectedPercentage = percentage;
+              _keepAspectRatio = keepAspectRatio;
+              _showOriginal = false;
+            });
+            _recordHistory();
+            _triggerPreviewUpdate(debounce: false);
+          },
     );
   }
 
@@ -832,7 +848,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     }
 
     String resizeStr = '';
-    if (_resizeOption == ResizeSheetOption.exactPixels && _targetWidth > 0 && _targetHeight > 0) {
+    if (_resizeOption == ResizeSheetOption.exactPixels &&
+        _targetWidth > 0 &&
+        _targetHeight > 0) {
       resizeStr = '$_targetWidth×$_targetHeight px • ';
     } else if (_resizeOption == ResizeSheetOption.percentage) {
       resizeStr = '$_selectedPercentage% scale • ';
@@ -887,8 +905,12 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         quality: _quality.round(),
         outputFormat: _outputFormat,
         resizeMode: _getResizeMode(),
-        targetWidth: _resizeOption == ResizeSheetOption.exactPixels ? _targetWidth : null,
-        targetHeight: _resizeOption == ResizeSheetOption.exactPixels ? _targetHeight : null,
+        targetWidth: _resizeOption == ResizeSheetOption.exactPixels
+            ? _targetWidth
+            : null,
+        targetHeight: _resizeOption == ResizeSheetOption.exactPixels
+            ? _targetHeight
+            : null,
         resizePercentage: _resizeOption == ResizeSheetOption.percentage
             ? _selectedPercentage
             : null,
@@ -942,14 +964,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       if (widget.returnResultDirectly) {
         Navigator.of(context).pop(File(result.outputPath));
       } else {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ResultScreen(result: result),
-          ),
-        );
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => ResultScreen(result: result)));
       }
     } catch (e, stack) {
-      CrashlyticsService.recordNonFatalError(e, stack, reason: 'ImageStudio processing error');
+      CrashlyticsService.recordNonFatalError(
+        e,
+        stack,
+        reason: 'ImageStudio processing error',
+      );
 
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -994,19 +1018,25 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     final isTablet = context.isMediumOrWider;
     final isPortrait = context.isPortrait;
     final appBarBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final appBarFg = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final appBarFg = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimaryLight;
 
     return PopScope(
       canPop: !_hasUnsavedChanges,
       onPopInvokedWithResult: (didPop, result) => _handlePopScope(didPop),
       child: Scaffold(
-        backgroundColor: isDark ? AppColors.backgroundDark : const Color(0xFFF6F8FB),
+        backgroundColor: isDark
+            ? AppColors.backgroundDark
+            : const Color(0xFFF6F8FB),
         appBar: AppBar(
           backgroundColor: appBarBg,
           foregroundColor: appBarFg,
           iconTheme: IconThemeData(color: appBarFg),
           actionsIconTheme: IconThemeData(color: appBarFg),
-          systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+          systemOverlayStyle: isDark
+              ? SystemUiOverlayStyle.light
+              : SystemUiOverlayStyle.dark,
           elevation: 0,
           titleSpacing: 4,
           bottom: PreferredSize(
@@ -1031,11 +1061,14 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             alignment: Alignment.centerLeft,
             child: Text(
               'Edit Studio',
-              style: (Theme.of(context).appBarTheme.titleTextStyle ?? const TextStyle()).copyWith(
-                color: appBarFg,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+              style:
+                  (Theme.of(context).appBarTheme.titleTextStyle ??
+                          const TextStyle())
+                      .copyWith(
+                        color: appBarFg,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
             ),
           ),
           actions: [
@@ -1081,7 +1114,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               color: appBarFg,
               disabledColor: appBarFg.withValues(alpha: 0.25),
               tooltip: 'Reset Adjustments',
-              onPressed: (_isProcessing || !_hasUnsavedChanges) ? null : _resetAllAdjustments,
+              onPressed: (_isProcessing || !_hasUnsavedChanges)
+                  ? null
+                  : _resetAllAdjustments,
             ),
             if (widget.allowRePick)
               IconButton(
@@ -1101,12 +1136,17 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
                         ),
                       ),
                     )
                   : IconButton.filled(
-                      constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+                      constraints: const BoxConstraints(
+                        minWidth: 38,
+                        minHeight: 38,
+                      ),
                       style: IconButton.styleFrom(
                         padding: EdgeInsets.zero,
                         backgroundColor: AppColors.primary,
@@ -1115,11 +1155,12 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                         shadowColor: AppColors.primary.withValues(alpha: 0.4),
                       ),
                       icon: const Icon(Icons.check_rounded, size: 22),
-                      tooltip: _compressionMode == CompressionSheetMode.targetSize
+                      tooltip:
+                          _compressionMode == CompressionSheetMode.targetSize
                           ? 'Compress to < $_selectedTargetSizeKB KB & Save'
                           : (_compressionMode == CompressionSheetMode.none
-                              ? 'Save with Original Quality'
-                              : 'Compress with ${_quality.round()}% Quality & Save'),
+                                ? 'Save with Original Quality'
+                                : 'Compress with ${_quality.round()}% Quality & Save'),
                       onPressed: _processImage,
                     ),
             ),
@@ -1128,30 +1169,32 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         body: SafeArea(
           child: isTablet
               ? (isPortrait
-                  ? _buildTabletPortraitLayout(isDark)
-                  : _buildTabletLandscapeLayout(isDark))
+                    ? _buildTabletPortraitLayout(isDark)
+                    : _buildTabletLandscapeLayout(isDark))
               : _buildMobileLayout(isDark),
         ),
         bottomNavigationBar: isTablet
             ? null
-            : StudioBottomToolbar(
-                activeTool: _activeTool,
-                hasRotated: _quarterTurns != 0,
-                hasFlipped: _flipHorizontal || _flipVertical,
-                hasCropped: _hasCropped,
-                hasRemovedBg: _hasRemovedBg,
-                hasUpscaled: _hasUpscaled,
-                hasAppliedFilter: _hasAppliedFilter,
-                onRotate: _handleRotate,
-                onFlip: _handleFlip,
-                onCrop: _handleCrop,
-                onDocFilter: _handleDocumentFilter,
-                onBgRemover: _handleBgRemover,
-                onUpscale: _handleAiUpscaleToolbar,
-                onCompress: _handleCompressToolbar,
-                onCompressLongPress: _openCompressSheet,
-                onResize: _handleResize,
-                onFormat: _handleFormat,
+            : RepaintBoundary(
+                child: StudioBottomToolbar(
+                  activeTool: _activeTool,
+                  hasRotated: _quarterTurns != 0,
+                  hasFlipped: _flipHorizontal || _flipVertical,
+                  hasCropped: _hasCropped,
+                  hasRemovedBg: _hasRemovedBg,
+                  hasUpscaled: _hasUpscaled,
+                  hasAppliedFilter: _hasAppliedFilter,
+                  onRotate: _handleRotate,
+                  onFlip: _handleFlip,
+                  onCrop: _handleCrop,
+                  onDocFilter: _handleDocumentFilter,
+                  onBgRemover: _handleBgRemover,
+                  onUpscale: _handleAiUpscaleToolbar,
+                  onCompress: _handleCompressToolbar,
+                  onCompressLongPress: _openCompressSheet,
+                  onResize: _handleResize,
+                  onFormat: _handleFormat,
+                ),
               ),
       ),
     );
@@ -1161,27 +1204,35 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     return Column(
       children: [
         // 1. Top File Info HUD
-        StudioInfoCard(
-          filePath: _currentImage.path,
-          width: _originalWidth,
-          height: _originalHeight,
-          fileSizeBytes: _fileSizeBytes,
-          targetSummary: _getTargetSummary(),
-          estimatedSizeBytes: (!_showOriginal && _previewResult != null)
-              ? _previewResult!.outputSizeBytes
-              : null,
-          outputWidth: (!_showOriginal && _previewResult != null && _previewResult!.outputWidth > 0)
-              ? _previewResult!.outputWidth
-              : null,
-          outputHeight: (!_showOriginal && _previewResult != null && _previewResult!.outputHeight > 0)
-              ? _previewResult!.outputHeight
-              : null,
-          outputFormat: _outputFormat,
-          targetGoal: _getTargetGoal(),
-          isCalculating: _isGeneratingPreview,
-          isDark: isDark,
-          dpi: _imageDpi,
-          targetDpi: _targetDpi,
+        RepaintBoundary(
+          child: StudioInfoCard(
+            filePath: _currentImage.path,
+            width: _originalWidth,
+            height: _originalHeight,
+            fileSizeBytes: _fileSizeBytes,
+            targetSummary: _getTargetSummary(),
+            estimatedSizeBytes: (!_showOriginal && _previewResult != null)
+                ? _previewResult!.outputSizeBytes
+                : null,
+            outputWidth:
+                (!_showOriginal &&
+                    _previewResult != null &&
+                    _previewResult!.outputWidth > 0)
+                ? _previewResult!.outputWidth
+                : null,
+            outputHeight:
+                (!_showOriginal &&
+                    _previewResult != null &&
+                    _previewResult!.outputHeight > 0)
+                ? _previewResult!.outputHeight
+                : null,
+            outputFormat: _outputFormat,
+            targetGoal: _getTargetGoal(),
+            isCalculating: _isGeneratingPreview,
+            isDark: isDark,
+            dpi: _imageDpi,
+            targetDpi: _targetDpi,
+          ),
         ),
 
         // 2. Large Central Image Preview (Dominant Viewport - Maximized Height)
@@ -1208,12 +1259,15 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   Widget _buildQuickKbPresetRow(bool isDark) {
     const presets = [20, 50, 100, 200];
     final isOriginalSelected = _compressionMode == CompressionSheetMode.none;
-    final isCustomActive = _compressionMode == CompressionSheetMode.quality ||
-        (_compressionMode == CompressionSheetMode.targetSize && !presets.contains(_selectedTargetSizeKB));
+    final isCustomActive =
+        _compressionMode == CompressionSheetMode.quality ||
+        (_compressionMode == CompressionSheetMode.targetSize &&
+            !presets.contains(_selectedTargetSizeKB));
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: SingleChildScrollView(
+    return RepaintBoundary(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         child: Row(
@@ -1241,13 +1295,18 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isOriginalSelected
                             ? AppColors.primary
-                            : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                            : (isDark
+                                  ? AppColors.borderDark
+                                  : AppColors.borderLight),
                         width: isOriginalSelected ? 1.5 : 1.0,
                       ),
                     ),
@@ -1257,17 +1316,23 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                         Icon(
                           Icons.image_outlined,
                           size: 14,
-                          color: isOriginalSelected ? Colors.white : AppColors.primary,
+                          color: isOriginalSelected
+                              ? Colors.white
+                              : AppColors.primary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           'Original',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: isOriginalSelected ? FontWeight.bold : FontWeight.w600,
+                            fontWeight: isOriginalSelected
+                                ? FontWeight.bold
+                                : FontWeight.w600,
                             color: isOriginalSelected
                                 ? Colors.white
-                                : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                                : (isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight),
                           ),
                         ),
                       ],
@@ -1278,7 +1343,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             ),
 
             ...presets.map((kb) {
-              final isSelected = _compressionMode == CompressionSheetMode.targetSize &&
+              final isSelected =
+                  _compressionMode == CompressionSheetMode.targetSize &&
                   _selectedTargetSizeKB == kb;
               final isQuick = kb == 20 || kb == 50;
 
@@ -1304,13 +1370,18 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     },
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primary
-                              : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                              : (isDark
+                                    ? AppColors.borderDark
+                                    : AppColors.borderLight),
                           width: isSelected ? 1.5 : 1.0,
                         ),
                       ),
@@ -1321,7 +1392,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                             Icon(
                               Icons.bolt_rounded,
                               size: 14,
-                              color: isSelected ? Colors.white : AppColors.primary,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.primary,
                             ),
                             const SizedBox(width: 3),
                           ],
@@ -1329,10 +1402,14 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                             '$kb KB',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
                               color: isSelected
                                   ? Colors.white
-                                  : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                                  : (isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight),
                             ),
                           ),
                         ],
@@ -1358,13 +1435,18 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isCustomActive
                           ? AppColors.primary
-                          : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                          : (isDark
+                                ? AppColors.borderDark
+                                : AppColors.borderLight),
                       width: isCustomActive ? 1.5 : 1.0,
                     ),
                   ),
@@ -1376,21 +1458,28 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                         size: 13,
                         color: isCustomActive
                             ? Colors.white
-                            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                            : (isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         isCustomActive
-                            ? (_compressionMode == CompressionSheetMode.targetSize
-                                ? '$_selectedTargetSizeKB KB'
-                                : '${_quality.round()}%')
+                            ? (_compressionMode ==
+                                      CompressionSheetMode.targetSize
+                                  ? '$_selectedTargetSizeKB KB'
+                                  : '${_quality.round()}%')
                             : 'Custom...',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isCustomActive ? FontWeight.bold : FontWeight.w600,
+                          fontWeight: isCustomActive
+                              ? FontWeight.bold
+                              : FontWeight.w600,
                           color: isCustomActive
                               ? Colors.white
-                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                              : (isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight),
                         ),
                       ),
                     ],
@@ -1401,12 +1490,14 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildQuickUpscaleDock(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    return RepaintBoundary(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
@@ -1417,7 +1508,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.2 : 0.08),
+            color: const Color(
+              0xFF8B5CF6,
+            ).withValues(alpha: isDark ? 0.2 : 0.08),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1429,14 +1522,18 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           _buildUpscaleScaleChip(
             scale: 2,
             label: '2x HD',
-            subtitle: _originalWidth > 0 ? '${_originalWidth * 2}×${_originalHeight * 2}' : 'Double',
+            subtitle: _originalWidth > 0
+                ? '${_originalWidth * 2}×${_originalHeight * 2}'
+                : 'Double',
             isDark: isDark,
           ),
           const SizedBox(width: 8),
           _buildUpscaleScaleChip(
             scale: 4,
             label: '4x Ultra',
-            subtitle: _originalWidth > 0 ? '${_originalWidth * 4}×${_originalHeight * 4}' : 'Quadruple',
+            subtitle: _originalWidth > 0
+                ? '${_originalWidth * 4}×${_originalHeight * 4}'
+                : 'Quadruple',
             isDark: isDark,
           ),
           const SizedBox(width: 12),
@@ -1459,7 +1556,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF8B5CF6),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1483,7 +1582,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       backgroundColor: const Color(0xFF8B5CF6),
                       foregroundColor: Colors.white,
                       elevation: 2,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -1500,8 +1602,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildUpscaleScaleChip({
     required int scale,
@@ -1536,7 +1639,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   fontWeight: FontWeight.bold,
                   color: isSelected
                       ? Colors.white
-                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                      : (isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight),
                 ),
               ),
               Text(
@@ -1545,7 +1650,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   fontSize: 10,
                   color: isSelected
                       ? Colors.white.withValues(alpha: 0.85)
-                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                      : (isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight),
                 ),
               ),
             ],
@@ -1599,7 +1706,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: isDark ? Colors.black38 : Colors.black.withValues(alpha: 0.05),
+                  color: isDark
+                      ? Colors.black38
+                      : Colors.black.withValues(alpha: 0.05),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
@@ -1657,7 +1766,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: isDark ? Colors.black38 : Colors.black.withValues(alpha: 0.05),
+                color: isDark
+                    ? Colors.black38
+                    : Colors.black.withValues(alpha: 0.05),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -1686,10 +1797,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           estimatedSizeBytes: (!_showOriginal && _previewResult != null)
               ? _previewResult!.outputSizeBytes
               : null,
-          outputWidth: (!_showOriginal && _previewResult != null && _previewResult!.outputWidth > 0)
+          outputWidth:
+              (!_showOriginal &&
+                  _previewResult != null &&
+                  _previewResult!.outputWidth > 0)
               ? _previewResult!.outputWidth
               : null,
-          outputHeight: (!_showOriginal && _previewResult != null && _previewResult!.outputHeight > 0)
+          outputHeight:
+              (!_showOriginal &&
+                  _previewResult != null &&
+                  _previewResult!.outputHeight > 0)
               ? _previewResult!.outputHeight
               : null,
           outputFormat: _outputFormat,
@@ -1709,7 +1826,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         Expanded(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
             child: _buildActiveToolInspectorSection(isDark),
           ),
         ),
@@ -1765,7 +1885,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     required String label,
     required bool isDark,
   }) {
-    final isSelected = _activeTool == tool ||
+    final isSelected =
+        _activeTool == tool ||
         (tool == StudioActiveTool.bgRemover &&
             (_activeTool == StudioActiveTool.crop ||
                 _activeTool == StudioActiveTool.docFilter ||
@@ -1774,8 +1895,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 _activeTool == StudioActiveTool.rotate ||
                 _activeTool == StudioActiveTool.flip));
 
-    final iconSize = context.adaptiveIconSize(18, tabletSize: 20, largeTabletSize: 22);
-    final fontSize = context.adaptiveFontSize(11, tabletSize: 12, largeTabletSize: 13);
+    final iconSize = context.adaptiveIconSize(
+      18,
+      tabletSize: 20,
+      largeTabletSize: 22,
+    );
+    final fontSize = context.adaptiveFontSize(
+      11,
+      tabletSize: 12,
+      largeTabletSize: 13,
+    );
 
     return Expanded(
       child: GestureDetector(
@@ -1795,7 +1924,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.3 : 0.08,
+                      ),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -1811,7 +1942,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 size: iconSize,
                 color: isSelected
                     ? (isDark ? Colors.white : AppColors.primary)
-                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    : (isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight),
               ),
               const SizedBox(height: 3),
               Text(
@@ -1820,8 +1953,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   fontSize: fontSize,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   color: isSelected
-                    ? (isDark ? Colors.white : AppColors.primary)
-                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                      ? (isDark ? Colors.white : AppColors.primary)
+                      : (isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight),
                 ),
               ),
             ],
@@ -1920,7 +2055,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
               ),
@@ -1959,7 +2096,15 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             children: [20, 50, 100, 200, 500].map((kb) {
               final isSelected = _selectedTargetSizeKB == kb;
               return ChoiceChip(
-                label: Text('< $kb KB', style: TextStyle(fontSize: 11, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                label: Text(
+                  '< $kb KB',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
                 selected: isSelected,
                 selectedColor: AppColors.primary,
                 labelStyle: TextStyle(color: isSelected ? Colors.white : null),
@@ -1988,7 +2133,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
               ),
@@ -2026,7 +2173,15 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             children: [40, 60, 80, 90, 100].map((q) {
               final isSelected = _quality.round() == q;
               return ChoiceChip(
-                label: Text('$q%', style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                label: Text(
+                  '$q%',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
                 selected: isSelected,
                 selectedColor: AppColors.primary,
                 labelStyle: TextStyle(color: isSelected ? Colors.white : null),
@@ -2050,20 +2205,30 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.blue.shade50,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.blue.shade50,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
+                const Icon(
+                  Icons.info_outline_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     'Full image fidelity will be preserved without file size compression limits.',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                 ),
@@ -2142,12 +2307,19 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               Expanded(
                 child: TextFormField(
                   key: ValueKey('w_$_targetWidth'),
-                  initialValue: _targetWidth > 0 ? _targetWidth.toString() : _originalWidth.toString(),
+                  initialValue: _targetWidth > 0
+                      ? _targetWidth.toString()
+                      : _originalWidth.toString(),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Width (px)',
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   onChanged: (val) {
                     final w = int.tryParse(val);
@@ -2155,7 +2327,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       setState(() {
                         _targetWidth = w;
                         if (_keepAspectRatio && _originalWidth > 0) {
-                          _targetHeight = (w * _originalHeight / _originalWidth).round();
+                          _targetHeight = (w * _originalHeight / _originalWidth)
+                              .round();
                         }
                         _showOriginal = false;
                       });
@@ -2166,10 +2339,14 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               ),
               IconButton(
                 icon: Icon(
-                  _keepAspectRatio ? Icons.link_rounded : Icons.link_off_rounded,
+                  _keepAspectRatio
+                      ? Icons.link_rounded
+                      : Icons.link_off_rounded,
                   color: _keepAspectRatio ? AppColors.primary : Colors.grey,
                 ),
-                tooltip: _keepAspectRatio ? 'Aspect Ratio Locked' : 'Aspect Ratio Unlocked',
+                tooltip: _keepAspectRatio
+                    ? 'Aspect Ratio Locked'
+                    : 'Aspect Ratio Unlocked',
                 onPressed: () {
                   setState(() => _keepAspectRatio = !_keepAspectRatio);
                 },
@@ -2177,12 +2354,19 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               Expanded(
                 child: TextFormField(
                   key: ValueKey('h_$_targetHeight'),
-                  initialValue: _targetHeight > 0 ? _targetHeight.toString() : _originalHeight.toString(),
+                  initialValue: _targetHeight > 0
+                      ? _targetHeight.toString()
+                      : _originalHeight.toString(),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Height (px)',
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   onChanged: (val) {
                     final h = int.tryParse(val);
@@ -2190,7 +2374,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       setState(() {
                         _targetHeight = h;
                         if (_keepAspectRatio && _originalHeight > 0) {
-                          _targetWidth = (h * _originalWidth / _originalHeight).round();
+                          _targetWidth = (h * _originalWidth / _originalHeight)
+                              .round();
                         }
                         _showOriginal = false;
                       });
@@ -2207,7 +2392,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(height: 8),
@@ -2232,7 +2419,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
               ),
@@ -2270,7 +2459,15 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             children: [25, 50, 75, 100, 150].map((pct) {
               final isSelected = _selectedPercentage == pct;
               return ChoiceChip(
-                label: Text('$pct%', style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                label: Text(
+                  '$pct%',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
                 selected: isSelected,
                 selectedColor: AppColors.primary,
                 labelStyle: TextStyle(color: isSelected ? Colors.white : null),
@@ -2294,14 +2491,18 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               'Preserving original resolution: $_originalWidth × $_originalHeight px',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
             ),
           ),
@@ -2314,7 +2515,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     final isSelected = _targetWidth == w && _targetHeight == h;
     return ActionChip(
       label: Text(label, style: const TextStyle(fontSize: 11)),
-      backgroundColor: isSelected ? AppColors.primary.withValues(alpha: 0.15) : null,
+      backgroundColor: isSelected
+          ? AppColors.primary.withValues(alpha: 0.15)
+          : null,
       side: isSelected ? const BorderSide(color: AppColors.primary) : null,
       onPressed: () {
         HapticFeedback.selectionClick();
@@ -2340,7 +2543,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
         const SizedBox(height: 8),
@@ -2404,7 +2609,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
         const SizedBox(height: 8),
@@ -2412,9 +2619,17 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           spacing: 8,
           children: [null, 150, 300, 600].map((dpi) {
             final isSelected = _targetDpi == dpi;
-            final label = dpi == null ? 'Original (${_imageDpi ?? 72} DPI)' : '$dpi DPI';
+            final label = dpi == null
+                ? 'Original (${_imageDpi ?? 72} DPI)'
+                : '$dpi DPI';
             return ChoiceChip(
-              label: Text(label, style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+              label: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
               selected: isSelected,
               selectedColor: AppColors.primary,
               labelStyle: TextStyle(color: isSelected ? Colors.white : null),
@@ -2471,7 +2686,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceVariantDark : Colors.white,
+                      color: isDark
+                          ? AppColors.surfaceVariantDark
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: AppColors.primary.withValues(alpha: 0.2),
@@ -2481,13 +2698,19 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                           ? null
                           : [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.08),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.08,
+                                ),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
                             ],
                     ),
-                    child: const Icon(Icons.auto_fix_high_rounded, color: AppColors.primary, size: 20),
+                    child: const Icon(
+                      Icons.auto_fix_high_rounded,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -2496,21 +2719,32 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                     ),
                   ),
                   if (_hasRemovedBg)
                     Container(
                       margin: const EdgeInsets.only(left: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.success.withValues(alpha: 0.22) : AppColors.successContainer,
+                        color: isDark
+                            ? AppColors.success.withValues(alpha: 0.22)
+                            : AppColors.successContainer,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
                         'Applied',
-                        style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: AppColors.success,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                 ],
@@ -2518,18 +2752,30 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               const SizedBox(height: 8),
               Text(
                 'Remove or replace photo background with transparency or solid colors instantly using on-device ML.',
-                style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: _handleBgRemover,
                 icon: const Icon(Icons.auto_fix_high_rounded, size: 16),
-                label: Text(_hasRemovedBg ? 'Change Background' : 'Remove Background'),
+                label: Text(
+                  _hasRemovedBg ? 'Change Background' : 'Remove Background',
+                ),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 11,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   elevation: 0,
                 ),
               ),
@@ -2540,7 +2786,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
         // 2. Document & Perspective Crop (Themed card action button)
         Material(
-          color: isDark ? AppColors.surfaceVariantDark.withValues(alpha: 0.45) : AppColors.surfaceVariantLight,
+          color: isDark
+              ? AppColors.surfaceVariantDark.withValues(alpha: 0.45)
+              : AppColors.surfaceVariantLight,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: _handleCrop,
@@ -2560,10 +2808,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: isDark ? 0.22 : 0.10),
+                      color: AppColors.primary.withValues(
+                        alpha: isDark ? 0.22 : 0.10,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.crop_rounded, size: 18, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.crop_rounded,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2572,14 +2826,18 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                     ),
                   ),
                   Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 13,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ],
               ),
@@ -2590,7 +2848,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
         // 3. Document Scanner Filter (Themed card action button)
         Material(
-          color: isDark ? AppColors.surfaceVariantDark.withValues(alpha: 0.45) : AppColors.surfaceVariantLight,
+          color: isDark
+              ? AppColors.surfaceVariantDark.withValues(alpha: 0.45)
+              : AppColors.surfaceVariantLight,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: _handleDocumentFilter,
@@ -2610,10 +2870,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4F46E5).withValues(alpha: isDark ? 0.22 : 0.10),
+                      color: const Color(
+                        0xFF4F46E5,
+                      ).withValues(alpha: isDark ? 0.22 : 0.10),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.document_scanner_rounded, size: 18, color: Color(0xFF4F46E5)),
+                    child: const Icon(
+                      Icons.document_scanner_rounded,
+                      size: 18,
+                      color: Color(0xFF4F46E5),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2622,27 +2888,40 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                     ),
                   ),
                   if (_hasAppliedFilter)
                     Container(
                       margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.success.withValues(alpha: 0.22) : AppColors.successContainer,
+                        color: isDark
+                            ? AppColors.success.withValues(alpha: 0.22)
+                            : AppColors.successContainer,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
                         'Applied',
-                        style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: AppColors.success,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 13,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ],
               ),
@@ -2653,7 +2932,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
         // 4. AI Super Resolution (Upscale) (Themed card action button)
         Material(
-          color: isDark ? AppColors.surfaceVariantDark.withValues(alpha: 0.45) : AppColors.surfaceVariantLight,
+          color: isDark
+              ? AppColors.surfaceVariantDark.withValues(alpha: 0.45)
+              : AppColors.surfaceVariantLight,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: _handleAiUpscaleToolbar,
@@ -2673,10 +2954,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.22 : 0.10),
+                      color: const Color(
+                        0xFF8B5CF6,
+                      ).withValues(alpha: isDark ? 0.22 : 0.10),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.auto_awesome_rounded, size: 18, color: Color(0xFF8B5CF6)),
+                    child: const Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 18,
+                      color: Color(0xFF8B5CF6),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2688,7 +2975,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -2696,7 +2985,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                           'Enhance clarity with on-device neural model',
                           style: TextStyle(
                             fontSize: 11,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
                           ),
                         ),
                       ],
@@ -2705,20 +2996,31 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   if (_hasUpscaled)
                     Container(
                       margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.success.withValues(alpha: 0.22) : AppColors.successContainer,
+                        color: isDark
+                            ? AppColors.success.withValues(alpha: 0.22)
+                            : AppColors.successContainer,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
                         'Applied',
-                        style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: AppColors.success,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 13,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ],
               ),
@@ -2781,11 +3083,23 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         ? AppColors.surfaceVariantDark.withValues(alpha: 0.45)
         : AppColors.surfaceVariantLight;
     final activeBorder = AppColors.primary;
-    final inactiveBorder = isDark ? AppColors.borderDark : AppColors.borderLight;
+    final inactiveBorder = isDark
+        ? AppColors.borderDark
+        : AppColors.borderLight;
     final activeColor = AppColors.primary;
-    final inactiveColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final iconSize = context.adaptiveIconSize(16, tabletSize: 19, largeTabletSize: 21);
-    final fontSize = context.adaptiveFontSize(12, tabletSize: 13, largeTabletSize: 14);
+    final inactiveColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimaryLight;
+    final iconSize = context.adaptiveIconSize(
+      16,
+      tabletSize: 19,
+      largeTabletSize: 21,
+    );
+    final fontSize = context.adaptiveFontSize(
+      12,
+      tabletSize: 13,
+      largeTabletSize: 14,
+    );
 
     return Expanded(
       child: Material(
@@ -2857,7 +3171,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: _resetAllAdjustments,
-              icon: const Icon(Icons.refresh_rounded, size: 15, color: AppColors.warning),
+              icon: const Icon(
+                Icons.refresh_rounded,
+                size: 15,
+                color: AppColors.warning,
+              ),
               label: const Text(
                 'Reset All Adjustments',
                 style: TextStyle(fontSize: 12, color: AppColors.warning),
@@ -2875,7 +3193,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     required bool isDark,
     required VoidCallback onTap,
   }) {
-    final fontSize = context.adaptiveFontSize(11, tabletSize: 12, largeTabletSize: 13);
+    final fontSize = context.adaptiveFontSize(
+      11,
+      tabletSize: 12,
+      largeTabletSize: 13,
+    );
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -2891,7 +3213,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       color: AppColors.primary.withValues(alpha: 0.25),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
-                    )
+                    ),
                   ]
                 : null,
           ),
@@ -2903,7 +3225,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 color: isSelected
                     ? Colors.white
-                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    : (isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight),
               ),
             ),
           ),
@@ -2920,6 +3244,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         key: const ValueKey('canvas_original_image'),
         gaplessPlayback: true,
         fit: BoxFit.contain,
+        cacheWidth: 1600,
       );
     }
 
@@ -2939,17 +3264,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       key: const ValueKey('studio_canvas_display_image'),
       gaplessPlayback: true,
       fit: BoxFit.contain,
+      cacheWidth: 1600,
       filterQuality: FilterQuality.medium,
     );
 
-    if (applyTransform && (_quarterTurns != 0 || _flipHorizontal || _flipVertical)) {
+    if (applyTransform &&
+        (_quarterTurns != 0 || _flipHorizontal || _flipVertical)) {
       imageWidget = Transform.flip(
         flipX: _flipHorizontal,
         flipY: _flipVertical,
-        child: RotatedBox(
-          quarterTurns: _quarterTurns,
-          child: imageWidget,
-        ),
+        child: RotatedBox(quarterTurns: _quarterTurns, child: imageWidget),
       );
     }
 
@@ -2957,64 +3281,71 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   }
 
   Widget _buildImagePreviewCanvas(bool isDark, {bool isTablet = false}) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E222B) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : Colors.grey.shade200,
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black38 : Colors.black.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+    return RepaintBoundary(
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E222B) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : Colors.grey.shade200,
+            width: 1.5,
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(19),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Background subtle grid pattern / canvas
-            Positioned.fill(
-              child: Container(
-                color: isDark ? Colors.black12 : const Color(0xFFFAFBFC),
-              ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black38
+                  : Colors.black.withValues(alpha: 0.06),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
             ),
-            // Live preview rendering linear progress indicator
-            if (_isGeneratingPreview)
-              const Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: SizedBox(
-                  height: 3,
-                  child: LinearProgressIndicator(
-                    backgroundColor: Colors.transparent,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(19),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Background subtle grid pattern / canvas
+              Positioned.fill(
+                child: Container(
+                  color: isDark ? Colors.black12 : const Color(0xFFFAFBFC),
+                ),
+              ),
+              // Live preview rendering linear progress indicator
+              if (_isGeneratingPreview)
+                const Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SizedBox(
+                    height: 3,
+                    child: LinearProgressIndicator(
+                      backgroundColor: Colors.transparent,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              // Zoomable & Transformed Image Preview with Double-Tap Support
+              GestureDetector(
+                onDoubleTap: _handleDoubleTap,
+                child: InteractiveViewer(
+                  transformationController: _transformationController,
+                  minScale: 0.8,
+                  maxScale: 5.0,
+                  clipBehavior: Clip.none,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Center(
+                      child: RepaintBoundary(
+                        child: _buildCanvasImage(),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            // Zoomable & Transformed Image Preview with Double-Tap Support
-            GestureDetector(
-              onDoubleTap: _handleDoubleTap,
-              child: InteractiveViewer(
-                transformationController: _transformationController,
-                minScale: 0.8,
-                maxScale: 5.0,
-                clipBehavior: Clip.none,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Center(
-                    child: _buildCanvasImage(),
-                  ),
-                ),
-              ),
-            ),
             // Top-left: Zoom instruction badge (at 1.0x) or Floating Reset Zoom Button (when zoomed in)
             Positioned(
               top: 10,
@@ -3111,16 +3442,24 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       children: [
                         Icon(
                           _showOriginal ? Icons.visibility : Icons.compare,
-                          color: _hasUpscaled ? const Color(0xFFA78BFA) : Colors.white,
+                          color: _hasUpscaled
+                              ? const Color(0xFFA78BFA)
+                              : Colors.white,
                           size: isTablet ? 19 : 16,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           _showOriginal
-                              ? (_hasUpscaled ? 'Viewing Pre-Upscale' : 'Viewing Original')
-                              : (_hasUpscaled ? 'Tap for Original' : 'Tap for Original'),
+                              ? (_hasUpscaled
+                                    ? 'Viewing Pre-Upscale'
+                                    : 'Viewing Original')
+                              : (_hasUpscaled
+                                    ? 'Tap for Original'
+                                    : 'Tap for Original'),
                           style: TextStyle(
-                            color: _hasUpscaled ? const Color(0xFFA78BFA) : Colors.white,
+                            color: _hasUpscaled
+                                ? const Color(0xFFA78BFA)
+                                : Colors.white,
                             fontSize: isTablet ? 13 : 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -3135,7 +3474,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             if (_hasUpscaled && !_isUpscaling)
               Positioned(
                 top: 10,
-                right: (_quarterTurns != 0 || _flipHorizontal || _flipVertical) ? 80 : 10,
+                right: (_quarterTurns != 0 || _flipHorizontal || _flipVertical)
+                    ? 80
+                    : 10,
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: isTablet ? 12 : 8,
@@ -3157,7 +3498,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.auto_awesome_rounded, size: isTablet ? 15 : 12, color: Colors.white),
+                      Icon(
+                        Icons.auto_awesome_rounded,
+                        size: isTablet ? 15 : 12,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${_upscaleSelectedScale}x AI ENHANCED',
@@ -3208,7 +3553,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                                  color: const Color(
+                                    0xFF8B5CF6,
+                                  ).withValues(alpha: 0.4),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -3226,26 +3573,38 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.textPrimaryLight,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _upscaleStatus.isNotEmpty ? _upscaleStatus : 'Enhancing pixels with neural engine...',
+                            _upscaleStatus.isNotEmpty
+                                ? _upscaleStatus
+                                : 'Enhancing pixels with neural engine...',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                           const SizedBox(height: 16),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(6),
                             child: LinearProgressIndicator(
-                              value: _upscaleProgress > 0 ? _upscaleProgress : null,
+                              value: _upscaleProgress > 0
+                                  ? _upscaleProgress
+                                  : null,
                               minHeight: 8,
-                              backgroundColor: isDark ? Colors.white12 : Colors.grey.shade200,
-                              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                              backgroundColor: isDark
+                                  ? Colors.white12
+                                  : Colors.grey.shade200,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Color(0xFF8B5CF6),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -3268,7 +3627,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               Positioned(
                 top: 10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(12),
@@ -3281,7 +3643,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                         height: 10,
                         child: CircularProgressIndicator(
                           strokeWidth: 1.6,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       ),
                       SizedBox(width: 6),
@@ -3303,7 +3667,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 top: 10,
                 right: 10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(8),
@@ -3312,24 +3679,47 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (_quarterTurns != 0) ...[
-                        const Icon(Icons.rotate_right, size: 14, color: Colors.white),
+                        const Icon(
+                          Icons.rotate_right,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${_quarterTurns * 90}°',
-                          style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        if (_flipHorizontal || _flipVertical) const SizedBox(width: 8),
+                        if (_flipHorizontal || _flipVertical)
+                          const SizedBox(width: 8),
                       ],
                       if (_flipHorizontal) ...[
-                        const Icon(Icons.swap_horiz, size: 14, color: Colors.white),
+                        const Icon(
+                          Icons.swap_horiz,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 2),
-                        const Text('Flip H', style: TextStyle(fontSize: 11, color: Colors.white)),
+                        const Text(
+                          'Flip H',
+                          style: TextStyle(fontSize: 11, color: Colors.white),
+                        ),
                       ],
                       if (_flipVertical) ...[
                         const SizedBox(width: 4),
-                        const Icon(Icons.swap_vert, size: 14, color: Colors.white),
+                        const Icon(
+                          Icons.swap_vert,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 2),
-                        const Text('Flip V', style: TextStyle(fontSize: 11, color: Colors.white)),
+                        const Text(
+                          'Flip V',
+                          style: TextStyle(fontSize: 11, color: Colors.white),
+                        ),
                       ],
                     ],
                   ),
@@ -3344,21 +3734,38 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   color: Colors.black.withValues(alpha: 0.72),
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.rotate_right_rounded, size: 20, color: Colors.white),
+                          icon: const Icon(
+                            Icons.rotate_right_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
                           tooltip: 'Rotate 90°',
-                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
                           padding: EdgeInsets.zero,
                           onPressed: _handleRotate,
                         ),
                         IconButton(
-                          icon: const Icon(Icons.swap_horiz_rounded, size: 20, color: Colors.white),
+                          icon: const Icon(
+                            Icons.swap_horiz_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
                           tooltip: 'Flip Horizontal',
-                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
                           padding: EdgeInsets.zero,
                           onPressed: () {
                             setState(() => _flipHorizontal = !_flipHorizontal);
@@ -3367,9 +3774,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.swap_vert_rounded, size: 20, color: Colors.white),
+                          icon: const Icon(
+                            Icons.swap_vert_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
                           tooltip: 'Flip Vertical',
-                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
                           padding: EdgeInsets.zero,
                           onPressed: () {
                             setState(() => _flipVertical = !_flipVertical);
@@ -3378,9 +3792,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.crop_rounded, size: 18, color: Colors.white),
+                          icon: const Icon(
+                            Icons.crop_rounded,
+                            size: 18,
+                            color: Colors.white,
+                          ),
                           tooltip: 'Crop',
-                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
                           padding: EdgeInsets.zero,
                           onPressed: _handleCrop,
                         ),
@@ -3389,7 +3810,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   ),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

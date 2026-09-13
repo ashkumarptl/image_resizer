@@ -34,11 +34,7 @@ class AppConstants {
     'gif',
   ];
 
-  static const List<String> supportedOutputFormats = [
-    'jpg',
-    'png',
-    'webp',
-  ];
+  static const List<String> supportedOutputFormats = ['jpg', 'png', 'webp'];
 
   // Max history items
   static const int maxHistoryItems = 30;

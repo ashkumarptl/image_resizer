@@ -57,7 +57,9 @@ class _ScanProjectDetailScreenState
       if (_selectedPageIndices.length == _project.pagePaths.length) {
         _selectedPageIndices.clear();
       } else {
-        _selectedPageIndices.addAll(List.generate(_project.pagePaths.length, (i) => i));
+        _selectedPageIndices.addAll(
+          List.generate(_project.pagePaths.length, (i) => i),
+        );
       }
     });
   }
@@ -178,50 +180,74 @@ class _ScanProjectDetailScreenState
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   const SizedBox(height: 16),
                   ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     leading: CircleAvatar(
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                      child: const Icon(Icons.document_scanner_rounded, color: AppColors.primary),
+                      backgroundColor: AppColors.primary.withValues(
+                        alpha: 0.12,
+                      ),
+                      child: const Icon(
+                        Icons.document_scanner_rounded,
+                        color: AppColors.primary,
+                      ),
                     ),
                     title: Text(
                       'Scan with Camera',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                     ),
                     subtitle: Text(
                       'Live edge detection & perspective auto-align',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                     onTap: () => Navigator.of(ctx).pop('camera'),
                   ),
                   ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     leading: CircleAvatar(
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                      child: const Icon(Icons.photo_library_rounded, color: AppColors.primary),
+                      backgroundColor: AppColors.primary.withValues(
+                        alpha: 0.12,
+                      ),
+                      child: const Icon(
+                        Icons.photo_library_rounded,
+                        color: AppColors.primary,
+                      ),
                     ),
                     title: Text(
                       'Pick from Gallery',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
                       ),
                     ),
                     subtitle: Text(
                       'Choose one or more existing photos',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                     onTap: () => Navigator.of(ctx).pop('gallery'),
@@ -258,7 +284,9 @@ class _ScanProjectDetailScreenState
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Added ${newFiles.length} pages to ${_project.name}'),
+              content: Text(
+                'Added ${newFiles.length} pages to ${_project.name}',
+              ),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
             ),
@@ -273,7 +301,6 @@ class _ScanProjectDetailScreenState
       }
     }
   }
-
 
   Future<void> _handleGroupReorder(List<int> newOrder) async {
     if (newOrder.length != _project.pagePaths.length) return;
@@ -439,14 +466,19 @@ class _ScanProjectDetailScreenState
                 const SizedBox(height: 16),
                 Text(
                   'Share ${selectedFiles.length} Selected ${selectedFiles.length == 1 ? 'Page' : 'Pages'}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Choose format to share with apps or contacts',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -459,12 +491,23 @@ class _ScanProjectDetailScreenState
                       color: const Color(0xFF6366F1).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF6366F1)),
+                    child: const Icon(
+                      Icons.picture_as_pdf_rounded,
+                      color: Color(0xFF6366F1),
+                    ),
                   ),
-                  title: const Text('Share as PDF Document', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  title: const Text(
+                    'Share as PDF Document',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
                   subtitle: Text(
                     'Compile ${selectedFiles.length} pages into a single PDF',
-                    style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
                   ),
                   onTap: () => Navigator.of(ctx).pop('pdf'),
                 ),
@@ -478,12 +521,23 @@ class _ScanProjectDetailScreenState
                       color: const Color(0xFF10B981).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.photo_library_rounded, color: Color(0xFF10B981)),
+                    child: const Icon(
+                      Icons.photo_library_rounded,
+                      color: Color(0xFF10B981),
+                    ),
                   ),
-                  title: const Text('Share as Image Files', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  title: const Text(
+                    'Share as Image Files',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
                   subtitle: Text(
                     'Share ${selectedFiles.length} individual JPG/PNG images',
-                    style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
                   ),
                   onTap: () => Navigator.of(ctx).pop('images'),
                 ),
@@ -497,14 +551,26 @@ class _ScanProjectDetailScreenState
                       color: AppColors.secondary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.laptop_chromebook_rounded, color: AppColors.secondary),
+                    child: const Icon(
+                      Icons.laptop_chromebook_rounded,
+                      color: AppColors.secondary,
+                    ),
                   ),
                   title: Row(
                     children: [
-                      const Text('Send to PC / Browser', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      const Text(
+                        'Send to PC / Browser',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.secondary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
@@ -522,7 +588,12 @@ class _ScanProjectDetailScreenState
                   ),
                   subtitle: Text(
                     'Transfer ${selectedFiles.length} pages directly to any PC browser via WiFi / QR Code',
-                    style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
                   ),
                   onTap: () => Navigator.of(ctx).pop('pc'),
                 ),
@@ -536,7 +607,10 @@ class _ScanProjectDetailScreenState
     if (shareFormat == null || !mounted) return;
 
     if (shareFormat == 'pc') {
-      SendToPcSheet.show(context, filePaths: selectedFiles.map((f) => f.path).toList());
+      SendToPcSheet.show(
+        context,
+        filePaths: selectedFiles.map((f) => f.path).toList(),
+      );
     } else if (shareFormat == 'images') {
       try {
         await SharePlus.instance.share(
@@ -554,7 +628,8 @@ class _ScanProjectDetailScreenState
         final quality = PdfQualityPreset.fromString(_project.pdfQuality);
         final tempPdf = await DocumentScannerService.createPdfFromImages(
           selectedFiles,
-          outputFileName: '${_project.name}_selected_${DateTime.now().millisecondsSinceEpoch}.pdf',
+          outputFileName:
+              '${_project.name}_selected_${DateTime.now().millisecondsSinceEpoch}.pdf',
           qualityPreset: quality,
         );
         if (mounted) {
@@ -615,14 +690,19 @@ class _ScanProjectDetailScreenState
                 const SizedBox(height: 16),
                 Text(
                   'Save ${selectedFiles.length} Selected ${selectedFiles.length == 1 ? 'Page' : 'Pages'} to Device',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Choose destination format',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -635,12 +715,23 @@ class _ScanProjectDetailScreenState
                       color: const Color(0xFF10B981).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.photo_library_rounded, color: Color(0xFF10B981)),
+                    child: const Icon(
+                      Icons.photo_library_rounded,
+                      color: Color(0xFF10B981),
+                    ),
                   ),
-                  title: const Text('Save to Photos / Gallery', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  title: const Text(
+                    'Save to Photos / Gallery',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
                   subtitle: Text(
                     'Save ${selectedFiles.length} pages as photos in device Gallery',
-                    style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
                   ),
                   onTap: () => Navigator.of(ctx).pop('gallery'),
                 ),
@@ -654,12 +745,23 @@ class _ScanProjectDetailScreenState
                       color: const Color(0xFF6366F1).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFF6366F1)),
+                    child: const Icon(
+                      Icons.picture_as_pdf_rounded,
+                      color: Color(0xFF6366F1),
+                    ),
                   ),
-                  title: const Text('Save as PDF to Downloads', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  title: const Text(
+                    'Save as PDF to Downloads',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
                   subtitle: Text(
                     'Export selected ${selectedFiles.length} pages as a PDF document',
-                    style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
                   ),
                   onTap: () => Navigator.of(ctx).pop('pdf'),
                 ),
@@ -687,7 +789,11 @@ class _ScanProjectDetailScreenState
               SnackBar(
                 content: Row(
                   children: [
-                    const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Text(
                       savedCount == 1
@@ -716,11 +822,13 @@ class _ScanProjectDetailScreenState
         final quality = PdfQualityPreset.fromString(_project.pdfQuality);
         final tempPdf = await DocumentScannerService.createPdfFromImages(
           selectedFiles,
-          outputFileName: '${_project.name}_selected_${DateTime.now().millisecondsSinceEpoch}.pdf',
+          outputFileName:
+              '${_project.name}_selected_${DateTime.now().millisecondsSinceEpoch}.pdf',
           qualityPreset: quality,
         );
 
-        final customName = '${_project.name.replaceAll(' ', '_')}_${selectedFiles.length}pages.pdf';
+        final customName =
+            '${_project.name.replaceAll(' ', '_')}_${selectedFiles.length}pages.pdf';
         final savedFile = await StorageService.savePdfToDevice(
           tempPdf.path,
           customFileName: customName,
@@ -739,10 +847,7 @@ class _ScanProjectDetailScreenState
                 textColor: Colors.white,
                 onPressed: () async {
                   await SharePlus.instance.share(
-                    ShareParams(
-                      files: [XFile(savedFile.path)],
-                      text: fileName,
-                    ),
+                    ShareParams(files: [XFile(savedFile.path)], text: fileName),
                   );
                 },
               ),
@@ -783,8 +888,9 @@ class _ScanProjectDetailScreenState
         qualityPreset: quality,
       );
 
-      final printed =
-          await SystemIntegrationService.instance.printPdf(tempPdf.path);
+      final printed = await SystemIntegrationService.instance.printPdf(
+        tempPdf.path,
+      );
       if (!printed && mounted) {
         // Fallback: Share to system print dialog or printer app
         await SharePlus.instance.share(
@@ -831,8 +937,9 @@ class _ScanProjectDetailScreenState
         );
       }
 
-      final printed =
-          await SystemIntegrationService.instance.printPdf(pdfToPrint.path);
+      final printed = await SystemIntegrationService.instance.printPdf(
+        pdfToPrint.path,
+      );
       if (!printed && mounted) {
         await SharePlus.instance.share(
           ShareParams(
@@ -895,7 +1002,9 @@ class _ScanProjectDetailScreenState
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -903,7 +1012,9 @@ class _ScanProjectDetailScreenState
                     'Set target size to match exam, job application, or email upload limits',
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -915,37 +1026,55 @@ class _ScanProjectDetailScreenState
                         color: isSelected
                             ? AppColors.primary.withValues(alpha: 0.1)
                             : (isDark
-                                ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
-                                : AppColors.surfaceVariantLight.withValues(alpha: 0.5)),
+                                  ? AppColors.surfaceVariantDark.withValues(
+                                      alpha: 0.5,
+                                    )
+                                  : AppColors.surfaceVariantLight.withValues(
+                                      alpha: 0.5,
+                                    )),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                           side: BorderSide(
                             color: isSelected
                                 ? AppColors.primary
-                                : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                                : (isDark
+                                      ? AppColors.borderDark
+                                      : AppColors.borderLight),
                             width: isSelected ? 2 : 1,
                           ),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
                           title: Row(
                             children: [
                               Text(
                                 preset.label,
                                 style: TextStyle(
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w600,
                                   color: isSelected
                                       ? AppColors.primary
-                                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                                      : (isDark
+                                            ? AppColors.textPrimaryDark
+                                            : AppColors.textPrimaryLight),
                                 ),
                               ),
                               if (preset == PdfQualityPreset.medium) ...[
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.15),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.15,
+                                    ),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: const Text(
@@ -964,11 +1093,16 @@ class _ScanProjectDetailScreenState
                             preset.subtitle,
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                           trailing: isSelected
-                              ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                              ? const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: AppColors.primary,
+                                )
                               : null,
                           onTap: () => Navigator.of(ctx).pop(preset),
                         ),
@@ -986,7 +1120,10 @@ class _ScanProjectDetailScreenState
     if (chosen != null && chosen != currentPreset && mounted) {
       setState(() => _isLoading = true);
       try {
-        final updated = await _projectService.updatePdfQualityPreset(_project.id, chosen);
+        final updated = await _projectService.updatePdfQualityPreset(
+          _project.id,
+          chosen,
+        );
         if (updated != null && mounted) {
           HapticFeedback.mediumImpact();
           setState(() {
@@ -995,7 +1132,9 @@ class _ScanProjectDetailScreenState
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Target size set to ${chosen.label} (${_formatBytes(_project.pdfSizeBytes)})'),
+              content: Text(
+                'Target size set to ${chosen.label} (${_formatBytes(_project.pdfSizeBytes)})',
+              ),
               backgroundColor: AppColors.primary,
               behavior: SnackBarBehavior.floating,
             ),
@@ -1229,8 +1368,7 @@ class _ScanProjectDetailScreenState
                             vertical: 1.5,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.secondary
-                                .withValues(alpha: 0.15),
+                            color: AppColors.secondary.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
@@ -1333,7 +1471,10 @@ class _ScanProjectDetailScreenState
               ),
               title: Text(
                 '${_selectedPageIndices.length} Selected',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
+                ),
               ),
               actions: [
                 IconButton(
@@ -1342,7 +1483,8 @@ class _ScanProjectDetailScreenState
                         ? Icons.deselect_rounded
                         : Icons.select_all_rounded,
                   ),
-                  tooltip: _selectedPageIndices.length == _project.pagePaths.length
+                  tooltip:
+                      _selectedPageIndices.length == _project.pagePaths.length
                       ? 'Deselect All'
                       : 'Select All',
                   onPressed: _toggleSelectAll,
@@ -1350,12 +1492,17 @@ class _ScanProjectDetailScreenState
               ],
             )
           : AppBar(
-              toolbarHeight: context.isLargeTablet ? 84 : (context.isMediumOrWider ? 72 : null),
+              toolbarHeight: context.isLargeTablet
+                  ? 84
+                  : (context.isMediumOrWider ? 72 : null),
               title: InkWell(
                 onTap: _handleRename,
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1364,13 +1511,25 @@ class _ScanProjectDetailScreenState
                           _project.name,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: context.adaptiveFontSize(17, tabletSize: 22, largeTabletSize: 26),
+                            fontSize: context.adaptiveFontSize(
+                              17,
+                              tabletSize: 22,
+                              largeTabletSize: 26,
+                            ),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Icon(Icons.edit_outlined, size: context.adaptiveIconSize(16, tabletSize: 20, largeTabletSize: 24), color: Colors.grey),
+                      Icon(
+                        Icons.edit_outlined,
+                        size: context.adaptiveIconSize(
+                          16,
+                          tabletSize: 20,
+                          largeTabletSize: 24,
+                        ),
+                        color: Colors.grey,
+                      ),
                     ],
                   ),
                 ),
@@ -1378,8 +1537,14 @@ class _ScanProjectDetailScreenState
               actions: [
                 IconButton(
                   icon: Icon(
-                    _isGridView ? Icons.view_agenda_rounded : Icons.grid_view_rounded,
-                    size: context.adaptiveIconSize(22, tabletSize: 26, largeTabletSize: 30),
+                    _isGridView
+                        ? Icons.view_agenda_rounded
+                        : Icons.grid_view_rounded,
+                    size: context.adaptiveIconSize(
+                      22,
+                      tabletSize: 26,
+                      largeTabletSize: 30,
+                    ),
                   ),
                   tooltip: _isGridView ? 'List View' : 'Grid View',
                   onPressed: () {
@@ -1390,7 +1555,11 @@ class _ScanProjectDetailScreenState
                 IconButton(
                   icon: Icon(
                     Icons.share_rounded,
-                    size: context.adaptiveIconSize(22, tabletSize: 26, largeTabletSize: 30),
+                    size: context.adaptiveIconSize(
+                      22,
+                      tabletSize: 26,
+                      largeTabletSize: 30,
+                    ),
                   ),
                   tooltip: 'Share PDF',
                   onPressed: _handleSharePdf,
@@ -1398,7 +1567,11 @@ class _ScanProjectDetailScreenState
                 PopupMenuButton<String>(
                   icon: Icon(
                     Icons.more_vert_rounded,
-                    size: context.adaptiveIconSize(22, tabletSize: 26, largeTabletSize: 30),
+                    size: context.adaptiveIconSize(
+                      22,
+                      tabletSize: 26,
+                      largeTabletSize: 30,
+                    ),
                   ),
                   onSelected: (val) {
                     if (val == 'rename') _handleRename();
@@ -1461,9 +1634,16 @@ class _ScanProjectDetailScreenState
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red),
+                          Icon(
+                            Icons.delete_outline_rounded,
+                            size: 18,
+                            color: Colors.red,
+                          ),
                           SizedBox(width: 10),
-                          Text('Delete Document', style: TextStyle(color: Colors.red)),
+                          Text(
+                            'Delete Document',
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ],
                       ),
                     ),
@@ -1478,7 +1658,9 @@ class _ScanProjectDetailScreenState
             Container(
               padding: EdgeInsets.symmetric(
                 horizontal: context.adaptiveMargin,
-                vertical: context.isLargeTablet ? 14 : (context.isMediumOrWider ? 10 : 8),
+                vertical: context.isLargeTablet
+                    ? 14
+                    : (context.isMediumOrWider ? 10 : 8),
               ),
               color: isDark
                   ? AppColors.surfaceDark.withValues(alpha: 0.6)
@@ -1501,13 +1683,19 @@ class _ScanProjectDetailScreenState
                                 vertical: context.isLargeTablet ? 6 : 3,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.12),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.12,
+                                ),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 '${_project.pageCount} ${_project.pageCount == 1 ? 'PAGE' : 'PAGES'}',
                                 style: TextStyle(
-                                  fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15.5),
+                                  fontSize: context.adaptiveFontSize(
+                                    11,
+                                    tabletSize: 13.5,
+                                    largeTabletSize: 15.5,
+                                  ),
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primary,
                                 ),
@@ -1527,10 +1715,14 @@ class _ScanProjectDetailScreenState
                                     vertical: context.isLargeTablet ? 6 : 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981).withValues(alpha: 0.14),
+                                    color: const Color(
+                                      0xFF10B981,
+                                    ).withValues(alpha: 0.14),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                                      color: const Color(
+                                        0xFF10B981,
+                                      ).withValues(alpha: 0.3),
                                       width: 1,
                                     ),
                                   ),
@@ -1539,7 +1731,11 @@ class _ScanProjectDetailScreenState
                                     children: [
                                       Icon(
                                         Icons.tune_rounded,
-                                        size: context.adaptiveIconSize(11, tabletSize: 14, largeTabletSize: 16),
+                                        size: context.adaptiveIconSize(
+                                          11,
+                                          tabletSize: 14,
+                                          largeTabletSize: 16,
+                                        ),
                                         color: const Color(0xFF10B981),
                                       ),
                                       const SizedBox(width: 4),
@@ -1549,7 +1745,11 @@ class _ScanProjectDetailScreenState
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
                                           style: TextStyle(
-                                            fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15.5),
+                                            fontSize: context.adaptiveFontSize(
+                                              11,
+                                              tabletSize: 13.5,
+                                              largeTabletSize: 15.5,
+                                            ),
                                             fontWeight: FontWeight.bold,
                                             color: const Color(0xFF059669),
                                           ),
@@ -1567,8 +1767,14 @@ class _ScanProjectDetailScreenState
                               Text(
                                 sizeStr,
                                 style: TextStyle(
-                                  fontSize: context.adaptiveFontSize(11, tabletSize: 13.5, largeTabletSize: 15.5),
-                                  color: isDark ? Colors.white54 : Colors.black45,
+                                  fontSize: context.adaptiveFontSize(
+                                    11,
+                                    tabletSize: 13.5,
+                                    largeTabletSize: 15.5,
+                                  ),
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.black45,
                                 ),
                               ),
                           ],
@@ -1582,14 +1788,24 @@ class _ScanProjectDetailScreenState
                           children: [
                             Icon(
                               Icons.touch_app_rounded,
-                              size: context.adaptiveIconSize(13, tabletSize: 16, largeTabletSize: 18),
+                              size: context.adaptiveIconSize(
+                                13,
+                                tabletSize: 16,
+                                largeTabletSize: 18,
+                              ),
                               color: isDark ? Colors.white38 : Colors.black38,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              showFullHint ? 'Hold & drag to reorder' : 'Hold to reorder',
+                              showFullHint
+                                  ? 'Hold & drag to reorder'
+                                  : 'Hold to reorder',
                               style: TextStyle(
-                                fontSize: context.adaptiveFontSize(10.5, tabletSize: 13, largeTabletSize: 14.5),
+                                fontSize: context.adaptiveFontSize(
+                                  10.5,
+                                  tabletSize: 13,
+                                  largeTabletSize: 14.5,
+                                ),
                                 color: isDark ? Colors.white38 : Colors.black38,
                               ),
                             ),
@@ -1615,14 +1831,22 @@ class _ScanProjectDetailScreenState
                         children: [
                           Icon(
                             Icons.picture_as_pdf_outlined,
-                            size: context.adaptiveIconSize(64, tabletSize: 80, largeTabletSize: 96),
+                            size: context.adaptiveIconSize(
+                              64,
+                              tabletSize: 80,
+                              largeTabletSize: 96,
+                            ),
                             color: isDark ? Colors.white24 : Colors.black12,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'No pages yet',
                             style: TextStyle(
-                              fontSize: context.adaptiveFontSize(16, tabletSize: 20, largeTabletSize: 24),
+                              fontSize: context.adaptiveFontSize(
+                                16,
+                                tabletSize: 20,
+                                largeTabletSize: 24,
+                              ),
                               fontWeight: FontWeight.bold,
                               color: isDark ? Colors.white54 : Colors.black45,
                             ),
@@ -1631,7 +1855,11 @@ class _ScanProjectDetailScreenState
                           Text(
                             'Tap "Add Pages" to scan or import documents',
                             style: TextStyle(
-                              fontSize: context.adaptiveFontSize(13, tabletSize: 16, largeTabletSize: 18),
+                              fontSize: context.adaptiveFontSize(
+                                13,
+                                tabletSize: 16,
+                                largeTabletSize: 18,
+                              ),
                               color: isDark ? Colors.white38 : Colors.black38,
                             ),
                           ),
@@ -1639,8 +1867,8 @@ class _ScanProjectDetailScreenState
                       ),
                     )
                   : (_isGridView
-                      ? _buildGridView(context, isDark)
-                      : _buildListView(context, isDark)),
+                        ? _buildGridView(context, isDark)
+                        : _buildListView(context, isDark)),
             ),
           ],
         ),
@@ -1669,7 +1897,8 @@ class _ScanProjectDetailScreenState
               mainAxisSpacing: 16,
               crossAxisSpacing: 0,
               childAspectRatio: childAspectRatio,
-              itemKeyBuilder: (index) => ValueKey('list_page_${_project.pagePaths[index]}'),
+              itemKeyBuilder: (index) =>
+                  ValueKey('list_page_${_project.pagePaths[index]}'),
               selectedIndexes: _selectedPageIndices,
               enableMultiSelection: true,
               onTapItem: (index) {
@@ -1705,7 +1934,12 @@ class _ScanProjectDetailScreenState
   Widget _buildGridView(BuildContext context, bool isDark) {
     return SmoothReorderableGrid(
       key: const ValueKey('grid_view_smooth_grid'),
-      padding: EdgeInsets.fromLTRB(context.adaptiveMargin, 16, context.adaptiveMargin, 100),
+      padding: EdgeInsets.fromLTRB(
+        context.adaptiveMargin,
+        16,
+        context.adaptiveMargin,
+        100,
+      ),
       itemCount: _project.pagePaths.length,
       crossAxisCount: context.isLargeTablet
           ? (context.isLandscape ? 4 : 2)
@@ -1713,7 +1947,8 @@ class _ScanProjectDetailScreenState
       crossAxisSpacing: context.isLargeTablet ? 20 : 12,
       mainAxisSpacing: context.isLargeTablet ? 20 : 12,
       childAspectRatio: context.isLargeTablet ? 0.72 : 0.68,
-      itemKeyBuilder: (index) => ValueKey('grid_page_${_project.pagePaths[index]}'),
+      itemKeyBuilder: (index) =>
+          ValueKey('grid_page_${_project.pagePaths[index]}'),
       selectedIndexes: _selectedPageIndices,
       enableMultiSelection: true,
       onTapItem: (index) {
@@ -1769,7 +2004,9 @@ class _ScanProjectDetailScreenState
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isFeedback ? 0.35 : (isDark ? 0.3 : 0.06)),
+                  color: Colors.black.withValues(
+                    alpha: isFeedback ? 0.35 : (isDark ? 0.3 : 0.06),
+                  ),
                   blurRadius: isFeedback ? 20 : 6,
                   offset: Offset(0, isFeedback ? 8 : 2),
                   spreadRadius: isFeedback ? 2 : 0,
@@ -1781,12 +2018,14 @@ class _ScanProjectDetailScreenState
               fit: StackFit.expand,
               children: [
                 pageFile.existsSync()
-                    ? Image.file(
-                        pageFile,
-                        fit: BoxFit.cover,
-                        cacheWidth: 400,
-                      )
-                    : const Center(child: Icon(Icons.broken_image, size: 28, color: Colors.grey)),
+                    ? Image.file(pageFile, fit: BoxFit.cover, cacheWidth: 400)
+                    : const Center(
+                        child: Icon(
+                          Icons.broken_image,
+                          size: 28,
+                          color: Colors.grey,
+                        ),
+                      ),
                 if (isSelected || _isSelectionMode || isFeedback)
                   Positioned(
                     top: context.isLargeTablet ? 12 : 8,
@@ -1814,12 +2053,24 @@ class _ScanProjectDetailScreenState
                       child: (isSelected || isFeedback)
                           ? Icon(
                               Icons.check_rounded,
-                              size: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 22),
+                              size: context.adaptiveIconSize(
+                                14,
+                                tabletSize: 18,
+                                largeTabletSize: 22,
+                              ),
                               color: Colors.white,
                             )
                           : SizedBox(
-                              width: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 22),
-                              height: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 22),
+                              width: context.adaptiveIconSize(
+                                14,
+                                tabletSize: 18,
+                                largeTabletSize: 22,
+                              ),
+                              height: context.adaptiveIconSize(
+                                14,
+                                tabletSize: 18,
+                                largeTabletSize: 22,
+                              ),
                             ),
                     ),
                   ),
@@ -1831,7 +2082,11 @@ class _ScanProjectDetailScreenState
         Text(
           (index + 1).toString().padLeft(2, '0'),
           style: TextStyle(
-            fontSize: context.adaptiveFontSize(13, tabletSize: 16.5, largeTabletSize: 18.5),
+            fontSize: context.adaptiveFontSize(
+              13,
+              tabletSize: 16.5,
+              largeTabletSize: 18.5,
+            ),
             fontWeight: FontWeight.bold,
             color: highlight
                 ? AppColors.primary
@@ -1865,7 +2120,9 @@ class _ScanProjectDetailScreenState
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isFeedback ? 0.35 : (isDark ? 0.3 : 0.08)),
+            color: Colors.black.withValues(
+              alpha: isFeedback ? 0.35 : (isDark ? 0.3 : 0.08),
+            ),
             blurRadius: isFeedback ? 20 : 10,
             offset: Offset(0, isFeedback ? 8 : 3),
             spreadRadius: isFeedback ? 2 : 0,
@@ -1880,12 +2137,14 @@ class _ScanProjectDetailScreenState
           Container(
             color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
             child: pageFile.existsSync()
-                ? Image.file(
-                    pageFile,
-                    fit: BoxFit.contain,
-                    cacheWidth: 1000,
-                  )
-                : const Center(child: Icon(Icons.broken_image, size: 36, color: Colors.grey)),
+                ? Image.file(pageFile, fit: BoxFit.contain, cacheWidth: 1000)
+                : const Center(
+                    child: Icon(
+                      Icons.broken_image,
+                      size: 36,
+                      color: Colors.grey,
+                    ),
+                  ),
           ),
 
           // 2. Top-Left: Page Badge (e.g. "1/6" matching CamScanner)
@@ -1990,17 +2249,27 @@ class _ScanProjectDetailScreenState
                     onPressed: _isLoading ? null : _handleAddPages,
                     icon: Icon(
                       Icons.add_photo_alternate_outlined,
-                      size: context.adaptiveIconSize(18, tabletSize: 22, largeTabletSize: 26),
+                      size: context.adaptiveIconSize(
+                        18,
+                        tabletSize: 22,
+                        largeTabletSize: 26,
+                      ),
                     ),
                     label: Text(
                       'Add Pages',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
+                        fontSize: context.adaptiveFontSize(
+                          13,
+                          tabletSize: 15.5,
+                          largeTabletSize: 17.5,
+                        ),
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: isLarge ? 18 : 12),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isLarge ? 18 : 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
                       ),
@@ -2016,15 +2285,25 @@ class _ScanProjectDetailScreenState
                         ? null
                         : (_isPdfSaved ? null : _handleSavePdf),
                     icon: Icon(
-                      _isPdfSaved ? Icons.check_circle_rounded : Icons.download_rounded,
-                      size: context.adaptiveIconSize(18, tabletSize: 22, largeTabletSize: 26),
+                      _isPdfSaved
+                          ? Icons.check_circle_rounded
+                          : Icons.download_rounded,
+                      size: context.adaptiveIconSize(
+                        18,
+                        tabletSize: 22,
+                        largeTabletSize: 26,
+                      ),
                       color: _isPdfSaved ? AppColors.success : Colors.white,
                     ),
                     label: Text(
                       _isPdfSaved ? 'Saved ✓' : 'Save PDF',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
+                        fontSize: context.adaptiveFontSize(
+                          13,
+                          tabletSize: 15.5,
+                          largeTabletSize: 17.5,
+                        ),
                         color: _isPdfSaved ? AppColors.success : Colors.white,
                       ),
                     ),
@@ -2033,7 +2312,9 @@ class _ScanProjectDetailScreenState
                           ? AppColors.success.withValues(alpha: 0.15)
                           : const Color(0xFF6366F1),
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: isLarge ? 18 : 12),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isLarge ? 18 : 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
                       ),
@@ -2090,17 +2371,27 @@ class _ScanProjectDetailScreenState
                     onPressed: _isLoading ? null : _handleShareSelectedPages,
                     icon: Icon(
                       Icons.share_rounded,
-                      size: context.adaptiveIconSize(17, tabletSize: 20, largeTabletSize: 24),
+                      size: context.adaptiveIconSize(
+                        17,
+                        tabletSize: 20,
+                        largeTabletSize: 24,
+                      ),
                     ),
                     label: Text(
                       'Share ($count)',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
+                        fontSize: context.adaptiveFontSize(
+                          13,
+                          tabletSize: 15.5,
+                          largeTabletSize: 17.5,
+                        ),
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: isLarge ? 18 : 12),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isLarge ? 18 : 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
                       ),
@@ -2112,22 +2403,34 @@ class _ScanProjectDetailScreenState
                 // Save to Device Button
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _handleSaveSelectedPagesToDevice,
+                    onPressed: _isLoading
+                        ? null
+                        : _handleSaveSelectedPagesToDevice,
                     icon: Icon(
                       Icons.download_rounded,
-                      size: context.adaptiveIconSize(17, tabletSize: 20, largeTabletSize: 24),
+                      size: context.adaptiveIconSize(
+                        17,
+                        tabletSize: 20,
+                        largeTabletSize: 24,
+                      ),
                     ),
                     label: Text(
                       'Save to Device',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: context.adaptiveFontSize(13, tabletSize: 15.5, largeTabletSize: 17.5),
+                        fontSize: context.adaptiveFontSize(
+                          13,
+                          tabletSize: 15.5,
+                          largeTabletSize: 17.5,
+                        ),
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6366F1),
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: isLarge ? 18 : 12),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isLarge ? 18 : 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
                       ),
@@ -2140,13 +2443,22 @@ class _ScanProjectDetailScreenState
                 // Print Selected Icon Button
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withValues(alpha: isDark ? 0.2 : 0.08),
+                    color: const Color(
+                      0xFF6366F1,
+                    ).withValues(alpha: isDark ? 0.2 : 0.08),
                     borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
                   ),
                   child: IconButton(
-                    iconSize: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
+                    iconSize: context.adaptiveIconSize(
+                      20,
+                      tabletSize: 24,
+                      largeTabletSize: 28,
+                    ),
                     padding: EdgeInsets.all(isLarge ? 14 : 8),
-                    icon: const Icon(Icons.print_rounded, color: Color(0xFF6366F1)),
+                    icon: const Icon(
+                      Icons.print_rounded,
+                      color: Color(0xFF6366F1),
+                    ),
                     tooltip: 'Print Selected',
                     onPressed: _isLoading ? null : _handlePrintSelectedPages,
                   ),
@@ -2160,9 +2472,16 @@ class _ScanProjectDetailScreenState
                     borderRadius: BorderRadius.circular(isLarge ? 16 : 12),
                   ),
                   child: IconButton(
-                    iconSize: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
+                    iconSize: context.adaptiveIconSize(
+                      20,
+                      tabletSize: 24,
+                      largeTabletSize: 28,
+                    ),
                     padding: EdgeInsets.all(isLarge ? 14 : 8),
-                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.red,
+                    ),
                     tooltip: 'Delete Selected',
                     onPressed: _isLoading ? null : _handleDeleteSelectedPages,
                   ),

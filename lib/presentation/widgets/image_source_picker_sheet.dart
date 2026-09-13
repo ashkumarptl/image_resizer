@@ -6,10 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../services/scanner/document_scanner_service.dart';
 
 /// Available sources for selecting or scanning images in the app.
-enum AppImageSource {
-  smartScanner,
-  gallery,
-}
+enum AppImageSource { smartScanner, gallery }
 
 /// Unified bottom sheet entry point for selecting images or scanning documents
 /// offering both Google ML Kit Document Scanner and Import from Gallery options.
@@ -49,7 +46,9 @@ class ImageSourcePickerSheet {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                    color: (isDark ? Colors.white : Colors.black).withValues(
+                      alpha: 0.2,
+                    ),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -58,7 +57,9 @@ class ImageSourcePickerSheet {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
                 if (subtitle.isNotEmpty) ...[
@@ -68,13 +69,17 @@ class ImageSourcePickerSheet {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12.5,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
                 const SizedBox(height: 18),
                 ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   tileColor: isDark
                       ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
                       : AppColors.surfaceVariantLight,
@@ -86,7 +91,11 @@ class ImageSourcePickerSheet {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
-                    child: const Icon(Icons.document_scanner_rounded, color: AppColors.primary, size: 24),
+                    child: const Icon(
+                      Icons.document_scanner_rounded,
+                      color: AppColors.primary,
+                      size: 24,
+                    ),
                   ),
                   title: Row(
                     children: [
@@ -96,14 +105,19 @@ class ImageSourcePickerSheet {
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14.5,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
@@ -123,14 +137,19 @@ class ImageSourcePickerSheet {
                     'Camera with auto-edge detection & perspective crop',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
-                  onTap: () => Navigator.of(ctx).pop(AppImageSource.smartScanner),
+                  onTap: () =>
+                      Navigator.of(ctx).pop(AppImageSource.smartScanner),
                 ),
                 const SizedBox(height: 10),
                 ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   tileColor: isDark
                       ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
                       : AppColors.surfaceVariantLight,
@@ -142,21 +161,29 @@ class ImageSourcePickerSheet {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
-                    child: const Icon(Icons.photo_library_rounded, color: Color(0xFF10B981), size: 24),
+                    child: const Icon(
+                      Icons.photo_library_rounded,
+                      color: Color(0xFF10B981),
+                      size: 24,
+                    ),
                   ),
                   title: Text(
                     'Import from Gallery',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14.5,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   subtitle: Text(
                     'Choose an existing photo from your device',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                   onTap: () => Navigator.of(ctx).pop(AppImageSource.gallery),
@@ -176,11 +203,15 @@ class ImageSourcePickerSheet {
         final file = await scannerService.scanSingleDocument();
         if (file != null) return file;
       } on MissingPluginException catch (e) {
-        debugPrint('[ImageSourcePickerSheet] ML Kit Document Scanner not registered ($e). Falling back to ImagePicker.');
+        debugPrint(
+          '[ImageSourcePickerSheet] ML Kit Document Scanner not registered ($e). Falling back to ImagePicker.',
+        );
       } catch (e) {
         final str = e.toString().toLowerCase();
         if (str.contains('cancel')) return null;
-        debugPrint('[ImageSourcePickerSheet] Scanner error ($e). Falling back to ImagePicker.');
+        debugPrint(
+          '[ImageSourcePickerSheet] Scanner error ($e). Falling back to ImagePicker.',
+        );
       }
     }
 
@@ -216,7 +247,9 @@ class ImageSourcePickerSheet {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                    color: (isDark ? Colors.white : Colors.black).withValues(
+                      alpha: 0.2,
+                    ),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -225,7 +258,9 @@ class ImageSourcePickerSheet {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
                   ),
                 ),
                 if (subtitle.isNotEmpty) ...[
@@ -235,13 +270,17 @@ class ImageSourcePickerSheet {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12.5,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
                 const SizedBox(height: 18),
                 ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   tileColor: isDark
                       ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
                       : AppColors.surfaceVariantLight,
@@ -253,7 +292,11 @@ class ImageSourcePickerSheet {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
-                    child: const Icon(Icons.document_scanner_rounded, color: AppColors.primary, size: 24),
+                    child: const Icon(
+                      Icons.document_scanner_rounded,
+                      color: AppColors.primary,
+                      size: 24,
+                    ),
                   ),
                   title: Row(
                     children: [
@@ -263,14 +306,19 @@ class ImageSourcePickerSheet {
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14.5,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
@@ -290,14 +338,19 @@ class ImageSourcePickerSheet {
                     'Multi-page camera scanner with auto-boundary detection',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
-                  onTap: () => Navigator.of(ctx).pop(AppImageSource.smartScanner),
+                  onTap: () =>
+                      Navigator.of(ctx).pop(AppImageSource.smartScanner),
                 ),
                 const SizedBox(height: 10),
                 ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   tileColor: isDark
                       ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
                       : AppColors.surfaceVariantLight,
@@ -309,21 +362,29 @@ class ImageSourcePickerSheet {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
-                    child: const Icon(Icons.photo_library_rounded, color: Color(0xFF10B981), size: 24),
+                    child: const Icon(
+                      Icons.photo_library_rounded,
+                      color: Color(0xFF10B981),
+                      size: 24,
+                    ),
                   ),
                   title: Text(
                     'Import from Gallery',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14.5,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                     ),
                   ),
                   subtitle: Text(
                     'Select multiple photos from your library',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                   onTap: () => Navigator.of(ctx).pop(AppImageSource.gallery),
@@ -340,14 +401,20 @@ class ImageSourcePickerSheet {
     if (source == AppImageSource.smartScanner) {
       try {
         final scannerService = DocumentScannerService();
-        final files = await scannerService.scanMultipleDocuments(pageLimit: maxPages);
+        final files = await scannerService.scanMultipleDocuments(
+          pageLimit: maxPages,
+        );
         if (files.isNotEmpty) return files;
       } on MissingPluginException catch (e) {
-        debugPrint('[ImageSourcePickerSheet] ML Kit Document Scanner not registered ($e). Falling back to ImagePicker.');
+        debugPrint(
+          '[ImageSourcePickerSheet] ML Kit Document Scanner not registered ($e). Falling back to ImagePicker.',
+        );
       } catch (e) {
         final str = e.toString().toLowerCase();
         if (str.contains('cancel')) return [];
-        debugPrint('[ImageSourcePickerSheet] Scanner error ($e). Falling back to ImagePicker.');
+        debugPrint(
+          '[ImageSourcePickerSheet] Scanner error ($e). Falling back to ImagePicker.',
+        );
       }
     }
 

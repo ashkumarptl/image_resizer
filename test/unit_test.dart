@@ -157,7 +157,10 @@ void main() {
 
     test('generateThumbnail creates a 120x120 cached image', () async {
       final repo = HistoryRepository();
-      final thumbPath = await repo.generateThumbnail(sampleImageFile.path, 'item_1');
+      final thumbPath = await repo.generateThumbnail(
+        sampleImageFile.path,
+        'item_1',
+      );
 
       expect(thumbPath, isNotNull);
       final thumbFile = File(thumbPath!);
@@ -168,32 +171,35 @@ void main() {
       expect(decoded.height, equals(120));
     });
 
-    test('addHistoryItem generates and caches thumbnail automatically', () async {
-      final repo = HistoryRepository();
-      final item = HistoryItem(
-        id: 'test_auto_thumb',
-        filePath: sampleImageFile.path,
-        originalPath: sampleImageFile.path,
-        originalSizeBytes: sampleImageFile.lengthSync(),
-        outputSizeBytes: sampleImageFile.lengthSync(),
-        width: 300,
-        height: 200,
-        format: 'jpg',
-        processedAt: DateTime.now(),
-      );
+    test(
+      'addHistoryItem generates and caches thumbnail automatically',
+      () async {
+        final repo = HistoryRepository();
+        final item = HistoryItem(
+          id: 'test_auto_thumb',
+          filePath: sampleImageFile.path,
+          originalPath: sampleImageFile.path,
+          originalSizeBytes: sampleImageFile.lengthSync(),
+          outputSizeBytes: sampleImageFile.lengthSync(),
+          width: 300,
+          height: 200,
+          format: 'jpg',
+          processedAt: DateTime.now(),
+        );
 
-      await repo.addHistoryItem(item);
-      final history = await repo.getRecentHistory();
+        await repo.addHistoryItem(item);
+        final history = await repo.getRecentHistory();
 
-      expect(history.length, 1);
-      expect(history.first.thumbnailPath, isNotNull);
-      expect(File(history.first.thumbnailPath!).existsSync(), isTrue);
+        expect(history.length, 1);
+        expect(history.first.thumbnailPath, isNotNull);
+        expect(File(history.first.thumbnailPath!).existsSync(), isTrue);
 
-      // Verify clearHistory cleans up files
-      await repo.clearHistory();
-      final afterClear = await repo.getRecentHistory();
-      expect(afterClear.isEmpty, isTrue);
-    });
+        // Verify clearHistory cleans up files
+        await repo.clearHistory();
+        final afterClear = await repo.getRecentHistory();
+        expect(afterClear.isEmpty, isTrue);
+      },
+    );
   });
 
   group('ProcessOptions Tests', () {
@@ -334,38 +340,45 @@ void main() {
       expect(notifier.state, ThemeMode.light);
     });
 
-    test('AppTheme enforces Material 3 shapes, surface tint, and stadium buttons', () {
-      final light = AppTheme.lightTheme;
-      expect(light.useMaterial3, isTrue);
-      expect(light.colorScheme.surfaceTint, isNotNull);
+    test(
+      'AppTheme enforces Material 3 shapes, surface tint, and stadium buttons',
+      () {
+        final light = AppTheme.lightTheme;
+        expect(light.useMaterial3, isTrue);
+        expect(light.colorScheme.surfaceTint, isNotNull);
 
-      // Card shape: 20dp
-      final cardBorder = light.cardTheme.shape as RoundedRectangleBorder;
-      expect(cardBorder.borderRadius, equals(BorderRadius.circular(20)));
+        // Card shape: 20dp
+        final cardBorder = light.cardTheme.shape as RoundedRectangleBorder;
+        expect(cardBorder.borderRadius, equals(BorderRadius.circular(20)));
 
-      // Dialog shape: 28dp
-      final dialogBorder = light.dialogTheme.shape as RoundedRectangleBorder;
-      expect(dialogBorder.borderRadius, equals(BorderRadius.circular(28)));
+        // Dialog shape: 28dp
+        final dialogBorder = light.dialogTheme.shape as RoundedRectangleBorder;
+        expect(dialogBorder.borderRadius, equals(BorderRadius.circular(28)));
 
-      // Button shapes: StadiumBorder
-      expect(
-        light.elevatedButtonTheme.style?.shape?.resolve({}),
-        isA<StadiumBorder>(),
-      );
-      expect(
-        light.filledButtonTheme.style?.shape?.resolve({}),
-        isA<StadiumBorder>(),
-      );
+        // Button shapes: StadiumBorder
+        expect(
+          light.elevatedButtonTheme.style?.shape?.resolve({}),
+          isA<StadiumBorder>(),
+        );
+        expect(
+          light.filledButtonTheme.style?.shape?.resolve({}),
+          isA<StadiumBorder>(),
+        );
 
-      final dark = AppTheme.darkTheme;
-      expect(dark.useMaterial3, isTrue);
-      expect(dark.colorScheme.surfaceTint, isNotNull);
+        final dark = AppTheme.darkTheme;
+        expect(dark.useMaterial3, isTrue);
+        expect(dark.colorScheme.surfaceTint, isNotNull);
 
-      final darkCardBorder = dark.cardTheme.shape as RoundedRectangleBorder;
-      expect(darkCardBorder.borderRadius, equals(BorderRadius.circular(20)));
+        final darkCardBorder = dark.cardTheme.shape as RoundedRectangleBorder;
+        expect(darkCardBorder.borderRadius, equals(BorderRadius.circular(20)));
 
-      final darkDialogBorder = dark.dialogTheme.shape as RoundedRectangleBorder;
-      expect(darkDialogBorder.borderRadius, equals(BorderRadius.circular(28)));
-    });
+        final darkDialogBorder =
+            dark.dialogTheme.shape as RoundedRectangleBorder;
+        expect(
+          darkDialogBorder.borderRadius,
+          equals(BorderRadius.circular(28)),
+        );
+      },
+    );
   });
 }

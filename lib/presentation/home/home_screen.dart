@@ -24,7 +24,9 @@ import 'widgets/recent_files_section.dart';
 import '../main_navigation_screen.dart';
 import '../onboarding/onboarding_screen.dart';
 
-final recentHistoryProvider = FutureProvider.autoDispose<List<HistoryItem>>((ref) async {
+final recentHistoryProvider = FutureProvider.autoDispose<List<HistoryItem>>((
+  ref,
+) async {
   return ref.watch(historyRepositoryProvider).getRecentHistory();
 });
 
@@ -48,9 +50,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (file == null || !mounted) return;
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ImageStudioScreen(initialImage: file),
-      ),
+      MaterialPageRoute(builder: (_) => ImageStudioScreen(initialImage: file)),
     );
   }
 
@@ -58,11 +58,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final canAccess = await checkFeatureAccess(context, ref);
     if (!canAccess || !mounted) return;
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const BatchScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const BatchScreen()));
   }
 
   Future<void> _handleSignatureTool() async {
@@ -87,9 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (file == null || !mounted) return;
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PhotoStampScreen(initialImage: file),
-      ),
+      MaterialPageRoute(builder: (_) => PhotoStampScreen(initialImage: file)),
     );
   }
 
@@ -101,9 +97,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (file == null || !mounted) return;
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => AiUpscalerScreen(initialImage: file),
-      ),
+      MaterialPageRoute(builder: (_) => AiUpscalerScreen(initialImage: file)),
     );
   }
 
@@ -115,7 +109,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _handleHistoryItemTap(HistoryItem item) {
-    final originalFile = File(item.originalPath.isNotEmpty ? item.originalPath : item.filePath);
+    final originalFile = File(
+      item.originalPath.isNotEmpty ? item.originalPath : item.filePath,
+    );
 
     final dummyResult = ProcessResult(
       originalPath: originalFile.path,
@@ -132,9 +128,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ResultScreen(result: dummyResult),
-      ),
+      MaterialPageRoute(builder: (_) => ResultScreen(result: dummyResult)),
     );
   }
 
@@ -150,7 +144,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: context.isLargeTablet ? 84 : (context.isMediumOrWider ? 72 : null),
+        toolbarHeight: context.isLargeTablet
+            ? 84
+            : (context.isMediumOrWider ? 72 : null),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -158,25 +154,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               AppConstants.appName,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: context.adaptiveFontSize(18, tabletSize: 25, largeTabletSize: 30),
+                fontSize: context.adaptiveFontSize(
+                  18,
+                  tabletSize: 25,
+                  largeTabletSize: 30,
+                ),
               ),
             ),
             const SizedBox(width: 10),
             Container(
               padding: EdgeInsets.symmetric(
-                horizontal: context.isLargeTablet ? 14 : (context.isMediumOrWider ? 12 : 7),
-                vertical: context.isLargeTablet ? 6 : (context.isMediumOrWider ? 5 : 2.5),
+                horizontal: context.isLargeTablet
+                    ? 14
+                    : (context.isMediumOrWider ? 12 : 7),
+                vertical: context.isLargeTablet
+                    ? 6
+                    : (context.isMediumOrWider ? 5 : 2.5),
               ),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
+                color: isDark
+                    ? const Color(0xFF064E3B)
+                    : const Color(0xFFD1FAE5),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: context.isLargeTablet ? 10 : (context.isMediumOrWider ? 8 : 6),
-                    height: context.isLargeTablet ? 10 : (context.isMediumOrWider ? 8 : 6),
+                    width: context.isLargeTablet
+                        ? 10
+                        : (context.isMediumOrWider ? 8 : 6),
+                    height: context.isLargeTablet
+                        ? 10
+                        : (context.isMediumOrWider ? 8 : 6),
                     decoration: const BoxDecoration(
                       color: Color(0xFF10B981),
                       shape: BoxShape.circle,
@@ -186,9 +196,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Text(
                     'Offline',
                     style: TextStyle(
-                      fontSize: context.adaptiveFontSize(10.5, tabletSize: 13.5, largeTabletSize: 16),
+                      fontSize: context.adaptiveFontSize(
+                        10.5,
+                        tabletSize: 13.5,
+                        largeTabletSize: 16,
+                      ),
                       fontWeight: FontWeight.w700,
-                      color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
+                      color: isDark
+                          ? const Color(0xFF6EE7B7)
+                          : const Color(0xFF047857),
                     ),
                   ),
                 ],
@@ -200,7 +216,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           IconButton(
             icon: Icon(
               Icons.help_outline_rounded,
-              size: context.adaptiveIconSize(22, tabletSize: 28, largeTabletSize: 32),
+              size: context.adaptiveIconSize(
+                22,
+                tabletSize: 28,
+                largeTabletSize: 32,
+              ),
             ),
             tooltip: 'App Feature Guide',
             onPressed: () {
@@ -224,14 +244,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       tooltip: 'Account (${user.displayName ?? 'Signed in'})',
                       onPressed: () => showAccountBottomSheet(context),
                       icon: CircleAvatar(
-                        radius: context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 14),
+                        radius: context.isLargeTablet
+                            ? 24
+                            : (context.isMediumOrWider ? 20 : 14),
                         backgroundColor: AppColors.primaryContainerLight,
-                        backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                        backgroundImage: photoUrl != null
+                            ? NetworkImage(photoUrl)
+                            : null,
                         child: photoUrl == null
                             ? Text(
-                                displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                                displayName.isNotEmpty
+                                    ? displayName[0].toUpperCase()
+                                    : 'U',
                                 style: TextStyle(
-                                  fontSize: context.adaptiveFontSize(12, tabletSize: 16, largeTabletSize: 19),
+                                  fontSize: context.adaptiveFontSize(
+                                    12,
+                                    tabletSize: 16,
+                                    largeTabletSize: 19,
+                                  ),
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryDark,
                                 ),
@@ -243,7 +273,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     return IconButton(
                       icon: Icon(
                         Icons.account_circle_outlined,
-                        size: context.adaptiveIconSize(24, tabletSize: 32, largeTabletSize: 38),
+                        size: context.adaptiveIconSize(
+                          24,
+                          tabletSize: 32,
+                          largeTabletSize: 38,
+                        ),
                       ),
                       tooltip: 'Sign In / Account',
                       onPressed: () => showAccountBottomSheet(context),
@@ -287,13 +321,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // 1 & 2. Hero Pick & Scan to PDF Cards (Side-by-side only on wide displays >= 840dp)
                   if (context.screenWidth >= 840) ...[
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: context.adaptiveMargin),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: context.adaptiveMargin,
+                      ),
                       child: IntrinsicHeight(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Expanded(
-                              child: _buildHeroPickCard(context, isDark, withoutOuterPadding: true),
+                              child: _buildHeroPickCard(
+                                context,
+                                isDark,
+                                withoutOuterPadding: true,
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -341,13 +381,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildHeroPickCard(BuildContext context, bool isDark, {bool withoutOuterPadding = false}) {
+  Widget _buildHeroPickCard(
+    BuildContext context,
+    bool isDark, {
+    bool withoutOuterPadding = false,
+  }) {
     final card = RepaintBoundary(
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(
-          horizontal: context.isLargeTablet ? 20 : (context.isMediumOrWider ? 18 : 16),
-          vertical: context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 16),
+          horizontal: context.isLargeTablet
+              ? 20
+              : (context.isMediumOrWider ? 18 : 16),
+          vertical: context.isLargeTablet
+              ? 24
+              : (context.isMediumOrWider ? 20 : 16),
         ),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : Colors.white,
@@ -372,15 +420,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             // Icon with soft halo
             Container(
-              width: context.adaptiveIconSize(56, tabletSize: 76, largeTabletSize: 88),
-              height: context.adaptiveIconSize(56, tabletSize: 76, largeTabletSize: 88),
+              width: context.adaptiveIconSize(
+                56,
+                tabletSize: 76,
+                largeTabletSize: 88,
+              ),
+              height: context.adaptiveIconSize(
+                56,
+                tabletSize: 76,
+                largeTabletSize: 88,
+              ),
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.add_photo_alternate_rounded,
-                size: context.adaptiveIconSize(28, tabletSize: 38, largeTabletSize: 44),
+                size: context.adaptiveIconSize(
+                  28,
+                  tabletSize: 38,
+                  largeTabletSize: 44,
+                ),
                 color: AppColors.primary,
               ),
             ),
@@ -391,10 +451,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               'Select Photo to Optimize',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: context.adaptiveFontSize(18, tabletSize: 22, largeTabletSize: 24),
+                fontSize: context.adaptiveFontSize(
+                  18,
+                  tabletSize: 22,
+                  largeTabletSize: 24,
+                ),
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.2,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(height: 6),
@@ -404,8 +470,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               'Compress size, crop framing, or convert format',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: context.adaptiveFontSize(12.5, tabletSize: 14.0, largeTabletSize: 15.0),
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                fontSize: context.adaptiveFontSize(
+                  12.5,
+                  tabletSize: 14.0,
+                  largeTabletSize: 15.0,
+                ),
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
             ),
             SizedBox(height: context.isMediumOrWider ? 22 : 18),
@@ -417,7 +489,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: BouncyTap(
                     onTap: _handleStudioTool,
                     child: Container(
-                      height: context.isLargeTablet ? 52 : (context.isMediumOrWider ? 48 : 44),
+                      height: context.isLargeTablet
+                          ? 52
+                          : (context.isMediumOrWider ? 48 : 44),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
                         gradient: AppColors.primaryGradient,
@@ -435,7 +509,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         children: [
                           Icon(
                             Icons.flash_on_rounded,
-                            size: context.adaptiveIconSize(16, tabletSize: 18, largeTabletSize: 20),
+                            size: context.adaptiveIconSize(
+                              16,
+                              tabletSize: 18,
+                              largeTabletSize: 20,
+                            ),
                             color: Colors.white,
                           ),
                           const SizedBox(width: 5),
@@ -450,7 +528,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: context.adaptiveFontSize(13, tabletSize: 14.5, largeTabletSize: 15.5),
+                                  fontSize: context.adaptiveFontSize(
+                                    13,
+                                    tabletSize: 14.5,
+                                    largeTabletSize: 15.5,
+                                  ),
                                 ),
                               ),
                             ),
@@ -465,7 +547,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: BouncyTap(
                     onTap: _handleBatchTool,
                     child: Container(
-                      height: context.isLargeTablet ? 52 : (context.isMediumOrWider ? 48 : 44),
+                      height: context.isLargeTablet
+                          ? 52
+                          : (context.isMediumOrWider ? 48 : 44),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
                         color: isDark
@@ -473,7 +557,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+                          color: isDark
+                              ? AppColors.borderDark
+                              : const Color(0xFFE2E8F0),
                         ),
                       ),
                       child: Row(
@@ -481,8 +567,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         children: [
                           Icon(
                             Icons.copy_all_rounded,
-                            size: context.adaptiveIconSize(16, tabletSize: 18, largeTabletSize: 20),
-                            color: isDark ? AppColors.textPrimaryDark : const Color(0xFF334155),
+                            size: context.adaptiveIconSize(
+                              16,
+                              tabletSize: 18,
+                              largeTabletSize: 20,
+                            ),
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : const Color(0xFF334155),
                           ),
                           const SizedBox(width: 5),
                           Flexible(
@@ -495,8 +587,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 softWrap: false,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
-                                  fontSize: context.adaptiveFontSize(13, tabletSize: 14.5, largeTabletSize: 15.5),
-                                  color: isDark ? AppColors.textPrimaryDark : const Color(0xFF334155),
+                                  fontSize: context.adaptiveFontSize(
+                                    13,
+                                    tabletSize: 14.5,
+                                    largeTabletSize: 15.5,
+                                  ),
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : const Color(0xFF334155),
                                 ),
                               ),
                             ),
@@ -538,8 +636,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             borderRadius: BorderRadius.circular(20),
             child: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: context.isLargeTablet ? 20 : (context.isMediumOrWider ? 18 : 16),
-                vertical: context.isLargeTablet ? 24 : (context.isMediumOrWider ? 20 : 16),
+                horizontal: context.isLargeTablet
+                    ? 20
+                    : (context.isMediumOrWider ? 18 : 16),
+                vertical: context.isLargeTablet
+                    ? 24
+                    : (context.isMediumOrWider ? 20 : 16),
               ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
@@ -562,8 +664,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Column(
                 children: [
                   Container(
-                    width: context.adaptiveIconSize(56, tabletSize: 76, largeTabletSize: 88),
-                    height: context.adaptiveIconSize(56, tabletSize: 76, largeTabletSize: 88),
+                    width: context.adaptiveIconSize(
+                      56,
+                      tabletSize: 76,
+                      largeTabletSize: 88,
+                    ),
+                    height: context.adaptiveIconSize(
+                      56,
+                      tabletSize: 76,
+                      largeTabletSize: 88,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(
                         alpha: isDark ? 0.22 : 0.1,
@@ -573,7 +683,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     alignment: Alignment.center,
                     child: Icon(
                       Icons.document_scanner_rounded,
-                      size: context.adaptiveIconSize(28, tabletSize: 38, largeTabletSize: 44),
+                      size: context.adaptiveIconSize(
+                        28,
+                        tabletSize: 38,
+                        largeTabletSize: 44,
+                      ),
                       color: AppColors.primary,
                     ),
                   ),
@@ -587,16 +701,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Text(
                         'Scan Documents to PDF',
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(18, tabletSize: 22, largeTabletSize: 24),
+                          fontSize: context.adaptiveFontSize(
+                            18,
+                            tabletSize: 22,
+                            largeTabletSize: 24,
+                          ),
                           fontWeight: FontWeight.bold,
                           letterSpacing: -0.2,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                       ),
                       Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: context.isLargeTablet ? 10 : (context.isMediumOrWider ? 8 : 6),
-                          vertical: context.isLargeTablet ? 4 : (context.isMediumOrWider ? 3 : 2),
+                          horizontal: context.isLargeTablet
+                              ? 10
+                              : (context.isMediumOrWider ? 8 : 6),
+                          vertical: context.isLargeTablet
+                              ? 4
+                              : (context.isMediumOrWider ? 3 : 2),
                         ),
                         decoration: BoxDecoration(
                           color: isDark
@@ -607,7 +731,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         child: Text(
                           'DOCS',
                           style: TextStyle(
-                            fontSize: context.adaptiveFontSize(9.5, tabletSize: 12, largeTabletSize: 13.5),
+                            fontSize: context.adaptiveFontSize(
+                              9.5,
+                              tabletSize: 12,
+                              largeTabletSize: 13.5,
+                            ),
                             fontWeight: FontWeight.bold,
                             color: isDark
                                 ? AppColors.secondaryLight
@@ -622,15 +750,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     'Multi-page scanner, auto-deskew & PDF export',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: context.adaptiveFontSize(12.5, tabletSize: 14.0, largeTabletSize: 15.0),
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      fontSize: context.adaptiveFontSize(
+                        12.5,
+                        tabletSize: 14.0,
+                        largeTabletSize: 15.0,
+                      ),
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                   SizedBox(height: context.isMediumOrWider ? 22 : 18),
                   BouncyTap(
                     onTap: _handleScanToPdfTool,
                     child: Container(
-                      height: context.isLargeTablet ? 52 : (context.isMediumOrWider ? 48 : 44),
+                      height: context.isLargeTablet
+                          ? 52
+                          : (context.isMediumOrWider ? 48 : 44),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
                         gradient: AppColors.primaryGradient,
@@ -648,7 +784,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         children: [
                           Icon(
                             Icons.camera_alt_rounded,
-                            size: context.adaptiveIconSize(16, tabletSize: 18, largeTabletSize: 20),
+                            size: context.adaptiveIconSize(
+                              16,
+                              tabletSize: 18,
+                              largeTabletSize: 20,
+                            ),
                             color: Colors.white,
                           ),
                           const SizedBox(width: 8),
@@ -663,7 +803,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: context.adaptiveFontSize(13, tabletSize: 14.5, largeTabletSize: 15.5),
+                                  fontSize: context.adaptiveFontSize(
+                                    13,
+                                    tabletSize: 14.5,
+                                    largeTabletSize: 15.5,
+                                  ),
                                 ),
                               ),
                             ),
@@ -686,9 +830,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onTap: _handleScanToPdfTool,
           borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
           child: Container(
-            padding: EdgeInsets.all(context.isLargeTablet ? 20 : (context.isMediumOrWider ? 18 : 16)),
+            padding: EdgeInsets.all(
+              context.isLargeTablet ? 20 : (context.isMediumOrWider ? 18 : 16),
+            ),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
+              borderRadius: BorderRadius.circular(
+                context.isLargeTablet ? 20 : 16,
+              ),
               border: Border.all(
                 color: isDark
                     ? AppColors.borderDark
@@ -708,18 +856,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Row(
               children: [
                 Container(
-                  width: context.adaptiveIconSize(46, tabletSize: 60, largeTabletSize: 68),
-                  height: context.adaptiveIconSize(46, tabletSize: 60, largeTabletSize: 68),
+                  width: context.adaptiveIconSize(
+                    46,
+                    tabletSize: 60,
+                    largeTabletSize: 68,
+                  ),
+                  height: context.adaptiveIconSize(
+                    46,
+                    tabletSize: 60,
+                    largeTabletSize: 68,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(
                       alpha: isDark ? 0.22 : 0.1,
                     ),
-                    borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : 13),
+                    borderRadius: BorderRadius.circular(
+                      context.isLargeTablet ? 16 : 13,
+                    ),
                   ),
                   alignment: Alignment.center,
                   child: Icon(
                     Icons.document_scanner_rounded,
-                    size: context.adaptiveIconSize(24, tabletSize: 30, largeTabletSize: 34),
+                    size: context.adaptiveIconSize(
+                      24,
+                      tabletSize: 30,
+                      largeTabletSize: 34,
+                    ),
                     color: AppColors.primary,
                   ),
                 ),
@@ -733,7 +895,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Text(
                             'Scan to PDF',
                             style: TextStyle(
-                              fontSize: context.adaptiveFontSize(15, tabletSize: 19, largeTabletSize: 22),
+                              fontSize: context.adaptiveFontSize(
+                                15,
+                                tabletSize: 19,
+                                largeTabletSize: 22,
+                              ),
                               fontWeight: FontWeight.bold,
                               letterSpacing: -0.2,
                               color: isDark
@@ -744,8 +910,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           const SizedBox(width: 8),
                           Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: context.isLargeTablet ? 10 : (context.isMediumOrWider ? 8 : 6),
-                              vertical: context.isLargeTablet ? 4 : (context.isMediumOrWider ? 3 : 2),
+                              horizontal: context.isLargeTablet
+                                  ? 10
+                                  : (context.isMediumOrWider ? 8 : 6),
+                              vertical: context.isLargeTablet
+                                  ? 4
+                                  : (context.isMediumOrWider ? 3 : 2),
                             ),
                             decoration: BoxDecoration(
                               color: isDark
@@ -756,7 +926,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             child: Text(
                               'DOCS',
                               style: TextStyle(
-                                fontSize: context.adaptiveFontSize(9.5, tabletSize: 12, largeTabletSize: 13.5),
+                                fontSize: context.adaptiveFontSize(
+                                  9.5,
+                                  tabletSize: 12,
+                                  largeTabletSize: 13.5,
+                                ),
                                 fontWeight: FontWeight.bold,
                                 color: isDark
                                     ? AppColors.secondaryLight
@@ -770,7 +944,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Text(
                         'Camera scanner, multi-page document & PDF export',
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(12, tabletSize: 14.5, largeTabletSize: 15.5),
+                          fontSize: context.adaptiveFontSize(
+                            12,
+                            tabletSize: 14.5,
+                            largeTabletSize: 15.5,
+                          ),
                           color: isDark
                               ? AppColors.textSecondaryDark
                               : AppColors.textSecondaryLight,
@@ -781,8 +959,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  width: context.adaptiveIconSize(32, tabletSize: 42, largeTabletSize: 48),
-                  height: context.adaptiveIconSize(32, tabletSize: 42, largeTabletSize: 48),
+                  width: context.adaptiveIconSize(
+                    32,
+                    tabletSize: 42,
+                    largeTabletSize: 48,
+                  ),
+                  height: context.adaptiveIconSize(
+                    32,
+                    tabletSize: 42,
+                    largeTabletSize: 48,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(
                       alpha: isDark ? 0.18 : 0.08,
@@ -791,7 +977,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   child: Icon(
                     Icons.arrow_forward_rounded,
-                    size: context.adaptiveIconSize(16, tabletSize: 22, largeTabletSize: 26),
+                    size: context.adaptiveIconSize(
+                      16,
+                      tabletSize: 22,
+                      largeTabletSize: 26,
+                    ),
                     color: AppColors.primary,
                   ),
                 ),
@@ -821,9 +1011,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Text(
                 'Quick Utilities',
                 style: TextStyle(
-                  fontSize: context.adaptiveFontSize(15, tabletSize: 22, largeTabletSize: 26),
+                  fontSize: context.adaptiveFontSize(
+                    15,
+                    tabletSize: 22,
+                    largeTabletSize: 26,
+                  ),
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               InkWell(
@@ -832,23 +1028,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'Exam Hub',
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(12.5, tabletSize: 16, largeTabletSize: 18.5),
+                          fontSize: context.adaptiveFontSize(
+                            12.5,
+                            tabletSize: 16,
+                            largeTabletSize: 18.5,
+                          ),
                           fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.primaryLight : AppColors.primary,
+                          color: isDark
+                              ? AppColors.primaryLight
+                              : AppColors.primary,
                         ),
                       ),
                       const SizedBox(width: 2),
                       Icon(
                         Icons.arrow_forward_rounded,
-                        size: context.adaptiveIconSize(14, tabletSize: 18, largeTabletSize: 22),
-                        color: isDark ? AppColors.primaryLight : AppColors.primary,
+                        size: context.adaptiveIconSize(
+                          14,
+                          tabletSize: 18,
+                          largeTabletSize: 22,
+                        ),
+                        color: isDark
+                            ? AppColors.primaryLight
+                            : AppColors.primary,
                       ),
                     ],
                   ),
@@ -900,12 +1111,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           color: isDark ? AppColors.surfaceDark : Colors.white,
           borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
           border: Border.all(
-            color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.35 : 0.20),
+            color: const Color(
+              0xFF8B5CF6,
+            ).withValues(alpha: isDark ? 0.35 : 0.20),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.20 : 0.06),
+              color: const Color(
+                0xFF8B5CF6,
+              ).withValues(alpha: isDark ? 0.20 : 0.06),
               blurRadius: 14,
               offset: const Offset(0, 3),
             ),
@@ -914,15 +1129,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: Row(
           children: [
             Container(
-              width: context.adaptiveIconSize(46, tabletSize: 60, largeTabletSize: 68),
-              height: context.adaptiveIconSize(46, tabletSize: 60, largeTabletSize: 68),
+              width: context.adaptiveIconSize(
+                46,
+                tabletSize: 60,
+                largeTabletSize: 68,
+              ),
+              height: context.adaptiveIconSize(
+                46,
+                tabletSize: 60,
+                largeTabletSize: 68,
+              ),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : 13),
+                borderRadius: BorderRadius.circular(
+                  context.isLargeTablet ? 16 : 13,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
@@ -934,7 +1159,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               alignment: Alignment.center,
               child: Icon(
                 Icons.auto_awesome_rounded,
-                size: context.adaptiveIconSize(24, tabletSize: 30, largeTabletSize: 34),
+                size: context.adaptiveIconSize(
+                  24,
+                  tabletSize: 30,
+                  largeTabletSize: 34,
+                ),
                 color: Colors.white,
               ),
             ),
@@ -951,7 +1180,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: context.adaptiveFontSize(15, tabletSize: 19, largeTabletSize: 22),
+                            fontSize: context.adaptiveFontSize(
+                              15,
+                              tabletSize: 19,
+                              largeTabletSize: 22,
+                            ),
                             fontWeight: FontWeight.bold,
                             letterSpacing: -0.2,
                             color: isDark
@@ -967,17 +1200,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           vertical: context.isLargeTablet ? 3 : 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.25 : 0.12),
+                          color: const Color(
+                            0xFF8B5CF6,
+                          ).withValues(alpha: isDark ? 0.25 : 0.12),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                            color: const Color(
+                              0xFF8B5CF6,
+                            ).withValues(alpha: 0.3),
                             width: 0.8,
                           ),
                         ),
                         child: Text(
                           '4K AI',
                           style: TextStyle(
-                            fontSize: context.adaptiveFontSize(9.5, tabletSize: 11.5, largeTabletSize: 13),
+                            fontSize: context.adaptiveFontSize(
+                              9.5,
+                              tabletSize: 11.5,
+                              largeTabletSize: 13,
+                            ),
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF8B5CF6),
                             letterSpacing: 0.2,
@@ -992,7 +1233,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: context.adaptiveFontSize(12, tabletSize: 14.5, largeTabletSize: 15.5),
+                      fontSize: context.adaptiveFontSize(
+                        12,
+                        tabletSize: 14.5,
+                        largeTabletSize: 15.5,
+                      ),
                       color: isDark
                           ? AppColors.textSecondaryDark
                           : AppColors.textSecondaryLight,
@@ -1003,17 +1248,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             const SizedBox(width: 8),
             Container(
-              width: context.adaptiveIconSize(32, tabletSize: 42, largeTabletSize: 48),
-              height: context.adaptiveIconSize(32, tabletSize: 42, largeTabletSize: 48),
+              width: context.adaptiveIconSize(
+                32,
+                tabletSize: 42,
+                largeTabletSize: 48,
+              ),
+              height: context.adaptiveIconSize(
+                32,
+                tabletSize: 42,
+                largeTabletSize: 48,
+              ),
               decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withValues(
-                  alpha: isDark ? 0.22 : 0.10,
-                ),
+                color: const Color(
+                  0xFF8B5CF6,
+                ).withValues(alpha: isDark ? 0.22 : 0.10),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.arrow_forward_rounded,
-                size: context.adaptiveIconSize(16, tabletSize: 22, largeTabletSize: 26),
+                size: context.adaptiveIconSize(
+                  16,
+                  tabletSize: 22,
+                  largeTabletSize: 26,
+                ),
                 color: const Color(0xFF8B5CF6),
               ),
             ),
@@ -1022,7 +1279,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
 
   Widget _buildGuestUsageBanner(BuildContext context, bool isDark) {
     final isDeveloper = ref.watch(isDeveloperProvider);
@@ -1036,11 +1292,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     final usageCount = ref.watch(guestUsageCountProvider);
-    final remaining = (AppConstants.maxFreeGuestUses - usageCount).clamp(0, AppConstants.maxFreeGuestUses);
+    final remaining = (AppConstants.maxFreeGuestUses - usageCount).clamp(
+      0,
+      AppConstants.maxFreeGuestUses,
+    );
     final isLimitReached = usageCount >= AppConstants.maxFreeGuestUses;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(context.adaptiveMargin, 0, context.adaptiveMargin, 16),
+      padding: EdgeInsets.fromLTRB(
+        context.adaptiveMargin,
+        0,
+        context.adaptiveMargin,
+        16,
+      ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -1064,11 +1328,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 colors: isLimitReached
                     ? [
                         AppColors.error.withValues(alpha: isDark ? 0.25 : 0.12),
-                        AppColors.warning.withValues(alpha: isDark ? 0.2 : 0.08),
+                        AppColors.warning.withValues(
+                          alpha: isDark ? 0.2 : 0.08,
+                        ),
                       ]
                     : [
-                        AppColors.primary.withValues(alpha: isDark ? 0.22 : 0.1),
-                        AppColors.primaryDark.withValues(alpha: isDark ? 0.15 : 0.05),
+                        AppColors.primary.withValues(
+                          alpha: isDark ? 0.22 : 0.1,
+                        ),
+                        AppColors.primaryDark.withValues(
+                          alpha: isDark ? 0.15 : 0.05,
+                        ),
                       ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -1091,7 +1361,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    isLimitReached ? Icons.lock_outline_rounded : Icons.bolt_rounded,
+                    isLimitReached
+                        ? Icons.lock_outline_rounded
+                        : Icons.bolt_rounded,
                     size: context.adaptiveIconSize(20, tabletSize: 24),
                     color: isLimitReached ? AppColors.error : AppColors.primary,
                   ),
@@ -1106,11 +1378,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ? 'Free Limit Reached (${AppConstants.maxFreeGuestUses}/${AppConstants.maxFreeGuestUses} used)'
                             : 'Free Trial: $remaining of ${AppConstants.maxFreeGuestUses} uses remaining',
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(13, tabletSize: 15.5),
+                          fontSize: context.adaptiveFontSize(
+                            13,
+                            tabletSize: 15.5,
+                          ),
                           fontWeight: FontWeight.bold,
                           color: isLimitReached
                               ? (isDark ? Colors.red.shade300 : AppColors.error)
-                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                              : (isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1119,8 +1396,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ? 'Sign in with Google for unlimited access'
                             : 'Sign in to unlock unlimited usage & presets',
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(11, tabletSize: 13),
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          fontSize: context.adaptiveFontSize(
+                            11,
+                            tabletSize: 13,
+                          ),
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                     ],
@@ -1177,7 +1459,9 @@ class _QuickUtilityTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(
-          vertical: context.isLargeTablet ? 22 : (context.isMediumOrWider ? 18 : 14),
+          vertical: context.isLargeTablet
+              ? 22
+              : (context.isMediumOrWider ? 18 : 14),
           horizontal: context.isLargeTablet ? 12 : 8,
         ),
         decoration: BoxDecoration(
@@ -1198,26 +1482,42 @@ class _QuickUtilityTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: EdgeInsets.all(context.isLargeTablet ? 14 : (context.isMediumOrWider ? 12 : 8)),
+              padding: EdgeInsets.all(
+                context.isLargeTablet ? 14 : (context.isMediumOrWider ? 12 : 8),
+              ),
               decoration: BoxDecoration(
                 color: accentColor.withValues(alpha: isDark ? 0.22 : 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                size: context.adaptiveIconSize(20, tabletSize: 26, largeTabletSize: 30),
+                size: context.adaptiveIconSize(
+                  20,
+                  tabletSize: 26,
+                  largeTabletSize: 30,
+                ),
                 color: accentColor,
               ),
             ),
-            SizedBox(height: context.isLargeTablet ? 12 : (context.isMediumOrWider ? 10 : 8)),
+            SizedBox(
+              height: context.isLargeTablet
+                  ? 12
+                  : (context.isMediumOrWider ? 10 : 8),
+            ),
             Text(
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: context.adaptiveFontSize(12, tabletSize: 15.0, largeTabletSize: 17.0),
+                fontSize: context.adaptiveFontSize(
+                  12,
+                  tabletSize: 15.0,
+                  largeTabletSize: 17.0,
+                ),
                 fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
             const SizedBox(height: 2),
@@ -1226,8 +1526,14 @@ class _QuickUtilityTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: context.adaptiveFontSize(10, tabletSize: 12.0, largeTabletSize: 13.5),
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                fontSize: context.adaptiveFontSize(
+                  10,
+                  tabletSize: 12.0,
+                  largeTabletSize: 13.5,
+                ),
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
             ),
           ],

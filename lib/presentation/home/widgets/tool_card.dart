@@ -74,10 +74,14 @@ class ToolCard extends StatelessWidget {
                         width: iconBoxSize,
                         height: iconBoxSize,
                         decoration: BoxDecoration(
-                          color: accentColor.withValues(alpha: isDark ? 0.20 : 0.10),
+                          color: accentColor.withValues(
+                            alpha: isDark ? 0.20 : 0.10,
+                          ),
                           borderRadius: AppRadii.cardInnerRadius,
                           border: Border.all(
-                            color: accentColor.withValues(alpha: isDark ? 0.35 : 0.20),
+                            color: accentColor.withValues(
+                              alpha: isDark ? 0.35 : 0.20,
+                            ),
                             width: 1,
                           ),
                         ),
@@ -94,10 +98,14 @@ class ToolCard extends StatelessWidget {
                             vertical: context.isMediumOrWider ? 4 : 3,
                           ),
                           decoration: BoxDecoration(
-                            color: accentColor.withValues(alpha: isDark ? 0.20 : 0.10),
+                            color: accentColor.withValues(
+                              alpha: isDark ? 0.20 : 0.10,
+                            ),
                             borderRadius: AppRadii.badgeRadius,
                             border: Border.all(
-                              color: accentColor.withValues(alpha: isDark ? 0.35 : 0.22),
+                              color: accentColor.withValues(
+                                alpha: isDark ? 0.35 : 0.22,
+                              ),
                               width: 0.8,
                             ),
                           ),

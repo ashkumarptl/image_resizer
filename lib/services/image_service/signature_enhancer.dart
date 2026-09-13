@@ -8,12 +8,7 @@ import '../../data/models/process_result.dart';
 
 import 'safe_image_decoder.dart';
 
-enum SignatureInkColor {
-  original,
-  darkNavy,
-  pureBlack,
-  royalBlue,
-}
+enum SignatureInkColor { original, darkNavy, pureBlack, royalBlue }
 
 class SignatureEnhanceOptions {
   final String sourcePath;
@@ -59,20 +54,21 @@ class SignatureEnhancer {
   SignatureEnhancer._();
 
   /// Enhances and cleans scanned signature image in background isolate
-  static Future<ProcessResult> enhanceSignature(SignatureEnhanceOptions options) async {
+  static Future<ProcessResult> enhanceSignature(
+    SignatureEnhanceOptions options,
+  ) async {
     final cacheDir = await getTemporaryDirectory();
     final outputDirPath = cacheDir.path;
 
     return compute(
       _enhanceSignatureInternal,
-      _EnhanceIsolateParams(
-        options: options,
-        outputDirPath: outputDirPath,
-      ),
+      _EnhanceIsolateParams(options: options, outputDirPath: outputDirPath),
     );
   }
 
-  static Future<ProcessResult> _enhanceSignatureInternal(_EnhanceIsolateParams params) async {
+  static Future<ProcessResult> _enhanceSignatureInternal(
+    _EnhanceIsolateParams params,
+  ) async {
     final stopwatch = Stopwatch()..start();
     final options = params.options;
     final sourceFile = File(options.sourcePath);
@@ -82,10 +78,19 @@ class SignatureEnhancer {
     }
 
     final bytes = await sourceFile.readAsBytes();
-    final maxDecodeDim = (options.targetWidth != null || options.targetHeight != null)
-        ? math.max((options.targetWidth ?? 400) * 2, (options.targetHeight ?? 200) * 2).clamp(800, 2048)
+    final maxDecodeDim =
+        (options.targetWidth != null || options.targetHeight != null)
+        ? math
+              .max(
+                (options.targetWidth ?? 400) * 2,
+                (options.targetHeight ?? 200) * 2,
+              )
+              .clamp(800, 2048)
         : 2048;
-    final decoded = await SafeImageDecoder.decodeSafe(bytes, maxDimension: maxDecodeDim);
+    final decoded = await SafeImageDecoder.decodeSafe(
+      bytes,
+      maxDimension: maxDecodeDim,
+    );
     if (decoded == null) {
       throw Exception('Failed to decode signature image');
     }
@@ -103,7 +108,10 @@ class SignatureEnhancer {
 
     // 1. High-contrast thresholding with white background isolation
     final thresholdInt = (options.threshold * 255).round().clamp(0, 255);
-    final enhanced = img.Image(width: workingSource.width, height: workingSource.height);
+    final enhanced = img.Image(
+      width: workingSource.width,
+      height: workingSource.height,
+    );
 
     final isOriginalInk = options.inkColor == SignatureInkColor.original;
     final (r, g, b) = switch (options.inkColor) {
@@ -117,7 +125,8 @@ class SignatureEnhancer {
       for (var x = 0; x < workingSource.width; x++) {
         final pixel = workingSource.getPixel(x, y);
         // Luminance calculation
-        final lum = (0.299 * pixel.r + 0.587 * pixel.g + 0.114 * pixel.b).round();
+        final lum = (0.299 * pixel.r + 0.587 * pixel.g + 0.114 * pixel.b)
+            .round();
 
         if (lum > thresholdInt) {
           // Pure white background
@@ -170,7 +179,10 @@ class SignatureEnhancer {
 
     // 5. Save output file
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final outputFilePath = p.join(params.outputDirPath, 'sig_enhanced_$timestamp.jpg');
+    final outputFilePath = p.join(
+      params.outputDirPath,
+      'sig_enhanced_$timestamp.jpg',
+    );
     await File(outputFilePath).writeAsBytes(encoded);
 
     stopwatch.stop();

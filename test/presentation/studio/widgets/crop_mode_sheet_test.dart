@@ -24,7 +24,9 @@ void main() {
   }
 
   group('CropModeSheet Tests', () {
-    testWidgets('Renders header, close icon, and both minimal option cards', (tester) async {
+    testWidgets('Renders header, close icon, and both minimal option cards', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
@@ -43,10 +45,14 @@ void main() {
       expect(find.text('4-Corner Deskew'), findsOneWidget);
     });
 
-    testWidgets('Tapping Standard Crop pops with standard choice', (tester) async {
+    testWidgets('Tapping Standard Crop pops with standard choice', (
+      tester,
+    ) async {
       String? returnedChoice;
 
-      await tester.pumpWidget(buildTestWidget(onResult: (res) => returnedChoice = res));
+      await tester.pumpWidget(
+        buildTestWidget(onResult: (res) => returnedChoice = res),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Open Crop Sheet'));
@@ -58,10 +64,14 @@ void main() {
       expect(returnedChoice, equals('standard'));
     });
 
-    testWidgets('Tapping Perspective Crop pops with perspective choice', (tester) async {
+    testWidgets('Tapping Perspective Crop pops with perspective choice', (
+      tester,
+    ) async {
       String? returnedChoice;
 
-      await tester.pumpWidget(buildTestWidget(onResult: (res) => returnedChoice = res));
+      await tester.pumpWidget(
+        buildTestWidget(onResult: (res) => returnedChoice = res),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Open Crop Sheet'));
@@ -73,10 +83,14 @@ void main() {
       expect(returnedChoice, equals('perspective'));
     });
 
-    testWidgets('Tapping close button dismisses sheet without selection', (tester) async {
+    testWidgets('Tapping close button dismisses sheet without selection', (
+      tester,
+    ) async {
       String? returnedChoice;
 
-      await tester.pumpWidget(buildTestWidget(onResult: (res) => returnedChoice = res));
+      await tester.pumpWidget(
+        buildTestWidget(onResult: (res) => returnedChoice = res),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Open Crop Sheet'));

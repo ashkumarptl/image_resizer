@@ -8,46 +8,49 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'image_service/safe_image_decoder.dart';
 
-
 // FFI Native Signatures
 typedef _IsVulkanAvailableNative = Int32 Function();
 typedef _IsVulkanAvailableDart = int Function();
 
-typedef _InitUpscalerNative = Int32 Function(
-  Pointer<Utf8> paramPath,
-  Pointer<Utf8> modelPath,
-  Int32 scale,
-  Int32 tileSize,
-  Int32 gpuid,
-);
-typedef _InitUpscalerDart = int Function(
-  Pointer<Utf8> paramPath,
-  Pointer<Utf8> modelPath,
-  int scale,
-  int tileSize,
-  int gpuid,
-);
+typedef _InitUpscalerNative =
+    Int32 Function(
+      Pointer<Utf8> paramPath,
+      Pointer<Utf8> modelPath,
+      Int32 scale,
+      Int32 tileSize,
+      Int32 gpuid,
+    );
+typedef _InitUpscalerDart =
+    int Function(
+      Pointer<Utf8> paramPath,
+      Pointer<Utf8> modelPath,
+      int scale,
+      int tileSize,
+      int gpuid,
+    );
 
 typedef _ProgressCallbackNative = Void Function(Int32 current, Int32 total);
 
-typedef _UpscaleImageNative = Int32 Function(
-  Pointer<Uint8> inRgba,
-  Int32 width,
-  Int32 height,
-  Pointer<Uint8> outRgba,
-  Int32 scale,
-  Int32 tileSize,
-  Pointer<NativeFunction<_ProgressCallbackNative>> progressCb,
-);
-typedef _UpscaleImageDart = int Function(
-  Pointer<Uint8> inRgba,
-  int width,
-  int height,
-  Pointer<Uint8> outRgba,
-  int scale,
-  int tileSize,
-  Pointer<NativeFunction<_ProgressCallbackNative>> progressCb,
-);
+typedef _UpscaleImageNative =
+    Int32 Function(
+      Pointer<Uint8> inRgba,
+      Int32 width,
+      Int32 height,
+      Pointer<Uint8> outRgba,
+      Int32 scale,
+      Int32 tileSize,
+      Pointer<NativeFunction<_ProgressCallbackNative>> progressCb,
+    );
+typedef _UpscaleImageDart =
+    int Function(
+      Pointer<Uint8> inRgba,
+      int width,
+      int height,
+      Pointer<Uint8> outRgba,
+      int scale,
+      int tileSize,
+      Pointer<NativeFunction<_ProgressCallbackNative>> progressCb,
+    );
 
 typedef _DestroyUpscalerNative = Void Function();
 typedef _DestroyUpscalerDart = void Function();
@@ -109,7 +112,9 @@ class AiUpscalerService {
       }
 
       _isVulkanAvailable = _dylib!
-          .lookup<NativeFunction<_IsVulkanAvailableNative>>('is_vulkan_available')
+          .lookup<NativeFunction<_IsVulkanAvailableNative>>(
+            'is_vulkan_available',
+          )
           .asFunction<_IsVulkanAvailableDart>();
 
       _initUpscaler = _dylib!
@@ -126,7 +131,9 @@ class AiUpscalerService {
 
       _isNativeLoaded = true;
       _isVulkanSupported = (_isVulkanAvailable?.call() ?? 0) > 0;
-      debugPrint('[AiUpscalerService] Native library loaded. Vulkan available: $_isVulkanSupported');
+      debugPrint(
+        '[AiUpscalerService] Native library loaded. Vulkan available: $_isVulkanSupported',
+      );
     } catch (e) {
       debugPrint('[AiUpscalerService] Failed to load native library: $e');
       _isNativeLoaded = false;
@@ -135,14 +142,18 @@ class AiUpscalerService {
   }
 
   /// Extracts compact AI model files from APK assets to the persistent storage directory
-  Future<({String paramPath, String modelPath})> ensureModelsExtracted({int scale = 2}) async {
+  Future<({String paramPath, String modelPath})> ensureModelsExtracted({
+    int scale = 2,
+  }) async {
     final docsDir = await getApplicationDocumentsDirectory();
     final modelsDir = Directory(p.join(docsDir.path, 'ai_models'));
     if (!await modelsDir.exists()) {
       await modelsDir.create(recursive: true);
     }
 
-    final modelBaseName = scale == 4 ? 'realesr-animevideov3-x4' : 'realesr-animevideov3-x2';
+    final modelBaseName = scale == 4
+        ? 'realesr-animevideov3-x4'
+        : 'realesr-animevideov3-x2';
     final paramFile = File(p.join(modelsDir.path, '$modelBaseName.param'));
     final binFile = File(p.join(modelsDir.path, '$modelBaseName.bin'));
 
@@ -150,14 +161,18 @@ class AiUpscalerService {
     if (!await paramFile.exists()) {
       final data = await rootBundle.load('assets/models/$modelBaseName.param');
       await paramFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
-      debugPrint('[AiUpscalerService] Extracted $modelBaseName.param (${await paramFile.length()} bytes)');
+      debugPrint(
+        '[AiUpscalerService] Extracted $modelBaseName.param (${await paramFile.length()} bytes)',
+      );
     }
 
     // Extract .bin
     if (!await binFile.exists()) {
       final data = await rootBundle.load('assets/models/$modelBaseName.bin');
       await binFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
-      debugPrint('[AiUpscalerService] Extracted $modelBaseName.bin (${await binFile.length()} bytes)');
+      debugPrint(
+        '[AiUpscalerService] Extracted $modelBaseName.bin (${await binFile.length()} bytes)',
+      );
     }
 
     return (paramPath: paramFile.path, modelPath: binFile.path);
@@ -167,7 +182,9 @@ class AiUpscalerService {
   Future<bool> initializeEngine({int scale = 2, int tileSize = 128}) async {
     _loadNativeLibrary();
     if (!_isNativeLoaded || _initUpscaler == null) {
-      debugPrint('[AiUpscalerService] Cannot initialize engine without native library');
+      debugPrint(
+        '[AiUpscalerService] Cannot initialize engine without native library',
+      );
       return false;
     }
 
@@ -214,15 +231,21 @@ class AiUpscalerService {
     try {
       final header = SafeImageDecoder.readHeaderDimensions(inputBytes);
       final maxInputDim = scale == 4 ? 1280 : 2048;
-      if (header != null && (header.width > maxInputDim || header.height > maxInputDim)) {
-        onProgress?.call(0.04, 'Optimizing image resolution for neural processing...');
+      if (header != null &&
+          (header.width > maxInputDim || header.height > maxInputDim)) {
+        onProgress?.call(
+          0.04,
+          'Optimizing image resolution for neural processing...',
+        );
         final safeImage = await SafeImageDecoder.decodeSafe(
           inputBytes,
           maxDimension: maxInputDim,
           maxPixels: maxInputDim * maxInputDim,
         );
         if (safeImage != null) {
-          processBytes = Uint8List.fromList(img.encodeJpg(safeImage, quality: 95));
+          processBytes = Uint8List.fromList(
+            img.encodeJpg(safeImage, quality: 95),
+          );
         }
       }
     } catch (e) {
@@ -234,11 +257,17 @@ class AiUpscalerService {
 
     NativeCallable<_ProgressCallbackNative>? nativeCallable;
     if (onProgress != null) {
-      nativeCallable = NativeCallable<_ProgressCallbackNative>.listener((int current, int total) {
+      nativeCallable = NativeCallable<_ProgressCallbackNative>.listener((
+        int current,
+        int total,
+      ) {
         if (total > 0) {
           final p = (current / total).clamp(0.0, 1.0);
           final percent = (p * 100).toInt();
-          onProgress(p, 'Processing neural tile $current of $total ($percent%)...');
+          onProgress(
+            p,
+            'Processing neural tile $current of $total ($percent%)...',
+          );
         }
       });
     }
@@ -349,7 +378,9 @@ _UpscaleWorkerResult _runUpscaleWorker(_UpscaleWorkerParams params) {
           .lookup<NativeFunction<_UpscaleImageNative>>('upscale_image')
           .asFunction<_UpscaleImageDart>();
     } catch (e) {
-      debugPrint('[UpscaleWorker] Failed to load native library in isolate: $e');
+      debugPrint(
+        '[UpscaleWorker] Failed to load native library in isolate: $e',
+      );
     }
 
     if (upscaleImage != null) {
@@ -364,17 +395,32 @@ _UpscaleWorkerResult _runUpscaleWorker(_UpscaleWorkerParams params) {
         outPtr = null;
       }
 
-      if (inPtr != null && inPtr.address != 0 && outPtr != null && outPtr.address != 0) {
+      if (inPtr != null &&
+          inPtr.address != 0 &&
+          outPtr != null &&
+          outPtr.address != 0) {
         final cbPtr = params.progressCbAddress != 0
-            ? Pointer<NativeFunction<_ProgressCallbackNative>>.fromAddress(params.progressCbAddress)
+            ? Pointer<NativeFunction<_ProgressCallbackNative>>.fromAddress(
+                params.progressCbAddress,
+              )
             : nullptr;
 
         try {
           inPtr.asTypedList(inBufferSize).setAll(0, inRgbaBytes);
-          final status = upscaleImage(inPtr, inW, inH, outPtr, params.scale, params.tileSize, cbPtr);
+          final status = upscaleImage(
+            inPtr,
+            inW,
+            inH,
+            outPtr,
+            params.scale,
+            params.tileSize,
+            cbPtr,
+          );
           if (status < 0) {
             // Processing error or memory pressure in C++
-            debugPrint('[UpscaleWorker] upscale_image returned error status: $status, using cubic fallback');
+            debugPrint(
+              '[UpscaleWorker] upscale_image returned error status: $status, using cubic fallback',
+            );
             isFallback = true;
             final resized = img.copyResize(
               decoded,
@@ -382,10 +428,14 @@ _UpscaleWorkerResult _runUpscaleWorker(_UpscaleWorkerParams params) {
               height: outH,
               interpolation: img.Interpolation.cubic,
             );
-            resultBytes = Uint8List.fromList(img.encodeJpg(resized, quality: 95));
+            resultBytes = Uint8List.fromList(
+              img.encodeJpg(resized, quality: 95),
+            );
           } else {
             isFallback = (status == 1);
-            final outPixels = Uint8List.fromList(outPtr.asTypedList(outBufferSize));
+            final outPixels = Uint8List.fromList(
+              outPtr.asTypedList(outBufferSize),
+            );
             final outImage = img.Image.fromBytes(
               width: outW,
               height: outH,
@@ -393,10 +443,14 @@ _UpscaleWorkerResult _runUpscaleWorker(_UpscaleWorkerParams params) {
               order: img.ChannelOrder.rgba,
               numChannels: 4,
             );
-            resultBytes = Uint8List.fromList(img.encodeJpg(outImage, quality: 95));
+            resultBytes = Uint8List.fromList(
+              img.encodeJpg(outImage, quality: 95),
+            );
           }
         } catch (e) {
-          debugPrint('[UpscaleWorker] Inference execution error: $e, falling back to cubic');
+          debugPrint(
+            '[UpscaleWorker] Inference execution error: $e, falling back to cubic',
+          );
           isFallback = true;
           final resized = img.copyResize(
             decoded,

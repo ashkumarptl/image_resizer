@@ -67,14 +67,17 @@ class CropModeSheet extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                      color: (isDark ? AppColors.primaryLight : AppColors.primary)
-                          .withValues(alpha: 0.12),
+                      color:
+                          (isDark ? AppColors.primaryLight : AppColors.primary)
+                              .withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.crop_rounded,
                       size: 16,
-                      color: isDark ? AppColors.primaryLight : AppColors.primary,
+                      color: isDark
+                          ? AppColors.primaryLight
+                          : AppColors.primary,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -83,7 +86,9 @@ class CropModeSheet extends StatelessWidget {
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimaryLight,
                       letterSpacing: 0.2,
                     ),
                   ),
@@ -92,7 +97,9 @@ class CropModeSheet extends StatelessWidget {
               IconButton(
                 visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.close_rounded, size: 20),
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
                 tooltip: 'Close',
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -175,7 +182,9 @@ class _CropOptionCard extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariantLight,
+            color: isDark
+                ? AppColors.surfaceVariantDark
+                : AppColors.surfaceVariantLight,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
@@ -192,11 +201,7 @@ class _CropOptionCard extends StatelessWidget {
                   color: effectiveColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: effectiveColor,
-                ),
+                child: Icon(icon, size: 20, color: effectiveColor),
               ),
               const SizedBox(height: 12),
               Text(
@@ -206,7 +211,9 @@ class _CropOptionCard extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 2),
@@ -217,7 +224,9 @@ class _CropOptionCard extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
             ],

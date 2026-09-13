@@ -9,14 +9,14 @@ class AppTheme {
 
   static const PageTransitionsTheme defaultPageTransitionsTheme =
       PageTransitionsTheme(
-    builders: {
-      TargetPlatform.android: SmoothPageTransitionsBuilder(),
-      TargetPlatform.iOS: SmoothPageTransitionsBuilder(),
-      TargetPlatform.macOS: SmoothPageTransitionsBuilder(),
-      TargetPlatform.windows: SmoothPageTransitionsBuilder(),
-      TargetPlatform.linux: SmoothPageTransitionsBuilder(),
-    },
-  );
+        builders: {
+          TargetPlatform.android: SmoothPageTransitionsBuilder(),
+          TargetPlatform.iOS: SmoothPageTransitionsBuilder(),
+          TargetPlatform.macOS: SmoothPageTransitionsBuilder(),
+          TargetPlatform.windows: SmoothPageTransitionsBuilder(),
+          TargetPlatform.linux: SmoothPageTransitionsBuilder(),
+        },
+      );
 
   /// System UI overlay style for light theme:
   /// - Status bar: dark icons on light background
@@ -46,7 +46,9 @@ class AppTheme {
     systemStatusBarContrastEnforced: false,
   );
 
-  static ThemeData get lightTheme {
+  static final ThemeData lightTheme = _buildLightTheme();
+
+  static ThemeData _buildLightTheme() {
     final baseTextTheme = GoogleFonts.outfitTextTheme();
 
     return ThemeData(
@@ -250,7 +252,9 @@ class AppTheme {
     );
   }
 
-  static ThemeData get darkTheme {
+  static final ThemeData darkTheme = _buildDarkTheme();
+
+  static ThemeData _buildDarkTheme() {
     final baseTextTheme = GoogleFonts.outfitTextTheme(
       ThemeData.dark().textTheme,
     );

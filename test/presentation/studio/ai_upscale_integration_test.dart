@@ -10,7 +10,10 @@ import 'package:image_resizer/presentation/studio/widgets/studio_bottom_toolbar.
 void main() {
   group('Studio AI Upscale Integration Tests', () {
     test('StudioActiveTool enum contains upscale', () {
-      expect(StudioActiveTool.values.contains(StudioActiveTool.upscale), isTrue);
+      expect(
+        StudioActiveTool.values.contains(StudioActiveTool.upscale),
+        isTrue,
+      );
     });
 
     test('AiUpscaleSheetResult model fields initialize correctly', () {
@@ -30,91 +33,96 @@ void main() {
       expect(result.duration.inSeconds, equals(3));
     });
 
-    test('StudioHistoryState records hasUpscaled and compares in matches()', () {
-      final file = File('sample.jpg');
-      final state1 = StudioHistoryState(
-        imageFile: file,
-        originalWidth: 800,
-        originalHeight: 600,
-        fileSizeBytes: 10240,
-        quarterTurns: 0,
-        flipHorizontal: false,
-        flipVertical: false,
-        hasCropped: false,
-        hasRemovedBg: false,
-        hasUpscaled: false,
-        resizeOption: ResizeSheetOption.none,
-        targetWidth: 800,
-        targetHeight: 600,
-        selectedPercentage: 100,
-        keepAspectRatio: true,
-        compressionMode: CompressionSheetMode.none,
-        selectedTargetSizeKB: 50,
-        quality: 85,
-        outputFormat: 'jpg',
-      );
+    test(
+      'StudioHistoryState records hasUpscaled and compares in matches()',
+      () {
+        final file = File('sample.jpg');
+        final state1 = StudioHistoryState(
+          imageFile: file,
+          originalWidth: 800,
+          originalHeight: 600,
+          fileSizeBytes: 10240,
+          quarterTurns: 0,
+          flipHorizontal: false,
+          flipVertical: false,
+          hasCropped: false,
+          hasRemovedBg: false,
+          hasUpscaled: false,
+          resizeOption: ResizeSheetOption.none,
+          targetWidth: 800,
+          targetHeight: 600,
+          selectedPercentage: 100,
+          keepAspectRatio: true,
+          compressionMode: CompressionSheetMode.none,
+          selectedTargetSizeKB: 50,
+          quality: 85,
+          outputFormat: 'jpg',
+        );
 
-      final state2 = StudioHistoryState(
-        imageFile: file,
-        originalWidth: 800,
-        originalHeight: 600,
-        fileSizeBytes: 10240,
-        quarterTurns: 0,
-        flipHorizontal: false,
-        flipVertical: false,
-        hasCropped: false,
-        hasRemovedBg: false,
-        hasUpscaled: true,
-        resizeOption: ResizeSheetOption.none,
-        targetWidth: 800,
-        targetHeight: 600,
-        selectedPercentage: 100,
-        keepAspectRatio: true,
-        compressionMode: CompressionSheetMode.none,
-        selectedTargetSizeKB: 50,
-        quality: 85,
-        outputFormat: 'jpg',
-      );
+        final state2 = StudioHistoryState(
+          imageFile: file,
+          originalWidth: 800,
+          originalHeight: 600,
+          fileSizeBytes: 10240,
+          quarterTurns: 0,
+          flipHorizontal: false,
+          flipVertical: false,
+          hasCropped: false,
+          hasRemovedBg: false,
+          hasUpscaled: true,
+          resizeOption: ResizeSheetOption.none,
+          targetWidth: 800,
+          targetHeight: 600,
+          selectedPercentage: 100,
+          keepAspectRatio: true,
+          compressionMode: CompressionSheetMode.none,
+          selectedTargetSizeKB: 50,
+          quality: 85,
+          outputFormat: 'jpg',
+        );
 
-      expect(state1.hasUpscaled, isFalse);
-      expect(state2.hasUpscaled, isTrue);
-      expect(state1.matches(state2), isFalse);
-    });
+        expect(state1.hasUpscaled, isFalse);
+        expect(state2.hasUpscaled, isTrue);
+        expect(state1.matches(state2), isFalse);
+      },
+    );
 
-    testWidgets('StudioBottomToolbar renders AI UPSCALE tool button and responds to tap', (tester) async {
-      bool upscaleTapped = false;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            bottomNavigationBar: StudioBottomToolbar(
-              activeTool: StudioActiveTool.none,
-              hasRotated: false,
-              hasFlipped: false,
-              hasCropped: false,
-              hasRemovedBg: false,
-              hasUpscaled: false,
-              onRotate: () {},
-              onFlip: () {},
-              onCrop: () {},
-              onBgRemover: () {},
-              onUpscale: () => upscaleTapped = true,
-              onCompress: () {},
-              onCompressLongPress: () {},
-              onResize: () {},
-              onFormat: () {},
+    testWidgets(
+      'StudioBottomToolbar renders AI UPSCALE tool button and responds to tap',
+      (tester) async {
+        bool upscaleTapped = false;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              bottomNavigationBar: StudioBottomToolbar(
+                activeTool: StudioActiveTool.none,
+                hasRotated: false,
+                hasFlipped: false,
+                hasCropped: false,
+                hasRemovedBg: false,
+                hasUpscaled: false,
+                onRotate: () {},
+                onFlip: () {},
+                onCrop: () {},
+                onBgRemover: () {},
+                onUpscale: () => upscaleTapped = true,
+                onCompress: () {},
+                onCompressLongPress: () {},
+                onResize: () {},
+                onFormat: () {},
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      final upscaleBtn = find.text('AI UPSCALE');
-      expect(upscaleBtn, findsOneWidget);
+        final upscaleBtn = find.text('AI UPSCALE');
+        expect(upscaleBtn, findsOneWidget);
 
-      await tester.tap(upscaleBtn);
-      await tester.pump();
+        await tester.tap(upscaleBtn);
+        await tester.pump();
 
-      expect(upscaleTapped, isTrue);
-    });
+        expect(upscaleTapped, isTrue);
+      },
+    );
   });
 }
-

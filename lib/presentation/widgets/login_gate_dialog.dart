@@ -43,7 +43,8 @@ class LoginGateBottomSheet extends ConsumerStatefulWidget {
   const LoginGateBottomSheet({super.key});
 
   @override
-  ConsumerState<LoginGateBottomSheet> createState() => _LoginGateBottomSheetState();
+  ConsumerState<LoginGateBottomSheet> createState() =>
+      _LoginGateBottomSheetState();
 }
 
 class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
@@ -57,7 +58,9 @@ class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
       if (cred?.user != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('🎉 Welcome ${cred!.user?.displayName ?? 'User'}! Unlimited access unlocked.'),
+            content: Text(
+              '🎉 Welcome ${cred!.user?.displayName ?? 'User'}! Unlimited access unlocked.',
+            ),
             backgroundColor: AppColors.success,
           ),
         );
@@ -140,7 +143,9 @@ class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              color: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
             ),
           ),
           const SizedBox(height: 6),
@@ -152,7 +157,9 @@ class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
             style: TextStyle(
               fontSize: 13,
               height: 1.4,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(height: 20),
@@ -161,7 +168,9 @@ class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceVariantDark : AppColors.primaryContainerLight.withValues(alpha: 0.5),
+              color: isDark
+                  ? AppColors.surfaceVariantDark
+                  : AppColors.primaryContainerLight.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark ? AppColors.borderDark : AppColors.borderLight,
@@ -169,13 +178,29 @@ class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
             ),
             child: Column(
               children: [
-                _buildBenefitRow(Icons.all_inclusive_rounded, 'Unlimited Image Resizing & Compressing', isDark),
+                _buildBenefitRow(
+                  Icons.all_inclusive_rounded,
+                  'Unlimited Image Resizing & Compressing',
+                  isDark,
+                ),
                 const SizedBox(height: 8),
-                _buildBenefitRow(Icons.bolt_rounded, 'Batch Processing & ZIP Downloads', isDark),
+                _buildBenefitRow(
+                  Icons.bolt_rounded,
+                  'Batch Processing & ZIP Downloads',
+                  isDark,
+                ),
                 const SizedBox(height: 8),
-                _buildBenefitRow(Icons.account_balance_rounded, 'All Indian Govt & Exam Presets', isDark),
+                _buildBenefitRow(
+                  Icons.account_balance_rounded,
+                  'All Indian Govt & Exam Presets',
+                  isDark,
+                ),
                 const SizedBox(height: 8),
-                _buildBenefitRow(Icons.check_circle_outline_rounded, '100% Free Forever with Google', isDark),
+                _buildBenefitRow(
+                  Icons.check_circle_outline_rounded,
+                  '100% Free Forever with Google',
+                  isDark,
+                ),
               ],
             ),
           ),
@@ -191,12 +216,16 @@ class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
 
           // Cancel / Dismiss
           TextButton(
-            onPressed: _isLoading ? null : () => Navigator.of(context).pop(false),
+            onPressed: _isLoading
+                ? null
+                : () => Navigator.of(context).pop(false),
             child: Text(
               'Maybe Later',
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
             ),
           ),
@@ -216,7 +245,9 @@ class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+              color: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimaryLight,
             ),
           ),
         ),

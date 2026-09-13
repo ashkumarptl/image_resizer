@@ -96,7 +96,11 @@ class _FlipOptionsSheetState extends State<FlipOptionsSheet> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(Icons.flip_outlined, color: AppColors.primary, size: 22),
+                    const Icon(
+                      Icons.flip_outlined,
+                      color: AppColors.primary,
+                      size: 22,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: FittedBox(
@@ -107,7 +111,9 @@ class _FlipOptionsSheetState extends State<FlipOptionsSheet> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
                         ),
                       ),
@@ -169,7 +175,9 @@ class _FlipOptionsSheetState extends State<FlipOptionsSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: const Text(
                 'Done',
@@ -201,7 +209,9 @@ class _FlipOptionsSheetState extends State<FlipOptionsSheet> {
               : (isDark ? Colors.grey.shade900 : Colors.grey.shade100),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? AppColors.primary : (isDark ? Colors.grey.shade800 : Colors.grey.shade300),
+            color: isSelected
+                ? AppColors.primary
+                : (isDark ? Colors.grey.shade800 : Colors.grey.shade300),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -210,7 +220,9 @@ class _FlipOptionsSheetState extends State<FlipOptionsSheet> {
             Icon(
               icon,
               size: 32,
-              color: isSelected ? AppColors.primary : (isDark ? Colors.white70 : Colors.black87),
+              color: isSelected
+                  ? AppColors.primary
+                  : (isDark ? Colors.white70 : Colors.black87),
             ),
             const SizedBox(height: 6),
             Text(
@@ -218,7 +230,9 @@ class _FlipOptionsSheetState extends State<FlipOptionsSheet> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? AppColors.primary : (isDark ? Colors.white : Colors.black),
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark ? Colors.white : Colors.black),
               ),
             ),
             const SizedBox(height: 2),
