@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/layout/adaptive_layout.dart';
 import '../../data/models/process_options.dart';
 import '../../data/models/process_result.dart';
+import '../../data/repositories/tool_guide_repository.dart';
+import '../../services/ai_upscaler_service.dart';
 import '../../services/analytics_service.dart';
 import '../../services/crashlytics_service.dart';
 import '../../services/image_service/dpi_service.dart';
@@ -20,9 +23,11 @@ import '../widgets/discard_changes_sheet.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/image_source_picker_sheet.dart';
 import '../widgets/processing_progress_modal.dart';
+import '../widgets/tool_instruction_sheet.dart';
 import 'models/studio_history_state.dart';
 import 'widgets/bg_remover_sheet.dart';
 import 'widgets/compress_options_sheet.dart';
+import 'widgets/crop_mode_sheet.dart';
 import 'widgets/flip_options_sheet.dart';
 import 'widgets/format_options_sheet.dart';
 import 'widgets/resize_options_sheet.dart';
@@ -62,6 +67,12 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   // 2. Crop & Cutout State
   bool _hasCropped = false;
   bool _hasRemovedBg = false;
+  bool _hasUpscaled = false;
+  int _upscaleSelectedScale = 2;
+  bool _isUpscaling = false;
+  double _upscaleProgress = 0.0;
+  String _upscaleStatus = '';
+  File? _preUpscaleImage;
   bool _hasAppliedFilter = false;
 
   // 3. Resize State
@@ -122,6 +133,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     }
 
     _loadImageMetadata();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ToolInstructionSheet.show(context, ToolGuideType.editStudio);
+    });
   }
 
   @override
@@ -225,6 +239,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       flipVertical: _flipVertical,
       hasCropped: _hasCropped,
       hasRemovedBg: _hasRemovedBg,
+      hasUpscaled: _hasUpscaled,
       resizeOption: _resizeOption,
       targetWidth: _targetWidth,
       targetHeight: _targetHeight,
@@ -283,6 +298,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       _flipVertical = state.flipVertical;
       _hasCropped = state.hasCropped;
       _hasRemovedBg = state.hasRemovedBg;
+      _hasUpscaled = state.hasUpscaled;
       _resizeOption = state.resizeOption;
       _targetWidth = state.targetWidth;
       _targetHeight = state.targetHeight;
@@ -373,6 +389,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _fileSizeBytes = _currentImage.lengthSync();
         _hasCropped = false;
         _hasRemovedBg = false;
+        _hasUpscaled = false;
         _quarterTurns = 0;
         _flipHorizontal = false;
         _flipVertical = false;
@@ -384,82 +401,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   Future<void> _handleCrop() async {
     setState(() => _activeTool = StudioActiveTool.crop);
 
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
-        final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
-        return Material(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white24 : Colors.black12,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Select Cropping Mode',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.crop_rounded, color: AppColors.primary),
-                  ),
-                  title: const Text('Standard Crop & Frame', style: TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Rectangular frame with fixed aspect ratio presets'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => Navigator.of(sheetContext).pop('standard'),
-                ),
-                const Divider(height: 16),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.transform_rounded, color: AppColors.secondary),
-                  ),
-                  title: const Text('Perspective Crop (4-Point Deskew)', style: TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Drag 4 corners to straighten angled documents and ID cards'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => Navigator.of(sheetContext).pop('perspective'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    final choice = await CropModeSheet.show(context);
 
     if (choice == null || !mounted) return;
 
@@ -621,6 +563,113 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       }
     }
   }
+
+  void _handleAiUpscaleToolbar() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      if (_activeTool == StudioActiveTool.upscale) {
+        _activeTool = StudioActiveTool.none;
+      } else {
+        _activeTool = StudioActiveTool.upscale;
+      }
+    });
+  }
+
+  Future<void> _handleExecuteUpscale() async {
+    if (_isUpscaling) return;
+
+    final bytes = await _currentImage.readAsBytes();
+    HapticFeedback.mediumImpact();
+
+    setState(() {
+      _isUpscaling = true;
+      _upscaleProgress = 0.02;
+      _upscaleStatus = 'Initializing neural engine (${_upscaleSelectedScale}x)...';
+    });
+
+    try {
+      final upscalerService = AiUpscalerService();
+      final res = await upscalerService.upscale(
+        inputBytes: bytes,
+        scale: _upscaleSelectedScale,
+        tileSize: 128,
+        onProgress: (progress, status) {
+          if (mounted) {
+            setState(() {
+              _upscaleProgress = progress;
+              _upscaleStatus = status;
+            });
+          }
+        },
+      );
+
+      if (!mounted) return;
+
+      final tempDir = await getTemporaryDirectory();
+      final outputFile = File(
+        '${tempDir.path}/studio_upscaled_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
+      await outputFile.writeAsBytes(res.imageBytes, flush: true);
+
+      setState(() {
+        _preUpscaleImage = _currentImage;
+        _currentImage = outputFile;
+        _fileSizeBytes = outputFile.lengthSync();
+        _hasUpscaled = true;
+        _isUpscaling = false;
+        _upscaleProgress = 1.0;
+        _upscaleStatus = '';
+        _quarterTurns = 0;
+        _flipHorizontal = false;
+        _flipVertical = false;
+        _showOriginal = false;
+        _previewImageFile = null;
+        _previewResult = null;
+      });
+
+      await _loadImageMetadata();
+      _recordHistory();
+
+      if (mounted) {
+        HapticFeedback.heavyImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Upscaled ${_upscaleSelectedScale}x to ${res.upscaledWidth}×${res.upscaledHeight} in ${(res.duration.inMilliseconds / 1000).toStringAsFixed(1)}s!',
+            ),
+            backgroundColor: const Color(0xFF8B5CF6),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'COMPARE',
+              textColor: Colors.white,
+              onPressed: () {
+                setState(() => _showOriginal = true);
+                Future.delayed(const Duration(milliseconds: 1500), () {
+                  if (mounted) setState(() => _showOriginal = false);
+                });
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isUpscaling = false;
+        _upscaleProgress = 0.0;
+        _upscaleStatus = 'Error: $e';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Upscaling failed: $e'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
 
   void _handleRotate() {
     HapticFeedback.lightImpact();
@@ -924,6 +973,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _flipVertical ||
         _hasCropped ||
         _hasRemovedBg ||
+        _hasUpscaled ||
         _hasAppliedFilter ||
         _resizeOption != ResizeSheetOption.none ||
         _compressionMode != CompressionSheetMode.none ||
@@ -1010,6 +1060,20 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               onPressed: (_isProcessing || !_canRedo) ? null : _redo,
             ),
             IconButton(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 44),
+              icon: const Icon(Icons.help_outline_rounded, size: 22),
+              color: appBarFg,
+              tooltip: 'How to use Edit Studio',
+              onPressed: () {
+                ToolInstructionSheet.show(
+                  context,
+                  ToolGuideType.editStudio,
+                  isManualTrigger: true,
+                );
+              },
+            ),
+            IconButton(
               key: const ValueKey('studio_reset_button'),
               padding: const EdgeInsets.symmetric(horizontal: 2),
               constraints: const BoxConstraints(minWidth: 36, minHeight: 44),
@@ -1068,7 +1132,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   : _buildTabletLandscapeLayout(isDark))
               : _buildMobileLayout(isDark),
         ),
-        bottomNavigationBar: (isTablet && isPortrait)
+        bottomNavigationBar: isTablet
             ? null
             : StudioBottomToolbar(
                 activeTool: _activeTool,
@@ -1076,12 +1140,14 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 hasFlipped: _flipHorizontal || _flipVertical,
                 hasCropped: _hasCropped,
                 hasRemovedBg: _hasRemovedBg,
+                hasUpscaled: _hasUpscaled,
                 hasAppliedFilter: _hasAppliedFilter,
                 onRotate: _handleRotate,
                 onFlip: _handleFlip,
                 onCrop: _handleCrop,
                 onDocFilter: _handleDocumentFilter,
                 onBgRemover: _handleBgRemover,
+                onUpscale: _handleAiUpscaleToolbar,
                 onCompress: _handleCompressToolbar,
                 onCompressLongPress: _openCompressSheet,
                 onResize: _handleResize,
@@ -1129,6 +1195,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         // 3. Contextual Quick KB Presets (Docked directly above bottom toolbar when Compress is active)
         if (_activeTool == StudioActiveTool.compress)
           _buildQuickKbPresetRow(isDark),
+
+        // 3b. Contextual AI Upscale Dock (Docked directly above bottom toolbar when Upscale is active)
+        if (_activeTool == StudioActiveTool.upscale)
+          _buildQuickUpscaleDock(isDark),
 
         const SizedBox(height: 4),
       ],
@@ -1334,19 +1404,177 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     );
   }
 
+  Widget _buildQuickUpscaleDock(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.4 : 0.3),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.2 : 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Scale selector chips: 2x and 4x
+          _buildUpscaleScaleChip(
+            scale: 2,
+            label: '2x HD',
+            subtitle: _originalWidth > 0 ? '${_originalWidth * 2}×${_originalHeight * 2}' : 'Double',
+            isDark: isDark,
+          ),
+          const SizedBox(width: 8),
+          _buildUpscaleScaleChip(
+            scale: 4,
+            label: '4x Ultra',
+            subtitle: _originalWidth > 0 ? '${_originalWidth * 4}×${_originalHeight * 4}' : 'Quadruple',
+            isDark: isDark,
+          ),
+          const SizedBox(width: 12),
+          // Action button
+          Expanded(
+            child: _isUpscaling
+                ? Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            '${(_upscaleProgress * 100).toInt()}% Processing...',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF8B5CF6),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ElevatedButton.icon(
+                    onPressed: _handleExecuteUpscale,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8B5CF6),
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                    label: Text(
+                      _hasUpscaled ? 'Re-Upscale' : 'Enhance Now',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpscaleScaleChip({
+    required int scale,
+    required String label,
+    required String subtitle,
+    required bool isDark,
+  }) {
+    final isSelected = _upscaleSelectedScale == scale;
+    return Material(
+      color: isSelected
+          ? const Color(0xFF8B5CF6)
+          : (isDark ? AppColors.surfaceVariantDark : Colors.grey.shade100),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: _isUpscaling
+            ? null
+            : () {
+                HapticFeedback.selectionClick();
+                setState(() => _upscaleSelectedScale = scale);
+              },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.85)
+                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildTabletPortraitLayout(bool isDark) {
+    final margin = context.adaptiveMargin;
+    final canvasFlex = context.screenHeight >= 1050 ? 5 : 5;
+    final deckFlex = context.screenHeight >= 1050 ? 5 : 6;
+
     return Column(
       children: [
         // 1. Top Section: Large Preview Canvas Viewport
         Expanded(
-          flex: 5,
+          flex: canvasFlex,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            padding: EdgeInsets.fromLTRB(margin, 8, margin, 4),
             child: Column(
               children: [
                 if (_activeTool == StudioActiveTool.compress) ...[
                   _buildQuickKbPresetRow(isDark),
+                  const SizedBox(height: 6),
+                ],
+                if (_activeTool == StudioActiveTool.upscale) ...[
+                  _buildQuickUpscaleDock(isDark),
                   const SizedBox(height: 6),
                 ],
                 Expanded(
@@ -1357,11 +1585,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           ),
         ),
 
-        // 2. Bottom Section: Studio Pro Control Deck
+        // 2. Bottom Section: Studio Pro Control Deck (Pinned Header & Footer)
         Expanded(
-          flex: 6,
+          flex: deckFlex,
           child: Container(
-            margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            margin: EdgeInsets.fromLTRB(margin, 4, margin, 12),
             decoration: BoxDecoration(
               color: isDark ? AppColors.surfaceDark : Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -1379,10 +1607,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(19),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: _buildTabletInspectorContent(isDark),
-              ),
+              child: _buildTabletInspectorContent(isDark),
             ),
           ),
         ),
@@ -1391,17 +1616,24 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   }
 
   Widget _buildTabletLandscapeLayout(bool isDark) {
+    final margin = context.adaptiveMargin;
+    final inspectorWidth = (context.screenWidth * 0.32).clamp(360.0, 440.0);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // 1. Large Central Canvas Viewport with Quick Presets Row
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+            padding: EdgeInsets.fromLTRB(margin, 8, 8, 12),
             child: Column(
               children: [
                 if (_activeTool == StudioActiveTool.compress) ...[
                   _buildQuickKbPresetRow(isDark),
+                  const SizedBox(height: 6),
+                ],
+                if (_activeTool == StudioActiveTool.upscale) ...[
+                  _buildQuickUpscaleDock(isDark),
                   const SizedBox(height: 6),
                 ],
                 Expanded(
@@ -1412,10 +1644,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           ),
         ),
 
-        // 2. Right Side Pro Inspector & Controls Panel
+        // 2. Right Side Pro Inspector & Controls Panel (Adaptive Width & Pinned Deck)
         Container(
-          width: 340,
-          margin: const EdgeInsets.fromLTRB(0, 8, 16, 8),
+          width: inspectorWidth,
+          margin: EdgeInsets.fromLTRB(0, 8, margin, 12),
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -1433,10 +1665,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(19),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: _buildTabletInspectorContent(isDark),
-            ),
+            child: _buildTabletInspectorContent(isDark),
           ),
         ),
       ],
@@ -1476,13 +1705,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _buildTabletToolSelector(isDark),
         const Divider(height: 1),
 
-        // Active Tool Inspector Content
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: _buildActiveToolInspectorSection(isDark),
+        // Active Tool Inspector Content (Scrollable)
+        Expanded(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: _buildActiveToolInspectorSection(isDark),
+          ),
         ),
 
-        // Bottom Action Footer
+        // Bottom Action Footer (Pinned at bottom)
         _buildTabletInspectorFooter(isDark),
       ],
     );
@@ -1537,9 +1769,13 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         (tool == StudioActiveTool.bgRemover &&
             (_activeTool == StudioActiveTool.crop ||
                 _activeTool == StudioActiveTool.docFilter ||
+                _activeTool == StudioActiveTool.upscale ||
                 _activeTool == StudioActiveTool.tools ||
                 _activeTool == StudioActiveTool.rotate ||
                 _activeTool == StudioActiveTool.flip));
+
+    final iconSize = context.adaptiveIconSize(18, tabletSize: 20, largeTabletSize: 22);
+    final fontSize = context.adaptiveFontSize(11, tabletSize: 12, largeTabletSize: 13);
 
     return Expanded(
       child: GestureDetector(
@@ -1549,7 +1785,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          constraints: const BoxConstraints(minHeight: 46),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           decoration: BoxDecoration(
             color: isSelected
                 ? (isDark ? AppColors.primary : Colors.white)
@@ -1567,10 +1804,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
-                size: 18,
+                size: iconSize,
                 color: isSelected
                     ? (isDark ? Colors.white : AppColors.primary)
                     : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
@@ -1579,11 +1817,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: fontSize,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   color: isSelected
-                      ? (isDark ? Colors.white : AppColors.primary)
-                      : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    ? (isDark ? Colors.white : AppColors.primary)
+                    : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
                 ),
               ),
             ],
@@ -1604,6 +1842,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       case StudioActiveTool.bgRemover:
       case StudioActiveTool.crop:
       case StudioActiveTool.docFilter:
+      case StudioActiveTool.upscale:
       case StudioActiveTool.tools:
       case StudioActiveTool.rotate:
       case StudioActiveTool.flip:
@@ -2412,7 +2651,83 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 4. Quick Transform Controls (Rotate, Flip H, Flip V with theme-matching active states)
+        // 4. AI Super Resolution (Upscale) (Themed card action button)
+        Material(
+          color: isDark ? AppColors.surfaceVariantDark.withValues(alpha: 0.45) : AppColors.surfaceVariantLight,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: _handleAiUpscaleToolbar,
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 1.0,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.22 : 0.10),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.auto_awesome_rounded, size: 18, color: Color(0xFF8B5CF6)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AI Super Resolution (2x / 4x)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Enhance clarity with on-device neural model',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_hasUpscaled)
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.success.withValues(alpha: 0.22) : AppColors.successContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Applied',
+                        style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 13,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 5. Quick Transform Controls (Rotate, Flip H, Flip V with theme-matching active states)
         Row(
           children: [
             _buildTabletTransformAction(
@@ -2469,6 +2784,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     final inactiveBorder = isDark ? AppColors.borderDark : AppColors.borderLight;
     final activeColor = AppColors.primary;
     final inactiveColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final iconSize = context.adaptiveIconSize(16, tabletSize: 19, largeTabletSize: 21);
+    final fontSize = context.adaptiveFontSize(12, tabletSize: 13, largeTabletSize: 14);
 
     return Expanded(
       child: Material(
@@ -2478,6 +2795,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(10),
           child: Container(
+            constraints: const BoxConstraints(minHeight: 46),
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
@@ -2493,14 +2811,14 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 children: [
                   Icon(
                     icon,
-                    size: 16,
+                    size: iconSize,
                     color: isActive ? activeColor : AppColors.primary,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 5),
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: fontSize,
                       fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
                       color: isActive ? activeColor : inactiveColor,
                     ),
@@ -2557,11 +2875,13 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     required bool isDark,
     required VoidCallback onTap,
   }) {
+    final fontSize = context.adaptiveFontSize(11, tabletSize: 12, largeTabletSize: 13);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 7),
+          constraints: const BoxConstraints(minHeight: 38),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
@@ -2579,7 +2899,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: fontSize,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 color: isSelected
                     ? Colors.white
@@ -2594,8 +2914,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
   Widget _buildCanvasImage() {
     if (_showOriginal) {
+      final origFile = _preUpscaleImage ?? _currentImage;
       return Image.file(
-        _currentImage,
+        origFile,
         key: const ValueKey('canvas_original_image'),
         gaplessPlayback: true,
         fit: BoxFit.contain,
@@ -2705,18 +3026,25 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       child: InkWell(
                         onTap: _resetZoom,
                         borderRadius: BorderRadius.circular(16),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isTablet ? 14 : 10,
+                            vertical: isTablet ? 8 : 6,
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.zoom_out_map_rounded, size: 14, color: Colors.white),
-                              SizedBox(width: 4),
+                              Icon(
+                                Icons.zoom_out_map_rounded,
+                                size: isTablet ? 17 : 14,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 5),
                               Text(
                                 'Reset Zoom',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 11,
+                                  fontSize: isTablet ? 13 : 11,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -2727,21 +3055,28 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     )
                   : IgnorePointer(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isTablet ? 14 : 10,
+                          vertical: isTablet ? 7 : 5,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.45),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.pinch_rounded, size: 12, color: Colors.white70),
-                            SizedBox(width: 4),
+                            Icon(
+                              Icons.pinch_rounded,
+                              size: isTablet ? 15 : 12,
+                              color: Colors.white70,
+                            ),
+                            const SizedBox(width: 5),
                             Text(
                               'Pinch or double-tap to inspect',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 11,
+                                fontSize: isTablet ? 12 : 11,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -2767,21 +3102,26 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     });
                   },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 16 : 12,
+                      vertical: isTablet ? 8 : 6,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           _showOriginal ? Icons.visibility : Icons.compare,
-                          color: Colors.white,
-                          size: 16,
+                          color: _hasUpscaled ? const Color(0xFFA78BFA) : Colors.white,
+                          size: isTablet ? 19 : 16,
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          _showOriginal ? 'Viewing Original' : 'Tap for Original',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
+                          _showOriginal
+                              ? (_hasUpscaled ? 'Viewing Pre-Upscale' : 'Viewing Original')
+                              : (_hasUpscaled ? 'Tap for Original' : 'Tap for Original'),
+                          style: TextStyle(
+                            color: _hasUpscaled ? const Color(0xFFA78BFA) : Colors.white,
+                            fontSize: isTablet ? 13 : 12,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -2791,6 +3131,138 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 ),
               ),
             ),
+            // AI Upscaled Badge
+            if (_hasUpscaled && !_isUpscaling)
+              Positioned(
+                top: 10,
+                right: (_quarterTurns != 0 || _flipHorizontal || _flipVertical) ? 80 : 10,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 12 : 8,
+                    vertical: isTablet ? 6 : 4,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.auto_awesome_rounded, size: isTablet ? 15 : 12, color: Colors.white),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_upscaleSelectedScale}x AI ENHANCED',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isTablet ? 12 : 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            // AI Upscaling in-place progress overlay
+            if (_isUpscaling)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(19),
+                  ),
+                  child: Center(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E222B) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.auto_awesome_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'AI Super-Resolution (${_upscaleSelectedScale}x)',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _upscaleStatus.isNotEmpty ? _upscaleStatus : 'Enhancing pixels with neural engine...',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: LinearProgressIndicator(
+                              value: _upscaleProgress > 0 ? _upscaleProgress : null,
+                              minHeight: 8,
+                              backgroundColor: isDark ? Colors.white12 : Colors.grey.shade200,
+                              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${(_upscaleProgress * 100).toInt()}% Completed',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF8B5CF6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             // Live preview updating indicator
             if (_isGeneratingPreview)
               Positioned(

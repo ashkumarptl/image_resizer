@@ -6,10 +6,12 @@ import '../../core/constants/app_colors.dart';
 import '../../core/extensions/file_size_extension.dart';
 import '../../core/layout/adaptive_layout.dart';
 import '../../data/models/process_result.dart';
+import '../../data/repositories/tool_guide_repository.dart';
 import '../../services/image_service/signature_enhancer.dart';
 import '../result/result_screen.dart';
 import '../widgets/discard_changes_sheet.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/tool_instruction_sheet.dart';
 
 class SignatureCleanerScreen extends StatefulWidget {
   final File initialImage;
@@ -50,6 +52,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
     super.initState();
     _originalSizeBytes = widget.initialImage.lengthSync();
     _triggerPreviewUpdate(debounce: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ToolInstructionSheet.show(context, ToolGuideType.signatureCleaner);
+    });
   }
 
   @override
@@ -182,6 +187,17 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                 tooltip: 'Reset to Defaults',
                 onPressed: _handleReset,
               ),
+            IconButton(
+              icon: const Icon(Icons.help_outline_rounded),
+              tooltip: 'How to use Signature Cleaner',
+              onPressed: () {
+                ToolInstructionSheet.show(
+                  context,
+                  ToolGuideType.signatureCleaner,
+                  isManualTrigger: true,
+                );
+              },
+            ),
           ],
         ),
         body: SafeArea(

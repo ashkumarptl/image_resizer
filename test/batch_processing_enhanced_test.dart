@@ -226,6 +226,7 @@ void main() {
       expect(find.text('Select Multiple Images'), findsOneWidget);
       expect(find.text('Smart Document Scanner'), findsOneWidget);
       expect(find.text('ML KIT'), findsOneWidget);
+      expect(find.text('Import from Gallery'), findsOneWidget);
       expect(find.text('From Gallery'), findsNothing);
       expect(find.text('Take Photo'), findsNothing);
     });

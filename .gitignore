@@ -17,6 +17,7 @@ Thumbs.db
 .svn/
 .swiftpm/
 migrate_working_dir/
+scratch/
 
 # IntelliJ / Android Studio related
 *.iml
@@ -56,6 +57,13 @@ app.*.map.json
 *.keystore
 *.ap_
 *.dex
+*.apk
+*.aab
+
+# Android NDK / CMake & Native Binaries
+**/.cxx/
+**/.externalNativeBuild/
+/android/app/src/main/cpp/ncnn/
 
 # iOS related
 **/ios/**/xcuserdata/

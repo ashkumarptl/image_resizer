@@ -13,6 +13,7 @@ class StudioHistoryState {
   final bool flipVertical;
   final bool hasCropped;
   final bool hasRemovedBg;
+  final bool hasUpscaled;
   final ResizeSheetOption resizeOption;
   final int targetWidth;
   final int targetHeight;
@@ -35,6 +36,7 @@ class StudioHistoryState {
     required this.flipVertical,
     required this.hasCropped,
     required this.hasRemovedBg,
+    this.hasUpscaled = false,
     required this.resizeOption,
     required this.targetWidth,
     required this.targetHeight,
@@ -58,6 +60,7 @@ class StudioHistoryState {
         flipVertical == other.flipVertical &&
         hasCropped == other.hasCropped &&
         hasRemovedBg == other.hasRemovedBg &&
+        hasUpscaled == other.hasUpscaled &&
         resizeOption == other.resizeOption &&
         targetWidth == other.targetWidth &&
         targetHeight == other.targetHeight &&

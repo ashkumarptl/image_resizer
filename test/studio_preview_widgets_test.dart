@@ -536,6 +536,13 @@ void main() {
 
     testWidgets('Defaults to no active tool and opens compress on toolbar tap',
         (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.runAsync(() async {
         await tester.pumpWidget(
           MaterialApp(
@@ -562,6 +569,13 @@ void main() {
 
     testWidgets('Renders Quick KB preset chips and updates target KB on tap',
         (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.runAsync(() async {
         await tester.pumpWidget(
           MaterialApp(
@@ -713,6 +727,13 @@ void main() {
 
     testWidgets('Undo and Redo buttons enable and revert/restore state correctly',
         (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.runAsync(() async {
         await tester.pumpWidget(
           MaterialApp(
@@ -790,7 +811,7 @@ void main() {
 
       expect(find.byTooltip('Save with Original Quality'), findsOneWidget);
 
-      // Redo once -> Back to 50 KB
+      // Redo once -> Restores 50 KB
       await tester.tap(redoButtonFinder);
       await tester.pump();
       expect(find.byTooltip('Compress to < 50 KB & Save'), findsOneWidget);
@@ -826,6 +847,37 @@ void main() {
       expect(find.text('Resize'), findsWidgets);
       expect(find.text('Format'), findsWidgets);
     });
+
+    testWidgets('Renders tablet landscape layout correctly with left canvas and right inspector',
+        (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ImageStudioScreen(
+              initialImage: testImageFile,
+              initialTool: StudioActiveTool.compress,
+            ),
+          ),
+        );
+        await Future.delayed(const Duration(milliseconds: 250));
+      });
+      await tester.pump();
+
+      // Top preset row and canvas
+      expect(find.text('Original'), findsWidgets);
+      expect(find.text('Process & Save Image'), findsOneWidget);
+      // Tool selector tabs in side inspector
+      expect(find.text('Compress'), findsWidgets);
+      expect(find.text('Resize'), findsWidgets);
+      expect(find.text('Format'), findsWidgets);
+      expect(find.text('Tools'), findsWidgets);
+    });
   });
 }
-

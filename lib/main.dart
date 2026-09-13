@@ -9,8 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'data/repositories/onboarding_repository.dart';
 import 'firebase_options.dart';
 import 'presentation/main_navigation_screen.dart';
+import 'presentation/onboarding/onboarding_screen.dart';
 import 'services/analytics_service.dart';
 import 'services/crashlytics_service.dart';
 import 'services/storage_service.dart';
@@ -41,11 +43,28 @@ void main() async {
   // Clean old temporary cache files on startup
   StorageService.cleanOldCacheFiles();
 
+  // Pre-load onboarding completion state to prevent cold-start flicker
+  SharedPreferences? prefs;
+  bool initialOnboardingCompleted = false;
+  try {
+    prefs = await SharedPreferences.getInstance();
+    initialOnboardingCompleted =
+        prefs.getBool(kPrefOnboardingCompletedKey) ?? false;
+  } catch (_) {}
+
   runApp(
     DevicePreview(
       enabled: !kReleaseMode && !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS,
-      builder: (context) => const ProviderScope(
-        child: ImageToolsApp(),
+      builder: (context) => ProviderScope(
+        overrides: [
+          onboardingCompletedProvider.overrideWith(
+            (ref) => OnboardingNotifier(
+              prefs: prefs,
+              initialValue: initialOnboardingCompleted,
+            ),
+          ),
+        ],
+        child: const ImageToolsApp(),
       ),
     ),
   );
@@ -105,6 +124,8 @@ class ImageToolsApp extends ConsumerWidget {
       );
     });
 
+    final isOnboardingCompleted = ref.watch(onboardingCompletedProvider);
+
     return MaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
@@ -140,7 +161,9 @@ class ImageToolsApp extends ConsumerWidget {
           ),
         );
       },
-      home: const MainNavigationScreen(),
+      home: isOnboardingCompleted
+          ? const MainNavigationScreen()
+          : const OnboardingScreen(isRevisit: false),
     );
   }
 }

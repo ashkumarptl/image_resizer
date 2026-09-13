@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/layout/adaptive_layout.dart';
+import '../../data/repositories/tool_guide_repository.dart';
 import '../../services/image_service/perspective_cropper.dart';
 import '../result/result_screen.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/tool_instruction_sheet.dart';
 import 'widgets/perspective_crop_canvas.dart';
 
 class PerspectiveCropScreen extends StatefulWidget {
@@ -44,6 +46,9 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
     _currentImage = widget.initialImage;
     _resetCorners();
     _loadImageDimensions();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ToolInstructionSheet.show(context, ToolGuideType.perspectiveCrop);
+    });
   }
 
   Future<void> _loadImageDimensions() async {
@@ -257,6 +262,17 @@ class _PerspectiveCropScreenState extends State<PerspectiveCropScreen> {
             icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             tooltip: 'Reset Corners',
             onPressed: _resetCorners,
+          ),
+          IconButton(
+            icon: const Icon(Icons.help_outline_rounded, color: Colors.white),
+            tooltip: 'How to use Perspective Crop',
+            onPressed: () {
+              ToolInstructionSheet.show(
+                context,
+                ToolGuideType.perspectiveCrop,
+                isManualTrigger: true,
+              );
+            },
           ),
         ],
       ),

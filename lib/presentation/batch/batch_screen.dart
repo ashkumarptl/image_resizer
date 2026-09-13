@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/extensions/file_size_extension.dart';
@@ -131,6 +132,176 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       );
     } catch (e) {
       debugPrint('[BatchScreen] Error in smart scan: $e');
+    }
+  }
+
+  Future<void> _handlePickFromGallery({bool append = false}) async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
+    try {
+      final picker = ImagePicker();
+      final pickedImages = await picker.pickMultiImage(limit: 50);
+      if (pickedImages.isEmpty || !mounted) return;
+
+      final newItems = pickedImages
+          .map((x) => BatchItemModel.fromFile(File(x.path)))
+          .toList();
+
+      setState(() {
+        if (!append) {
+          _items.clear();
+        }
+        _items.addAll(newItems);
+        _batchResult = null;
+      });
+      _loadDimensionsForItems(newItems);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('📸 Added ${newItems.length} image${newItems.length > 1 ? "s" : ""} from gallery (${_items.length} total)'),
+          duration: const Duration(seconds: 2),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      debugPrint('[BatchScreen] Gallery pick error: $e');
+    }
+  }
+
+  Future<void> _showAddSourceSheet({bool append = false}) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Text(
+                  append ? 'Add More Images' : 'Select Images Source',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  tileColor: isDark
+                      ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
+                      : AppColors.surfaceVariantLight,
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.document_scanner_rounded, color: Color(0xFF6366F1), size: 24),
+                  ),
+                  title: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Smart Document Scanner',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.5,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'ML KIT',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF6366F1),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Text(
+                    'Multi-page camera scanner with auto boundary detection',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  onTap: () => Navigator.of(ctx).pop('scanner'),
+                ),
+                const SizedBox(height: 10),
+                ListTile(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  tileColor: isDark
+                      ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
+                      : AppColors.surfaceVariantLight,
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.photo_library_rounded, color: Color(0xFF10B981), size: 24),
+                  ),
+                  title: Text(
+                    'Import from Gallery',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14.5,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Select multiple photos from your device library',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  onTap: () => Navigator.of(ctx).pop('gallery'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (choice == 'scanner') {
+      _handleCaptureFromScanner(append: append);
+    } else if (choice == 'gallery') {
+      _handlePickFromGallery(append: append);
     }
   }
 
@@ -546,7 +717,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              onPressed: _isProcessing ? null : () => _handleCaptureFromScanner(append: true),
+              onPressed: _isProcessing ? null : () => _showAddSourceSheet(append: true),
               icon: const Icon(Icons.document_scanner_rounded, size: 16),
               label: const Text('+ Scan More'),
             ),
@@ -671,27 +842,44 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
           const SizedBox(height: 20),
           FittedBox(
             fit: BoxFit.scaleDown,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
-                backgroundColor: const Color(0xFF6366F1),
-                foregroundColor: Colors.white,
-                elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              onPressed: () => _handleCaptureFromScanner(append: false),
-              icon: const Icon(Icons.document_scanner_rounded, size: 20),
-              label: const FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Smart Document Scanner', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                    SizedBox(width: 8),
-                    Text('ML KIT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white70)),
-                  ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    backgroundColor: const Color(0xFF6366F1),
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  onPressed: () => _handleCaptureFromScanner(append: false),
+                  icon: const Icon(Icons.document_scanner_rounded, size: 20),
+                  label: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Smart Document Scanner', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      SizedBox(width: 8),
+                      Text('ML KIT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white70)),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    foregroundColor: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    side: BorderSide(
+                      color: isDark ? AppColors.borderDark : const Color(0xFF6366F1).withValues(alpha: 0.5),
+                      width: 1.2,
+                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  onPressed: () => _handlePickFromGallery(append: false),
+                  icon: const Icon(Icons.photo_library_rounded, size: 20, color: Color(0xFF6366F1)),
+                  label: const Text('Import from Gallery', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ),
+              ],
             ),
           ),
         ],
@@ -738,7 +926,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              onPressed: _isProcessing ? null : () => _handleCaptureFromScanner(append: true),
+              onPressed: _isProcessing ? null : () => _showAddSourceSheet(append: true),
               icon: const Icon(Icons.document_scanner_rounded, size: 16),
               label: const Text('+ Scan More'),
             ),
@@ -821,7 +1009,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => _handleCaptureFromScanner(append: true),
+        onTap: () => _showAddSourceSheet(append: true),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -831,11 +1019,11 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                 color: const Color(0xFF6366F1).withValues(alpha: isDark ? 0.2 : 0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.document_scanner_rounded, color: Color(0xFF6366F1), size: 24),
+              child: const Icon(Icons.add_photo_alternate_rounded, color: Color(0xFF6366F1), size: 24),
             ),
             const SizedBox(height: 10),
             Text(
-              '+ Scan More',
+              '+ Add Images',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -844,7 +1032,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             ),
             const SizedBox(height: 2),
             Text(
-              'ML Kit Scanner',
+              'Scanner / Gallery',
               style: TextStyle(
                 fontSize: 10,
                 color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,

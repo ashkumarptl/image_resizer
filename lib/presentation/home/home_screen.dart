@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
@@ -10,6 +11,7 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../data/repositories/usage_limit_repository.dart';
 import '../batch/batch_screen.dart';
+import '../ai_upscaler/ai_upscaler_screen.dart';
 import '../photo_stamp/photo_stamp_screen.dart';
 import '../result/result_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
@@ -20,6 +22,7 @@ import '../widgets/image_source_picker_sheet.dart';
 import '../widgets/login_gate_dialog.dart';
 import 'widgets/recent_files_section.dart';
 import '../main_navigation_screen.dart';
+import '../onboarding/onboarding_screen.dart';
 
 final recentHistoryProvider = FutureProvider.autoDispose<List<HistoryItem>>((ref) async {
   return ref.watch(historyRepositoryProvider).getRecentHistory();
@@ -86,6 +89,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PhotoStampScreen(initialImage: file),
+      ),
+    );
+  }
+
+  Future<void> _handleAiUpscalerTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
+    final file = await _pickImage(title: 'Select Photo to Upscale');
+    if (file == null || !mounted) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AiUpscalerScreen(initialImage: file),
       ),
     );
   }
@@ -180,6 +197,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              Icons.help_outline_rounded,
+              size: context.adaptiveIconSize(22, tabletSize: 28, largeTabletSize: 32),
+            ),
+            tooltip: 'App Feature Guide',
+            onPressed: () {
+              HapticFeedback.selectionClick();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const OnboardingScreen(isRevisit: true),
+                ),
+              );
+            },
+          ),
           Consumer(
             builder: (context, ref, child) {
               final authState = ref.watch(authStateProvider);
@@ -850,10 +882,147 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          _buildAiUpscalerCard(context, isDark),
         ],
       ),
     );
   }
+
+  Widget _buildAiUpscalerCard(BuildContext context, bool isDark) {
+    return BouncyTap(
+      onTap: _handleAiUpscalerTool,
+      child: Container(
+        padding: EdgeInsets.all(
+          context.isLargeTablet ? 20 : (context.isMediumOrWider ? 18 : 16),
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: BorderRadius.circular(context.isLargeTablet ? 20 : 16),
+          border: Border.all(
+            color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.35 : 0.20),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.20 : 0.06),
+              blurRadius: 14,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: context.adaptiveIconSize(46, tabletSize: 60, largeTabletSize: 68),
+              height: context.adaptiveIconSize(46, tabletSize: 60, largeTabletSize: 68),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(context.isLargeTablet ? 16 : 13),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.auto_awesome_rounded,
+                size: context.adaptiveIconSize(24, tabletSize: 30, largeTabletSize: 34),
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: context.isLargeTablet ? 18 : 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'AI Super Resolution',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: context.adaptiveFontSize(15, tabletSize: 19, largeTabletSize: 22),
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.2,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: context.isLargeTablet ? 8 : 6,
+                          vertical: context.isLargeTablet ? 3 : 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.25 : 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          '4K AI',
+                          style: TextStyle(
+                            fontSize: context.adaptiveFontSize(9.5, tabletSize: 11.5, largeTabletSize: 13),
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF8B5CF6),
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'Enhance photo clarity & details • 2x & 4x on-device',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: context.adaptiveFontSize(12, tabletSize: 14.5, largeTabletSize: 15.5),
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: context.adaptiveIconSize(32, tabletSize: 42, largeTabletSize: 48),
+              height: context.adaptiveIconSize(32, tabletSize: 42, largeTabletSize: 48),
+              decoration: BoxDecoration(
+                color: const Color(0xFF8B5CF6).withValues(
+                  alpha: isDark ? 0.22 : 0.10,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.arrow_forward_rounded,
+                size: context.adaptiveIconSize(16, tabletSize: 22, largeTabletSize: 26),
+                color: const Color(0xFF8B5CF6),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildGuestUsageBanner(BuildContext context, bool isDark) {
     final isDeveloper = ref.watch(isDeveloperProvider);

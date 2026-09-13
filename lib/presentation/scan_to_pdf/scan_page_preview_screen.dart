@@ -13,6 +13,7 @@ import '../../services/system_integration_service.dart';
 import '../studio/image_studio_screen.dart';
 import '../widgets/image_source_picker_sheet.dart';
 import '../widgets/login_gate_dialog.dart';
+import '../widgets/send_to_pc_sheet.dart';
 
 /// Fullscreen Image Preview Screen for a scanned document page,
 /// matching CamScanner's preview and action flow, fully responsive on mobile & tablets.
@@ -268,15 +269,167 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
   Future<void> _handleShareCurrentPage() async {
     if (_currentIndex < 0 || _currentIndex >= _project.pagePaths.length) return;
     final path = _project.pagePaths[_currentIndex];
-    try {
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(path)],
-          text: '${_project.name} - Page ${_currentIndex + 1}',
-        ),
-      );
-    } catch (e) {
-      debugPrint('[ScanPagePreviewScreen] Share error: $e');
+    final file = File(path);
+    if (!file.existsSync()) return;
+
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Material(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Share Page ${_currentIndex + 1}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_project.name} • Choose how to share this page',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.share_rounded,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    title: const Text(
+                      'Share to Apps',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Share image via WhatsApp, Gmail, Drive, etc.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => Navigator.of(ctx).pop('apps'),
+                  ),
+                  const Divider(height: 16),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.laptop_chromebook_rounded,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                    title: Row(
+                      children: [
+                        const Text(
+                          'Send to PC / Browser',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'Cyber Cafe',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    subtitle: Text(
+                      'Direct wireless transfer to any PC browser via QR Code / URL',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => Navigator.of(ctx).pop('pc'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (action == 'apps' && mounted) {
+      try {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(path)],
+            text: '${_project.name} - Page ${_currentIndex + 1}',
+          ),
+        );
+      } catch (e) {
+        debugPrint('[ScanPagePreviewScreen] Share error: $e');
+      }
+    } else if (action == 'pc' && mounted) {
+      SendToPcSheet.show(context, filePaths: [path]);
     }
   }
 

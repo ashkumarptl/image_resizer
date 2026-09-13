@@ -564,6 +564,7 @@ void main() {
     expect(find.text('Share 1 Selected Page'), findsOneWidget);
     expect(find.text('Share as PDF Document'), findsOneWidget);
     expect(find.text('Share as Image Files'), findsOneWidget);
+    expect(find.text('Send to PC / Browser'), findsOneWidget);
   });
 
   testWidgets('ScanProjectDetailScreen has Print Document in more menu and ScanPagePreviewScreen has Print Page button',
@@ -576,6 +577,10 @@ void main() {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
+
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
 
     await tester.pumpWidget(
       ProviderScope(
@@ -593,8 +598,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.more_vert_rounded));
     await tester.pumpAndSettle();
 
-    // Verify Print Document menu item is present
+    // Verify Print Document and Send to PC menu items are present
     expect(find.text('Print Document'), findsOneWidget);
+    expect(find.text('Send to PC (Cyber Cafe)'), findsOneWidget);
 
     // Dismiss menu
     await tester.tapAt(const Offset(10, 10));

@@ -23,6 +23,7 @@ class DiscardChangesSheet extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: 560),
       builder: (_) => DiscardChangesSheet(
         title: title ?? 'Discard Changes?',
         message: message ??

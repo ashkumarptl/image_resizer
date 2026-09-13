@@ -13,6 +13,7 @@ import '../../services/scanner/scan_project_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/system_integration_service.dart';
 import '../widgets/login_gate_dialog.dart';
+import '../widgets/send_to_pc_sheet.dart';
 import '../widgets/smooth_reorderable_grid.dart';
 import 'scan_page_preview_screen.dart';
 
@@ -329,9 +330,13 @@ class _ScanProjectDetailScreenState
       _isPdfSaved = false;
     });
 
-    // 2. Persist to storage and regenerate PDF in the background
+    // 2. Persist to storage instantly without blocking for PDF compilation
     try {
-      final updated = await _projectService.reorderPagesOrder(_project.id, newOrder);
+      final updated = await _projectService.reorderPagesOrder(
+        _project.id,
+        newOrder,
+        generatePdf: false,
+      );
       if (updated != null && mounted) {
         setState(() {
           _project = updated;
@@ -482,6 +487,45 @@ class _ScanProjectDetailScreenState
                   ),
                   onTap: () => Navigator.of(ctx).pop('images'),
                 ),
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.laptop_chromebook_rounded, color: AppColors.secondary),
+                  ),
+                  title: Row(
+                    children: [
+                      const Text('Send to PC / Browser', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'Cyber Cafe',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Text(
+                    'Transfer ${selectedFiles.length} pages directly to any PC browser via WiFi / QR Code',
+                    style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                  ),
+                  onTap: () => Navigator.of(ctx).pop('pc'),
+                ),
               ],
             ),
           ),
@@ -491,7 +535,9 @@ class _ScanProjectDetailScreenState
 
     if (shareFormat == null || !mounted) return;
 
-    if (shareFormat == 'images') {
+    if (shareFormat == 'pc') {
+      SendToPcSheet.show(context, filePaths: selectedFiles.map((f) => f.path).toList());
+    } else if (shareFormat == 'images') {
       try {
         await SharePlus.instance.share(
           ShareParams(
@@ -762,9 +808,10 @@ class _ScanProjectDetailScreenState
     HapticFeedback.lightImpact();
     setState(() => _isLoading = true);
     try {
+      final current = await _ensureLatestPdf();
       File? pdfToPrint;
-      if (_project.pdfPath != null) {
-        final existing = File(_project.pdfPath!);
+      if (current?.pdfPath != null) {
+        final existing = File(current!.pdfPath!);
         if (existing.existsSync()) {
           pdfToPrint = existing;
         }
@@ -981,14 +1028,40 @@ class _ScanProjectDetailScreenState
     }
   }
 
+  Future<ScanProject?> _ensureLatestPdf() async {
+    if (!_project.isPdfDirty &&
+        _project.pdfPath != null &&
+        File(_project.pdfPath!).existsSync()) {
+      return _project;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final updated = await _projectService.ensurePdfGenerated(_project.id);
+      if (updated != null && mounted) {
+        setState(() {
+          _project = updated;
+        });
+      }
+      return updated ?? _project;
+    } catch (e) {
+      debugPrint('[ScanProjectDetailScreen] Error generating PDF: $e');
+      return _project;
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   Future<void> _handleSavePdf() async {
-    if (_project.pdfPath == null) return;
+    final current = await _ensureLatestPdf();
+    if (current == null || current.pdfPath == null) return;
 
     setState(() => _isLoading = true);
     try {
       final savedFile = await StorageService.savePdfToDevice(
-        _project.pdfPath!,
-        customFileName: '${_project.name.replaceAll(' ', '_')}.pdf',
+        current.pdfPath!,
+        customFileName: '${current.name.replaceAll(' ', '_')}.pdf',
       );
 
       if (savedFile != null && mounted) {
@@ -1016,16 +1089,201 @@ class _ScanProjectDetailScreenState
   }
 
   Future<void> _handleSharePdf() async {
-    if (_project.pdfPath == null) return;
-    try {
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(_project.pdfPath!)],
-          text: '${_project.name} (${_project.pageCount} pages)',
-        ),
-      );
-    } catch (e) {
-      debugPrint('[ScanProjectDetailScreen] Share error: $e');
+    final current = await _ensureLatestPdf();
+    if (current == null || current.pdfPath == null) return;
+    final file = File(current.pdfPath!);
+    if (!file.existsSync() || !mounted) return;
+
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Material(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.picture_as_pdf_rounded,
+                          color: AppColors.primary,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _project.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '${_project.pageCount} pages • ${_formatBytes(_project.pdfSizeBytes)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.share_rounded,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    title: const Text(
+                      'Share PDF to Apps',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Share via WhatsApp, Gmail, Drive, etc.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => Navigator.of(ctx).pop('apps'),
+                  ),
+                  const Divider(height: 16),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.laptop_chromebook_rounded,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                    title: Row(
+                      children: [
+                        const Text(
+                          'Send to PC / Browser',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'Cyber Cafe',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    subtitle: Text(
+                      'Direct wireless transfer to any PC browser via QR Code / URL',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => Navigator.of(ctx).pop('pc'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (action == 'apps' && mounted) {
+      try {
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(current.pdfPath!)],
+            text: '${current.name} (${current.pageCount} pages)',
+          ),
+        );
+      } catch (e) {
+        debugPrint('[ScanProjectDetailScreen] Share error: $e');
+      }
+    } else if (action == 'pc' && mounted) {
+      SendToPcSheet.show(context, filePaths: [current.pdfPath!]);
+    }
+  }
+
+  Future<void> _handleSendToPc() async {
+    final current = await _ensureLatestPdf();
+    if (current?.pdfPath != null && mounted) {
+      SendToPcSheet.show(context, filePaths: [current!.pdfPath!]);
     }
   }
 
@@ -1145,6 +1403,7 @@ class _ScanProjectDetailScreenState
                   onSelected: (val) {
                     if (val == 'rename') _handleRename();
                     if (val == 'quality') _handleSelectPdfQuality();
+                    if (val == 'send_to_pc') _handleSendToPc();
                     if (val == 'print') _handlePrintProject();
                     if (val == 'delete') _handleDeleteProject();
                   },
@@ -1156,6 +1415,25 @@ class _ScanProjectDetailScreenState
                           Icon(Icons.edit_outlined, size: 18),
                           SizedBox(width: 10),
                           Text('Rename Document'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'send_to_pc',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.laptop_chromebook_rounded,
+                            size: 18,
+                            color: AppColors.secondary,
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Send to PC (Cyber Cafe)',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
                     ),

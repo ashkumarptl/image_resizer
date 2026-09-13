@@ -158,5 +158,38 @@ void main() {
       expect(updated!.pdfQuality, equals('low'));
       expect(File(updated.pdfPath!).existsSync(), isTrue);
     });
+
+    test('reorderPagesOrder with generatePdf: false updates order instantly and sets isPdfDirty', () async {
+      final img1 = img.Image(width: 20, height: 20);
+      final img2 = img.Image(width: 20, height: 20);
+      img.fill(img1, color: img.ColorRgb8(255, 0, 0));
+      img.fill(img2, color: img.ColorRgb8(0, 0, 255));
+
+      final f1 = File('${tempDir.path}/rp1.jpg')..writeAsBytesSync(img.encodeJpg(img1));
+      final f2 = File('${tempDir.path}/rp2.jpg')..writeAsBytesSync(img.encodeJpg(img2));
+
+      final created = await service.createProject(
+        name: 'Lazy Reorder Doc',
+        imageFiles: [f1, f2],
+      );
+      expect(created.isPdfDirty, isFalse);
+
+      final reordered = await service.reorderPagesOrder(
+        created.id,
+        [1, 0],
+        generatePdf: false,
+      );
+      expect(reordered, isNotNull);
+      expect(reordered!.pagePaths[0], equals(created.pagePaths[1]));
+      expect(reordered.pagePaths[1], equals(created.pagePaths[0]));
+      expect(reordered.isPdfDirty, isTrue);
+
+      // Now ensure PDF generated lazily
+      final compiled = await service.ensurePdfGenerated(created.id);
+      expect(compiled, isNotNull);
+      expect(compiled!.isPdfDirty, isFalse);
+      expect(compiled.pdfPath, isNotNull);
+      expect(File(compiled.pdfPath!).existsSync(), isTrue);
+    });
   });
 }

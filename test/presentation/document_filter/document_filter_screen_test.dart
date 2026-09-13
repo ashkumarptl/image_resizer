@@ -54,55 +54,72 @@ void main() {
       expect(result.finalQuality, equals(85));
     });
 
-    testWidgets('Renders AppBar, Filter Options, Hold to Compare, and Apply button', (tester) async {
+    testWidgets('Renders Color Filter bottom bar, Filter Options, and Hold to Compare', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      // Title & Subtitle
-      expect(find.text('Document Scanner Filter'), findsOneWidget);
-      expect(find.text('Remove shadows & convert to clean scan'), findsOneWidget);
+      // Title in bottom bar
+      expect(find.text('Color Filter'), findsOneWidget);
 
       // Actions
       expect(find.byTooltip('Tilted? Straighten Corners'), findsOneWidget);
       expect(find.byTooltip('Rotate 90°'), findsOneWidget);
 
+      // Filter presets header
+      expect(find.text('Filter Presets'), findsOneWidget);
+
       // Filter options
-      expect(find.text('Doc B&W (Clean Scan)'), findsOneWidget);
-      expect(find.text('Grayscale'), findsOneWidget);
-      expect(find.text('Vibrant / Enhanced'), findsOneWidget);
       expect(find.text('Original'), findsOneWidget);
+      expect(find.text('Vivid Light'), findsWidgets);
+      expect(find.text('Contrast B&W'), findsOneWidget);
+      expect(find.text('Vibrant'), findsOneWidget);
+
+      // Badges
+      expect(find.text('Pro'), findsWidgets);
 
       // Hold to compare button
       expect(find.text('Hold to Compare'), findsOneWidget);
 
       // Apply button
-      expect(find.text('Apply & Save Scan'), findsOneWidget);
+      expect(find.byTooltip('Apply & Save Scan'), findsOneWidget);
     });
 
-    testWidgets('Switching filter options updates selection and checks icon', (tester) async {
+    testWidgets('Switching filter options updates selection', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
-      // Default selected is Doc B&W
-      expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
-
-      // Switch to Grayscale
-      await tester.tap(find.text('Grayscale'));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
-
-      // Switch to Vibrant / Enhanced
-      await tester.tap(find.text('Vibrant / Enhanced'));
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+      // Default selected is Vivid Light
+      expect(find.text('Vivid Light'), findsWidgets);
 
       // Switch to Original
       await tester.tap(find.text('Original'));
       await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+
+      // Switch to Contrast B&W
+      await tester.tap(find.text('Contrast B&W'));
+      await tester.pumpAndSettle();
+
+      // Switch to Vibrant
+      await tester.tap(find.text('Vibrant'));
+      await tester.pumpAndSettle();
 
       // Rotate
       await tester.tap(find.byTooltip('Rotate 90°'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('Hold to compare interacts properly', (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      final compareFinder = find.text('Hold to Compare');
+      expect(compareFinder, findsOneWidget);
+
+      final gesture = await tester.startGesture(tester.getCenter(compareFinder));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Release
+      await gesture.up();
       await tester.pumpAndSettle();
     });
 
@@ -137,11 +154,35 @@ void main() {
       await tester.tap(find.text('Open Filter Screen'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Apply & Save Scan'));
+      await tester.tap(find.byTooltip('Apply & Save Scan'));
       await tester.pumpAndSettle();
 
       expect(returnedResult, isNotNull);
       expect(returnedResult!.existsSync(), isTrue);
+    });
+
+    testWidgets('Mobile phone layout renders horizontal filter strip and hold to compare', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Color Filter'), findsOneWidget);
+      expect(find.text('Filter Presets'), findsOneWidget);
+      expect(find.text('Vivid Light'), findsWidgets);
+      expect(find.text('Hold to Compare'), findsOneWidget);
+      expect(find.byTooltip('Apply & Save Scan'), findsOneWidget);
+
+      // Tap and hold Compare
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Hold to Compare')));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Showing Original (Unfiltered)'), findsOneWidget);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(find.text('Showing Original (Unfiltered)'), findsNothing);
     });
   });
 }

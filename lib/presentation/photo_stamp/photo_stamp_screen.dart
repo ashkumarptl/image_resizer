@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/layout/adaptive_layout.dart';
+import '../../data/repositories/tool_guide_repository.dart';
 import '../../services/image_service/name_date_stamper.dart';
 import '../result/result_screen.dart';
 import '../widgets/discard_changes_sheet.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/tool_instruction_sheet.dart';
 
 class PhotoStampScreen extends StatefulWidget {
   final File initialImage;
@@ -48,6 +50,9 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
     _dateController = TextEditingController(
       text: DateFormat('dd/MM/yyyy').format(_selectedDate),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ToolInstructionSheet.show(context, ToolGuideType.photoStamp);
+    });
   }
 
   @override
@@ -134,6 +139,19 @@ class _PhotoStampScreenState extends State<PhotoStampScreen> {
             },
           ),
           title: const Text('Name & Date on Photo'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.help_outline_rounded),
+              tooltip: 'How to use Photo Stamp',
+              onPressed: () {
+                ToolInstructionSheet.show(
+                  context,
+                  ToolGuideType.photoStamp,
+                  isManualTrigger: true,
+                );
+              },
+            ),
+          ],
         ),
         body: SafeArea(
           child: AdaptiveSupportingPane(

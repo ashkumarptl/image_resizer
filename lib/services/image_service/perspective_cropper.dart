@@ -25,9 +25,11 @@ enum PerspectiveCropPreset {
 /// Enhancement filters applied during perspective rectification
 enum PerspectiveFilter {
   none('Original', 'Preserve natural colors'),
-  documentBw('Doc B&W', 'High contrast clean binarized document'),
-  grayscale('Grayscale', 'Smooth monochrome tone'),
-  enhanced('Vibrant', 'Enhanced contrast and clarity');
+  vividLight('Vivid Light', 'Brightened clean scan with vivid legibility'),
+  contrastBw('Contrast B&W', 'High-contrast clean photocopy binarization'),
+  enhanced('Vibrant', 'Enhanced contrast and clarity'),
+  documentBw('Doc B&W', 'Clean document scan'),
+  grayscale('Grayscale', 'Smooth monochrome tone');
 
   final String label;
   final String description;
@@ -318,6 +320,30 @@ class PerspectiveCropper {
       case PerspectiveFilter.none:
         return src;
 
+      case PerspectiveFilter.vividLight:
+        return img.adjustColor(
+          src,
+          contrast: 1.30,
+          brightness: 1.15,
+          saturation: 1.05,
+        );
+
+      case PerspectiveFilter.contrastBw:
+        final gray = img.grayscale(src);
+        final bw = img.Image(width: gray.width, height: gray.height);
+        const threshold = 155;
+        for (var y = 0; y < gray.height; y++) {
+          for (var x = 0; x < gray.width; x++) {
+            final pixel = gray.getPixel(x, y);
+            if (pixel.r > threshold) {
+              bw.setPixelRgb(x, y, 255, 255, 255);
+            } else {
+              bw.setPixelRgb(x, y, 0, 0, 0);
+            }
+          }
+        }
+        return bw;
+
       case PerspectiveFilter.grayscale:
         return img.grayscale(src);
 
@@ -510,34 +536,55 @@ class _PerspectiveIsolateParams {
 class DocumentFilterHelper {
   DocumentFilterHelper._();
 
-  static ColorFilter? getColorFilter(PerspectiveFilter filter) {
+  static List<double> getFilterMatrixList(PerspectiveFilter filter) {
     switch (filter) {
       case PerspectiveFilter.none:
-        return null;
-
+        return const <double>[
+          1, 0, 0, 0, 0,
+          0, 1, 0, 0, 0,
+          0, 0, 1, 0, 0,
+          0, 0, 0, 1, 0,
+        ];
+      case PerspectiveFilter.vividLight:
+        return const <double>[
+          1.30, 0, 0, 0, 18.0,
+          0, 1.30, 0, 0, 18.0,
+          0, 0, 1.30, 0, 18.0,
+          0, 0, 0, 1, 0,
+        ];
+      case PerspectiveFilter.contrastBw:
+        return const <double>[
+          1.2, 3.8, 0.4, 0, -680.0,
+          1.2, 3.8, 0.4, 0, -680.0,
+          1.2, 3.8, 0.4, 0, -680.0,
+          0,   0,   0,   1, 0,
+        ];
       case PerspectiveFilter.grayscale:
-        return const ColorFilter.matrix(<double>[
+        return const <double>[
           0.2126, 0.7152, 0.0722, 0, 0,
           0.2126, 0.7152, 0.0722, 0, 0,
           0.2126, 0.7152, 0.0722, 0, 0,
           0,      0,      0,      1, 0,
-        ]);
-
+        ];
       case PerspectiveFilter.documentBw:
-        return const ColorFilter.matrix(<double>[
+        return const <double>[
           0.8504, 2.8608, 0.2888, 0, -540.0,
           0.8504, 2.8608, 0.2888, 0, -540.0,
           0.8504, 2.8608, 0.2888, 0, -540.0,
           0,      0,      0,      1, 0,
-        ]);
-
+        ];
       case PerspectiveFilter.enhanced:
-        return const ColorFilter.matrix(<double>[
+        return const <double>[
           1.3976, -0.1341, -0.0135, 0, -24.0,
           -0.0399, 1.3034, -0.0135, 0, -24.0,
           -0.0399, -0.1341, 1.4240, 0, -24.0,
           0,       0,       0,      1, 0,
-        ]);
+        ];
     }
+  }
+
+  static ColorFilter? getColorFilter(PerspectiveFilter filter) {
+    if (filter == PerspectiveFilter.none) return null;
+    return ColorFilter.matrix(getFilterMatrixList(filter));
   }
 }

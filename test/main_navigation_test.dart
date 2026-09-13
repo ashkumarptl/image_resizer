@@ -240,8 +240,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Scan to PDF content is shown
-      expect(find.text('Scan with Camera'), findsOneWidget);
-      expect(find.text('Auto-deskew, enhance & convert to PDF'), findsOneWidget);
+      expect(find.text('No Documents Yet'), findsOneWidget);
+      expect(find.text('Scan Document'), findsOneWidget);
 
       // 3. Tap on "Exam Tools" tab in the floating nav bar
       await tester.tap(find.descendant(
@@ -312,10 +312,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Scan to PDF content is now shown
-      expect(find.text('Scan with Camera'), findsOneWidget);
+      expect(find.text('No Documents Yet'), findsOneWidget);
 
       // Swipe left again to slide to "Exam Tools" (index 2)
-      await tester.drag(find.text('Scan with Camera'), const Offset(-400, 0));
+      await tester.drag(find.text('No Documents Yet'), const Offset(-400, 0));
       await tester.pumpAndSettle();
 
       // Verify Exam Tools content is now shown
@@ -325,7 +325,7 @@ void main() {
       await tester.drag(find.text('Exam Document Tools').first, const Offset(400, 0));
       await tester.pumpAndSettle();
 
-      expect(find.text('Scan with Camera'), findsOneWidget);
+      expect(find.text('No Documents Yet'), findsOneWidget);
     });
 
     testWidgets('tablet/wide layout (>= 600dp) uses NavigationRail and switches tabs',
@@ -362,7 +362,7 @@ void main() {
         matching: find.text('Scan to PDF'),
       ));
       await tester.pumpAndSettle();
-      expect(find.text('Scan with Camera'), findsOneWidget);
+      expect(find.text('No Documents Yet'), findsOneWidget);
 
       // Tap on "Settings" in the NavigationRail
       await tester.tap(find.descendant(

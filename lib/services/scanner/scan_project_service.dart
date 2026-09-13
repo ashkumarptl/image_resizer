@@ -440,7 +440,11 @@ class ScanProjectService {
     return updatedProject;
   }
 
-  Future<ScanProject?> reorderPagesOrder(String projectId, List<int> newOrder) async {
+  Future<ScanProject?> reorderPagesOrder(
+    String projectId,
+    List<int> newOrder, {
+    bool generatePdf = false,
+  }) async {
     final all = await loadProjects();
     final index = all.indexWhere((p) => p.id == projectId);
     if (index == -1) return null;
@@ -467,23 +471,31 @@ class ScanProjectService {
       }
     }
 
-    // Re-compile PDF with new order
-    final baseDir = await _getBaseDirectory();
-    final projectDir = Directory('${baseDir.path}/$projectId');
-    final pages = updatedPaths.map((p) => File(p)).toList();
-    final preset = PdfQualityPreset.fromString(project.pdfQuality);
-    final generatedPdf = await DocumentScannerService.createPdfFromImages(
-      pages,
-      qualityPreset: preset,
-    );
-    final targetPdfPath = '${projectDir.path}/document.pdf';
-    final savedPdf = await generatedPdf.copy(targetPdfPath);
+    String? pdfPath = project.pdfPath;
+    bool isPdfDirty = true;
+
+    if (generatePdf) {
+      // Re-compile PDF with new order
+      final baseDir = await _getBaseDirectory();
+      final projectDir = Directory('${baseDir.path}/$projectId');
+      final pages = updatedPaths.map((p) => File(p)).toList();
+      final preset = PdfQualityPreset.fromString(project.pdfQuality);
+      final generatedPdf = await DocumentScannerService.createPdfFromImages(
+        pages,
+        qualityPreset: preset,
+      );
+      final targetPdfPath = '${projectDir.path}/document.pdf';
+      final savedPdf = await generatedPdf.copy(targetPdfPath);
+      pdfPath = savedPdf.path;
+      isPdfDirty = false;
+    }
 
     final updatedProject = project.copyWith(
       pagePaths: updatedPaths,
       originalPagePaths: updatedOrigPaths,
       pageFilters: updatedFilters,
-      pdfPath: savedPdf.path,
+      pdfPath: pdfPath,
+      isPdfDirty: isPdfDirty,
       updatedAt: DateTime.now(),
     );
 
@@ -492,7 +504,12 @@ class ScanProjectService {
     return updatedProject;
   }
 
-  Future<ScanProject?> reorderPages(String projectId, int oldIndex, int newIndex) async {
+  Future<ScanProject?> reorderPages(
+    String projectId,
+    int oldIndex,
+    int newIndex, {
+    bool generatePdf = false,
+  }) async {
     final all = await loadProjects();
     final index = all.indexWhere((p) => p.id == projectId);
     if (index == -1) return null;
@@ -530,10 +547,64 @@ class ScanProjectService {
       }
     }
 
-    // Re-compile PDF with new order
+    String? pdfPath = project.pdfPath;
+    bool isPdfDirty = true;
+
+    if (generatePdf) {
+      // Re-compile PDF with new order
+      final baseDir = await _getBaseDirectory();
+      final projectDir = Directory('${baseDir.path}/$projectId');
+      final pages = updatedPaths.map((p) => File(p)).toList();
+      final preset = PdfQualityPreset.fromString(project.pdfQuality);
+      final generatedPdf = await DocumentScannerService.createPdfFromImages(
+        pages,
+        qualityPreset: preset,
+      );
+      final targetPdfPath = '${projectDir.path}/document.pdf';
+      final savedPdf = await generatedPdf.copy(targetPdfPath);
+      pdfPath = savedPdf.path;
+      isPdfDirty = false;
+    }
+
+    final updatedProject = project.copyWith(
+      pagePaths: updatedPaths,
+      originalPagePaths: updatedOrigPaths,
+      pageFilters: updatedFilters,
+      pdfPath: pdfPath,
+      isPdfDirty: isPdfDirty,
+      updatedAt: DateTime.now(),
+    );
+
+    all[index] = updatedProject;
+    await _saveAllProjects(all);
+    return updatedProject;
+  }
+
+  /// Ensures the project's PDF document is compiled and up-to-date with current pages and order.
+  /// If [isPdfDirty] is true or the PDF file does not exist, it compiles the PDF and clears [isPdfDirty].
+  Future<ScanProject?> ensurePdfGenerated(
+    String projectId, {
+    bool force = false,
+  }) async {
+    final all = await loadProjects();
+    final index = all.indexWhere((p) => p.id == projectId);
+    if (index == -1) return null;
+
+    final project = all[index];
+    final pdfExists = project.pdfPath != null && File(project.pdfPath!).existsSync();
+
+    if (!force && !project.isPdfDirty && pdfExists) {
+      return project;
+    }
+
     final baseDir = await _getBaseDirectory();
     final projectDir = Directory('${baseDir.path}/$projectId');
-    final pages = updatedPaths.map((p) => File(p)).toList();
+    final pages = project.pagePaths
+        .map((p) => File(p))
+        .where((f) => f.existsSync())
+        .toList();
+    if (pages.isEmpty) return project;
+
     final preset = PdfQualityPreset.fromString(project.pdfQuality);
     final generatedPdf = await DocumentScannerService.createPdfFromImages(
       pages,
@@ -543,10 +614,8 @@ class ScanProjectService {
     final savedPdf = await generatedPdf.copy(targetPdfPath);
 
     final updatedProject = project.copyWith(
-      pagePaths: updatedPaths,
-      originalPagePaths: updatedOrigPaths,
-      pageFilters: updatedFilters,
       pdfPath: savedPdf.path,
+      isPdfDirty: false,
       updatedAt: DateTime.now(),
     );
 

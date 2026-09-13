@@ -8,6 +8,7 @@ class ScanProject {
   final Map<String, String> pageFilters;
   final String pdfQuality;
   final String? pdfPath;
+  final bool isPdfDirty;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -19,6 +20,7 @@ class ScanProject {
     Map<String, String>? pageFilters,
     this.pdfQuality = 'medium',
     this.pdfPath,
+    this.isPdfDirty = false,
     required this.createdAt,
     required this.updatedAt,
   })  : originalPagePaths = originalPagePaths ?? pagePaths,
@@ -46,6 +48,7 @@ class ScanProject {
     Map<String, String>? pageFilters,
     String? pdfQuality,
     String? pdfPath,
+    bool? isPdfDirty,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -57,6 +60,7 @@ class ScanProject {
       pageFilters: pageFilters ?? this.pageFilters,
       pdfQuality: pdfQuality ?? this.pdfQuality,
       pdfPath: pdfPath ?? this.pdfPath,
+      isPdfDirty: isPdfDirty ?? this.isPdfDirty,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -71,6 +75,7 @@ class ScanProject {
       'pageFilters': pageFilters,
       'pdfQuality': pdfQuality,
       'pdfPath': pdfPath,
+      'isPdfDirty': isPdfDirty,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -99,6 +104,7 @@ class ScanProject {
       pageFilters: filters,
       pdfQuality: (json['pdfQuality'] as String?) ?? 'medium',
       pdfPath: json['pdfPath'] as String?,
+      isPdfDirty: (json['isPdfDirty'] as bool?) ?? false,
       createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
     );

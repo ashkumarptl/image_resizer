@@ -15,6 +15,7 @@ enum StudioActiveTool {
   format,
   bgRemover,
   docFilter,
+  upscale,
   tools,
 }
 
@@ -28,12 +29,14 @@ class StudioBottomToolbar extends StatefulWidget {
   final VoidCallback onFormat;
   final VoidCallback onBgRemover;
   final VoidCallback? onDocFilter;
+  final VoidCallback? onUpscale;
   final VoidCallback? onCompressLongPress;
   final bool hasFlipped;
   final bool hasRotated;
   final bool hasCropped;
   final bool hasRemovedBg;
   final bool hasAppliedFilter;
+  final bool hasUpscaled;
   final bool enableSwipeAnimation;
 
   const StudioBottomToolbar({
@@ -47,12 +50,14 @@ class StudioBottomToolbar extends StatefulWidget {
     required this.onFormat,
     required this.onBgRemover,
     this.onDocFilter,
+    this.onUpscale,
     this.onCompressLongPress,
     this.hasFlipped = false,
     this.hasRotated = false,
     this.hasCropped = false,
     this.hasRemovedBg = false,
     this.hasAppliedFilter = false,
+    this.hasUpscaled = false,
     this.enableSwipeAnimation = true,
   });
 
@@ -324,6 +329,18 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                           onTap: () {
                             _dismissHint();
                             widget.onDocFilter!();
+                          },
+                        ),
+                      if (widget.onUpscale != null)
+                        _buildToolButton(
+                          context,
+                          icon: Icons.auto_awesome_rounded,
+                          label: 'AI UPSCALE',
+                          isActive: widget.activeTool == StudioActiveTool.upscale || widget.hasUpscaled,
+                          badgeText: widget.hasUpscaled ? 'DONE' : 'BETA',
+                          onTap: () {
+                            _dismissHint();
+                            widget.onUpscale!();
                           },
                         ),
                       _buildToolButton(

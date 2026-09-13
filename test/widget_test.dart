@@ -22,7 +22,31 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('App smoke test - verifies App Name rendered', (WidgetTester tester) async {
+  testWidgets('First-time launch renders OnboardingScreen', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authServiceProvider.overrideWithValue(MockAuthService()),
+        ],
+        child: const ImageToolsApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Photo & Image Studio'), findsOneWidget);
+    expect(find.text('ALL-IN-ONE EDIT STUDIO'), findsOneWidget);
+    expect(find.text('Smart Target Size Compressor'), findsOneWidget);
+    expect(find.text('Next'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
+  });
+
+  testWidgets('Returning user launch renders MainNavigationScreen', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'pref_onboarding_completed': true,
+    });
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

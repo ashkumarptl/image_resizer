@@ -42,7 +42,7 @@ void main() {
       await tester.tap(tabFinder);
       await tester.pumpAndSettle();
 
-      final fabRect = tester.getRect(find.byType(FloatingActionButton));
+      final fabRect = tester.getRect(find.byKey(const Key('scan_floating_action_pill')));
       final navBarRect = tester.getRect(find.byType(FloatingBottomNavBar));
       final gap = navBarRect.top - fabRect.bottom;
 

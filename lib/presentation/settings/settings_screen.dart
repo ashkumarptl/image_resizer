@@ -13,7 +13,9 @@ import '../../services/storage_service.dart';
 import '../home/home_screen.dart';
 import '../widgets/account_section.dart';
 import '../../core/layout/adaptive_layout.dart';
+import '../../data/repositories/tool_guide_repository.dart';
 import '../../data/repositories/usage_limit_repository.dart';
+import '../onboarding/onboarding_screen.dart';
 
 /// Provider to manage automatic metadata (GPS & Camera info) stripping setting
 class StripMetadataNotifier extends StateNotifier<bool> {
@@ -540,6 +542,110 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Icon(
                           Icons.system_update_alt_rounded,
                           size: context.adaptiveIconSize(18, tabletSize: 24, largeTabletSize: 28),
+                          color: AppColors.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const Divider(height: 20),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const OnboardingScreen(isRevisit: true),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: context.isMediumOrWider ? 8 : 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'App Tour & Feature Guide',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: rowFontSize,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Explore Edit Studio, Scan to PDF & Exam Tools',
+                                style: TextStyle(
+                                  fontSize: context.adaptiveFontSize(11.5, tabletSize: 13.5, largeTabletSize: 15),
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.explore_outlined,
+                          size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
+                          color: AppColors.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const Divider(height: 20),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () async {
+                    HapticFeedback.mediumImpact();
+                    await ToolGuideRepository().resetAllGuides();
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✨ All tool instructions reset! Guides will show on next open.'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: context.isMediumOrWider ? 8 : 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Reset Tool Instructions',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: rowFontSize,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Show step-by-step guides when opening tools again',
+                                style: TextStyle(
+                                  fontSize: context.adaptiveFontSize(11.5, tabletSize: 13.5, largeTabletSize: 15),
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.restart_alt_rounded,
+                          size: context.adaptiveIconSize(20, tabletSize: 24, largeTabletSize: 28),
                           color: AppColors.primary,
                         ),
                       ],
