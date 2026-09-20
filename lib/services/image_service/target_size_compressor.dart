@@ -95,7 +95,9 @@ class TargetSizeCompressor {
     }
 
     return CompressedImageResult(
-      bytes: bestBytes ?? Uint8List.fromList(img.encodeJpg(working, quality: minQuality)),
+      bytes:
+          bestBytes ??
+          Uint8List.fromList(img.encodeJpg(working, quality: minQuality)),
       quality: bestQuality,
       image: working,
     );

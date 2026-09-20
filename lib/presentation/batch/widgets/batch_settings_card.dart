@@ -157,10 +157,7 @@ class BatchSettingsCard extends StatelessWidget {
                     ),
                     onPressed: onResetItemCustom,
                     icon: const Icon(Icons.refresh_rounded, size: 13),
-                    label: const Text(
-                      'Reset',
-                      style: TextStyle(fontSize: 11),
-                    ),
+                    label: const Text('Reset', style: TextStyle(fontSize: 11)),
                   ),
                 if (onCloseFocus != null)
                   IconButton(
@@ -168,7 +165,10 @@ class BatchSettingsCard extends StatelessWidget {
                     tooltip: 'Back to Batch Defaults',
                     visualDensity: VisualDensity.compact,
                     padding: const EdgeInsets.all(4),
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                     onPressed: onCloseFocus,
                   ),
               ],
@@ -253,10 +253,7 @@ class BatchSettingsCard extends StatelessWidget {
                     ),
                     onPressed: onResetItemCustom,
                     icon: const Icon(Icons.refresh_rounded, size: 13),
-                    label: const Text(
-                      'Reset',
-                      style: TextStyle(fontSize: 11),
-                    ),
+                    label: const Text('Reset', style: TextStyle(fontSize: 11)),
                   ),
                 if (onCloseFocus != null)
                   IconButton(
@@ -264,7 +261,10 @@ class BatchSettingsCard extends StatelessWidget {
                     tooltip: 'Back to Batch Defaults',
                     visualDensity: VisualDensity.compact,
                     padding: const EdgeInsets.all(4),
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                     onPressed: onCloseFocus,
                   ),
               ],
@@ -325,12 +325,18 @@ class BatchSettingsCard extends StatelessWidget {
               segments: const [
                 ButtonSegment<BatchMode>(
                   value: BatchMode.targetSize,
-                  label: Text('Target Size (KB)', style: TextStyle(fontSize: 11.5)),
+                  label: Text(
+                    'Target Size (KB)',
+                    style: TextStyle(fontSize: 11.5),
+                  ),
                   icon: Icon(Icons.compress_rounded, size: 14),
                 ),
                 ButtonSegment<BatchMode>(
                   value: BatchMode.scalePercentage,
-                  label: Text('Scale Dimensions', style: TextStyle(fontSize: 11.5)),
+                  label: Text(
+                    'Scale Dimensions',
+                    style: TextStyle(fontSize: 11.5),
+                  ),
                   icon: Icon(Icons.aspect_ratio_rounded, size: 14),
                 ),
               ],

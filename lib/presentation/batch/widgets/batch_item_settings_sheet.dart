@@ -264,7 +264,8 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
               // Scale %
               ScalePercentageSelector(
                 selectedScalePercentage: _scalePercentage,
-                onScalePercentageChanged: (pct) => setState(() => _scalePercentage = pct),
+                onScalePercentageChanged: (pct) =>
+                    setState(() => _scalePercentage = pct),
                 headerLabel: 'Scale / Dimension (% of original)',
                 isSegmented: false,
               ),

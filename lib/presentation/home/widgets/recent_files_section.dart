@@ -137,9 +137,6 @@ class RecentFilesSection extends StatelessWidget {
         ? File(thumbPath)
         : null;
     final fullFile = File(item.filePath);
-    final displayFile = (thumbFile != null && thumbFile.existsSync())
-        ? thumbFile
-        : (fullFile.existsSync() ? fullFile : null);
     final timeAgo = _formatTimeAgo(item.processedAt);
     final thumbSize = context.isLargeTablet
         ? 64.0
@@ -149,6 +146,46 @@ class RecentFilesSection extends StatelessWidget {
       tabletSize: 26,
       largeTabletSize: 28,
     );
+
+    Widget buildBrokenPlaceholder() => Container(
+      width: thumbSize,
+      height: thumbSize,
+      color: isDark
+          ? AppColors.surfaceVariantDark
+          : AppColors.surfaceVariantLight,
+      child: Icon(Icons.broken_image, size: brokenIconSize),
+    );
+
+    Widget imageWidget;
+    if (thumbFile != null) {
+      imageWidget = Image.file(
+        thumbFile,
+        width: thumbSize,
+        height: thumbSize,
+        cacheWidth: 160,
+        cacheHeight: 160,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Image.file(
+          fullFile,
+          width: thumbSize,
+          height: thumbSize,
+          cacheWidth: 160,
+          cacheHeight: 160,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => buildBrokenPlaceholder(),
+        ),
+      );
+    } else {
+      imageWidget = Image.file(
+        fullFile,
+        width: thumbSize,
+        height: thumbSize,
+        cacheWidth: 160,
+        cacheHeight: 160,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => buildBrokenPlaceholder(),
+      );
+    }
 
     return Material(
       color: Colors.transparent,
@@ -178,31 +215,7 @@ class RecentFilesSection extends StatelessWidget {
                       ? 12
                       : (context.isMediumOrWider ? 10 : 8),
                 ),
-                child: displayFile != null
-                    ? Image.file(
-                        displayFile,
-                        width: thumbSize,
-                        height: thumbSize,
-                        cacheWidth: 160,
-                        cacheHeight: 160,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          width: thumbSize,
-                          height: thumbSize,
-                          color: isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.surfaceVariantLight,
-                          child: Icon(Icons.broken_image, size: brokenIconSize),
-                        ),
-                      )
-                    : Container(
-                        width: thumbSize,
-                        height: thumbSize,
-                        color: isDark
-                            ? AppColors.surfaceVariantDark
-                            : AppColors.surfaceVariantLight,
-                        child: Icon(Icons.broken_image, size: brokenIconSize),
-                      ),
+                child: imageWidget,
               ),
               SizedBox(width: context.isLargeTablet ? 14 : 10),
               Expanded(

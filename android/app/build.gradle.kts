@@ -93,5 +93,6 @@ flutter {
 
 dependencies {
     implementation("androidx.print:print:1.0.0")
+    implementation("androidx.activity:activity-ktx:1.9.3")
 }
 

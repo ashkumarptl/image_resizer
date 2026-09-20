@@ -1,12 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-enum OverlayItemType {
-  photo,
-  signature,
-  idFront,
-  idBack,
-}
+enum OverlayItemType { photo, signature, idFront, idBack }
 
 /// Represents an individual movable, resizable, and rotatable layer on a document canvas.
 class OverlayItemModel {

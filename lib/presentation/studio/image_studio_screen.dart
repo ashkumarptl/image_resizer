@@ -13,9 +13,11 @@ import '../../data/repositories/tool_guide_repository.dart';
 import '../../services/ai_upscaler_service.dart';
 import '../../services/analytics_service.dart';
 import '../../services/crashlytics_service.dart';
+import 'package:image/image.dart' as img;
 import '../../services/image_service/dpi_service.dart';
 import '../../services/image_service/heic_converter.dart';
 import '../../services/image_service/image_processor.dart';
+import '../../services/image_service/safe_image_decoder.dart';
 import '../document_filter/document_filter_screen.dart';
 import '../document_overlay/document_overlay_screen.dart';
 import '../perspective_crop/perspective_crop_screen.dart';
@@ -108,6 +110,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   int _previewRequestId = 0;
   Timer? _previewDebounceTimer;
 
+  // 8.1 Live Preview Proxy State (screen-sized proxy to prevent lag on high-res camera photos)
+  File? _previewProxyFile;
+  int _proxyWidth = 0;
+  int _proxyHeight = 0;
+
   // 9. Undo / Redo History Stack State
   final List<StudioHistoryState> _history = [];
   int _historyIndex = -1;
@@ -150,6 +157,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     _transformationController.dispose();
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
+    if (_previewProxyFile != null && _previewProxyFile!.existsSync()) {
+      try {
+        _previewProxyFile!.deleteSync();
+      } catch (_) {}
+    }
     super.dispose();
   }
 
@@ -164,6 +176,95 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     }
   }
 
+  ({int width, int height}) _calculateEffectiveOutputDimensions() {
+    int w = _originalWidth;
+    int h = _originalHeight;
+
+    if (_resizeOption == ResizeSheetOption.exactPixels) {
+      if (_targetWidth > 0 || _targetHeight > 0) {
+        int tw = _targetWidth > 0 ? _targetWidth : w;
+        int th = _targetHeight > 0 ? _targetHeight : h;
+        if (_keepAspectRatio) {
+          if (_targetWidth > 0 && _targetHeight <= 0) {
+            th = (h * (tw / w)).round();
+          } else if (_targetHeight > 0 && _targetWidth <= 0) {
+            tw = (w * (th / h)).round();
+          }
+        }
+        w = tw;
+        h = th;
+      }
+    } else if (_resizeOption == ResizeSheetOption.percentage) {
+      final factor = _selectedPercentage / 100.0;
+      w = (w * factor).round().clamp(1, 99999);
+      h = (h * factor).round().clamp(1, 99999);
+    }
+
+    // Apply rotation
+    if (_quarterTurns % 2 != 0) {
+      final temp = w;
+      w = h;
+      h = temp;
+    }
+
+    return (width: w, height: h);
+  }
+
+  Future<void> _updatePreviewProxy() async {
+    try {
+      // Only generate downsampled proxy if image is large (> 1440px in either dimension)
+      if (_originalWidth <= 1440 && _originalHeight <= 1440) {
+        if (_previewProxyFile != null && _previewProxyFile!.existsSync()) {
+          try {
+            _previewProxyFile!.deleteSync();
+          } catch (_) {}
+        }
+        _previewProxyFile = null;
+        _proxyWidth = 0;
+        _proxyHeight = 0;
+        return;
+      }
+
+      final bytes = await _currentImage.readAsBytes();
+      final proxyImage = await SafeImageDecoder.decodeSafe(
+        bytes,
+        maxDimension: 1280,
+        maxPixels: 1280 * 1280,
+      );
+
+      if (proxyImage != null) {
+        final tempDir = await getTemporaryDirectory();
+        final proxyPath = p.join(
+          tempDir.path,
+          'studio_proxy_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
+        final newProxyFile = File(proxyPath);
+        await newProxyFile.writeAsBytes(
+          img.encodeJpg(proxyImage, quality: 85),
+          flush: true,
+        );
+
+        if (_previewProxyFile != null && _previewProxyFile!.existsSync()) {
+          try {
+            _previewProxyFile!.deleteSync();
+          } catch (_) {}
+        }
+
+        if (mounted) {
+          _previewProxyFile = newProxyFile;
+          _proxyWidth = proxyImage.width;
+          _proxyHeight = proxyImage.height;
+        } else {
+          try {
+            newProxyFile.deleteSync();
+          } catch (_) {}
+        }
+      }
+    } catch (e) {
+      debugPrint('[ImageStudio] Failed to create preview proxy: $e');
+    }
+  }
+
   Future<void> _generatePreview() async {
     if (!mounted) return;
     final requestId = ++_previewRequestId;
@@ -171,20 +272,45 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     setState(() => _isGeneratingPreview = true);
 
     try {
+      final isUsingProxy = _previewProxyFile != null &&
+          _previewProxyFile!.existsSync() &&
+          _proxyWidth > 0 &&
+          _proxyHeight > 0;
+      final effectiveSourcePath = isUsingProxy
+          ? _previewProxyFile!.path
+          : _currentImage.path;
+
+      // If using proxy for exact pixel resizing preview, scale target dims proportionally
+      int? previewTargetWidth;
+      int? previewTargetHeight;
+      if (_resizeOption == ResizeSheetOption.exactPixels) {
+        if (isUsingProxy && _originalWidth > 0 && _originalHeight > 0) {
+          final scaleX = _proxyWidth / _originalWidth;
+          final scaleY = _proxyHeight / _originalHeight;
+          if (_targetWidth > 0) {
+            previewTargetWidth =
+                (_targetWidth * scaleX).round().clamp(1, _proxyWidth);
+          }
+          if (_targetHeight > 0) {
+            previewTargetHeight =
+                (_targetHeight * scaleY).round().clamp(1, _proxyHeight);
+          }
+        } else {
+          previewTargetWidth = _targetWidth > 0 ? _targetWidth : null;
+          previewTargetHeight = _targetHeight > 0 ? _targetHeight : null;
+        }
+      }
+
       final options = ProcessOptions(
-        sourcePath: _currentImage.path,
+        sourcePath: effectiveSourcePath,
         targetSizeKB: _compressionMode == CompressionSheetMode.targetSize
             ? _selectedTargetSizeKB
             : null,
         quality: _quality.round(),
         outputFormat: _outputFormat,
         resizeMode: _getResizeMode(),
-        targetWidth: _resizeOption == ResizeSheetOption.exactPixels
-            ? _targetWidth
-            : null,
-        targetHeight: _resizeOption == ResizeSheetOption.exactPixels
-            ? _targetHeight
-            : null,
+        targetWidth: previewTargetWidth,
+        targetHeight: previewTargetHeight,
         resizePercentage: _resizeOption == ResizeSheetOption.percentage
             ? _selectedPercentage
             : null,
@@ -198,8 +324,49 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       final result = await ImageProcessor.processImage(options);
       if (!mounted || requestId != _previewRequestId) return;
 
+      int displayWidth = result.outputWidth;
+      int displayHeight = result.outputHeight;
+      int displaySizeBytes = result.outputSizeBytes;
+
+      if (isUsingProxy) {
+        final calcDims = _calculateEffectiveOutputDimensions();
+        displayWidth = calcDims.width;
+        displayHeight = calcDims.height;
+
+        if (_compressionMode == CompressionSheetMode.targetSize &&
+            _selectedTargetSizeKB > 0) {
+          displaySizeBytes = _selectedTargetSizeKB * 1024;
+        } else {
+          final proxyPixelCount = _proxyWidth * _proxyHeight;
+          final originalPixelCount = _originalWidth * _originalHeight;
+          if (proxyPixelCount > 0 && originalPixelCount > 0) {
+            final proxyOriginalSize = _previewProxyFile?.lengthSync() ?? 1;
+            final compressionFactor =
+                result.outputSizeBytes / proxyOriginalSize;
+            displaySizeBytes = (_fileSizeBytes * compressionFactor)
+                .round()
+                .clamp(512, _fileSizeBytes * 2);
+          }
+        }
+      }
+
+      final displayResult = ProcessResult(
+        originalPath: _currentImage.path,
+        outputPath: result.outputPath,
+        originalSizeBytes: _fileSizeBytes,
+        outputSizeBytes: displaySizeBytes,
+        originalWidth: _originalWidth,
+        originalHeight: _originalHeight,
+        outputWidth: displayWidth,
+        outputHeight: displayHeight,
+        outputFormat: result.outputFormat,
+        finalQuality: result.finalQuality,
+        processingTime: result.processingTime,
+        metadataStripped: result.metadataStripped,
+      );
+
       setState(() {
-        _previewResult = result;
+        _previewResult = displayResult;
         _previewImageFile = File(result.outputPath);
         _isGeneratingPreview = false;
       });
@@ -332,6 +499,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       _previewResult = null;
     });
 
+    unawaited(_updatePreviewProxy());
     _triggerPreviewUpdate(debounce: false);
   }
 
@@ -367,6 +535,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                 : 0;
             _imageDpi = detectedDpi;
           });
+          await _updatePreviewProxy();
           if (_hasUnsavedChanges) {
             _triggerPreviewUpdate(debounce: false);
           }
@@ -379,6 +548,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           setState(() {
             _imageDpi = detectedDpi;
           });
+          await _updatePreviewProxy();
           if (_hasUnsavedChanges) {
             _triggerPreviewUpdate(debounce: false);
           }
@@ -1293,101 +1463,26 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: [
-            // 0. Original Preset Chip
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Material(
-                color: isOriginalSelected
-                    ? AppColors.primary
-                    : (isDark ? AppColors.surfaceDark : Colors.white),
-                borderRadius: BorderRadius.circular(16),
-                elevation: isOriginalSelected ? 2 : 0,
-                shadowColor: AppColors.primary.withValues(alpha: 0.3),
-                child: InkWell(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      _compressionMode = CompressionSheetMode.none;
-                      _quality = 85;
-                      _showOriginal = false;
-                    });
-                    _recordHistory();
-                    _triggerPreviewUpdate(debounce: false);
-                  },
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isOriginalSelected
-                            ? AppColors.primary
-                            : (isDark
-                                  ? AppColors.borderDark
-                                  : AppColors.borderLight),
-                        width: isOriginalSelected ? 1.5 : 1.0,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.image_outlined,
-                          size: 14,
-                          color: isOriginalSelected
-                              ? Colors.white
-                              : AppColors.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Original',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: isOriginalSelected
-                                ? FontWeight.bold
-                                : FontWeight.w600,
-                            color: isOriginalSelected
-                                ? Colors.white
-                                : (isDark
-                                      ? AppColors.textPrimaryDark
-                                      : AppColors.textPrimaryLight),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            ...presets.map((kb) {
-              final isSelected =
-                  _compressionMode == CompressionSheetMode.targetSize &&
-                  _selectedTargetSizeKB == kb;
-              final isQuick = kb == 20 || kb == 50;
-
-              return Padding(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              // 0. Original Preset Chip
+              Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: Material(
-                  color: isSelected
+                  color: isOriginalSelected
                       ? AppColors.primary
                       : (isDark ? AppColors.surfaceDark : Colors.white),
                   borderRadius: BorderRadius.circular(16),
-                  elevation: isSelected ? 2 : 0,
+                  elevation: isOriginalSelected ? 2 : 0,
                   shadowColor: AppColors.primary.withValues(alpha: 0.3),
                   child: InkWell(
                     onTap: () {
                       HapticFeedback.selectionClick();
                       setState(() {
-                        _compressionMode = CompressionSheetMode.targetSize;
-                        _selectedTargetSizeKB = kb;
+                        _compressionMode = CompressionSheetMode.none;
+                        _quality = 85;
                         _showOriginal = false;
                       });
                       _recordHistory();
@@ -1402,35 +1497,33 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isSelected
+                          color: isOriginalSelected
                               ? AppColors.primary
                               : (isDark
                                     ? AppColors.borderDark
                                     : AppColors.borderLight),
-                          width: isSelected ? 1.5 : 1.0,
+                          width: isOriginalSelected ? 1.5 : 1.0,
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (isQuick) ...[
-                            Icon(
-                              Icons.bolt_rounded,
-                              size: 14,
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.primary,
-                            ),
-                            const SizedBox(width: 3),
-                          ],
+                          Icon(
+                            Icons.image_outlined,
+                            size: 14,
+                            color: isOriginalSelected
+                                ? Colors.white
+                                : AppColors.primary,
+                          ),
+                          const SizedBox(width: 4),
                           Text(
-                            '$kb KB',
+                            'Original',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: isSelected
+                              fontWeight: isOriginalSelected
                                   ? FontWeight.bold
                                   : FontWeight.w600,
-                              color: isSelected
+                              color: isOriginalSelected
                                   ? Colors.white
                                   : (isDark
                                         ? AppColors.textPrimaryDark
@@ -1442,194 +1535,273 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     ),
                   ),
                 ),
-              );
-            }),
+              ),
 
-            // Custom... Chip
-            Material(
-              color: isCustomActive
-                  ? AppColors.primary
-                  : (isDark ? AppColors.surfaceDark : Colors.white),
-              borderRadius: BorderRadius.circular(16),
-              elevation: isCustomActive ? 2 : 0,
-              shadowColor: AppColors.primary.withValues(alpha: 0.3),
-              child: InkWell(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  _openCompressSheet();
-                },
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
+              ...presets.map((kb) {
+                final isSelected =
+                    _compressionMode == CompressionSheetMode.targetSize &&
+                    _selectedTargetSizeKB == kb;
+                final isQuick = kb == 20 || kb == 50;
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Material(
+                    color: isSelected
+                        ? AppColors.primary
+                        : (isDark ? AppColors.surfaceDark : Colors.white),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isCustomActive
-                          ? AppColors.primary
-                          : (isDark
-                                ? AppColors.borderDark
-                                : AppColors.borderLight),
-                      width: isCustomActive ? 1.5 : 1.0,
+                    elevation: isSelected ? 2 : 0,
+                    shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                    child: InkWell(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() {
+                          _compressionMode = CompressionSheetMode.targetSize;
+                          _selectedTargetSizeKB = kb;
+                          _showOriginal = false;
+                        });
+                        _recordHistory();
+                        _triggerPreviewUpdate(debounce: false);
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.primary
+                                : (isDark
+                                      ? AppColors.borderDark
+                                      : AppColors.borderLight),
+                            width: isSelected ? 1.5 : 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isQuick) ...[
+                              Icon(
+                                Icons.bolt_rounded,
+                                size: 14,
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.primary,
+                              ),
+                              const SizedBox(width: 3),
+                            ],
+                            Text(
+                              '$kb KB',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
+                                color: isSelected
+                                    ? Colors.white
+                                    : (isDark
+                                          ? AppColors.textPrimaryDark
+                                          : AppColors.textPrimaryLight),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.tune_rounded,
-                        size: 13,
+                );
+              }),
+
+              // Custom... Chip
+              Material(
+                color: isCustomActive
+                    ? AppColors.primary
+                    : (isDark ? AppColors.surfaceDark : Colors.white),
+                borderRadius: BorderRadius.circular(16),
+                elevation: isCustomActive ? 2 : 0,
+                shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    _openCompressSheet();
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
                         color: isCustomActive
-                            ? Colors.white
+                            ? AppColors.primary
                             : (isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight),
+                                  ? AppColors.borderDark
+                                  : AppColors.borderLight),
+                        width: isCustomActive ? 1.5 : 1.0,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        isCustomActive
-                            ? (_compressionMode ==
-                                      CompressionSheetMode.targetSize
-                                  ? '$_selectedTargetSizeKB KB'
-                                  : '${_quality.round()}%')
-                            : 'Custom...',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isCustomActive
-                              ? FontWeight.bold
-                              : FontWeight.w600,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.tune_rounded,
+                          size: 13,
                           color: isCustomActive
                               ? Colors.white
                               : (isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.textPrimaryLight),
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Text(
+                          isCustomActive
+                              ? (_compressionMode ==
+                                        CompressionSheetMode.targetSize
+                                    ? '$_selectedTargetSizeKB KB'
+                                    : '${_quality.round()}%')
+                              : 'Custom...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isCustomActive
+                                ? FontWeight.bold
+                                : FontWeight.w600,
+                            color: isCustomActive
+                                ? Colors.white
+                                : (isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildQuickUpscaleDock(bool isDark) {
     return RepaintBoundary(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.4 : 0.3),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
             color: const Color(
               0xFF8B5CF6,
-            ).withValues(alpha: isDark ? 0.2 : 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            ).withValues(alpha: isDark ? 0.4 : 0.3),
+            width: 1.2,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Scale selector chips: 2x and 4x
-          _buildUpscaleScaleChip(
-            scale: 2,
-            label: '2x HD',
-            subtitle: _originalWidth > 0
-                ? '${_originalWidth * 2}×${_originalHeight * 2}'
-                : 'Double',
-            isDark: isDark,
-          ),
-          const SizedBox(width: 8),
-          _buildUpscaleScaleChip(
-            scale: 4,
-            label: '4x Ultra',
-            subtitle: _originalWidth > 0
-                ? '${_originalWidth * 4}×${_originalHeight * 4}'
-                : 'Quadruple',
-            isDark: isDark,
-          ),
-          const SizedBox(width: 12),
-          // Action button
-          Expanded(
-            child: _isUpscaling
-                ? Container(
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF8B5CF6),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            '${(_upscaleProgress * 100).toInt()}% Processing...',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF8B5CF6),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ElevatedButton.icon(
-                    onPressed: _handleExecuteUpscale,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B5CF6),
-                      foregroundColor: Colors.white,
-                      elevation: 2,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      shape: RoundedRectangleBorder(
+          boxShadow: [
+            BoxShadow(
+              color: const Color(
+                0xFF8B5CF6,
+              ).withValues(alpha: isDark ? 0.2 : 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Scale selector chips: 2x and 4x
+            _buildUpscaleScaleChip(
+              scale: 2,
+              label: '2x HD',
+              subtitle: _originalWidth > 0
+                  ? '${_originalWidth * 2}×${_originalHeight * 2}'
+                  : 'Double',
+              isDark: isDark,
+            ),
+            const SizedBox(width: 8),
+            _buildUpscaleScaleChip(
+              scale: 4,
+              label: '4x Ultra',
+              subtitle: _originalWidth > 0
+                  ? '${_originalWidth * 4}×${_originalHeight * 4}'
+                  : 'Quadruple',
+              isDark: isDark,
+            ),
+            const SizedBox(width: 12),
+            // Action button
+            Expanded(
+              child: _isUpscaling
+                  ? Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                    ),
-                    icon: const Icon(Icons.auto_awesome_rounded, size: 16),
-                    label: Text(
-                      _hasUpscaled ? 'Re-Upscale' : 'Enhance Now',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF8B5CF6),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '${(_upscaleProgress * 100).toInt()}% Processing...',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF8B5CF6),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ElevatedButton.icon(
+                      onPressed: _handleExecuteUpscale,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF8B5CF6),
+                        foregroundColor: Colors.white,
+                        elevation: 2,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                      label: Text(
+                        _hasUpscaled ? 'Re-Upscale' : 'Enhance Now',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildUpscaleScaleChip({
     required int scale,
@@ -3082,9 +3254,9 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0EA5E9).withValues(
-                        alpha: isDark ? 0.22 : 0.10,
-                      ),
+                      color: const Color(
+                        0xFF0EA5E9,
+                      ).withValues(alpha: isDark ? 0.22 : 0.10),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -3444,477 +3616,483 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Center(
-                      child: RepaintBoundary(
-                        child: _buildCanvasImage(),
-                      ),
+                      child: RepaintBoundary(child: _buildCanvasImage()),
                     ),
                   ),
                 ),
               ),
-            // Top-left: Zoom instruction badge (at 1.0x) or Floating Reset Zoom Button (when zoomed in)
-            Positioned(
-              top: 10,
-              left: 10,
-              child: _isZoomedIn
-                  ? Material(
-                      color: Colors.black.withValues(alpha: 0.75),
-                      borderRadius: BorderRadius.circular(16),
-                      child: InkWell(
-                        onTap: _resetZoom,
+              // Top-left: Zoom instruction badge (at 1.0x) or Floating Reset Zoom Button (when zoomed in)
+              Positioned(
+                top: 10,
+                left: 10,
+                child: _isZoomedIn
+                    ? Material(
+                        color: Colors.black.withValues(alpha: 0.75),
                         borderRadius: BorderRadius.circular(16),
-                        child: Padding(
+                        child: InkWell(
+                          onTap: _resetZoom,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isTablet ? 14 : 10,
+                              vertical: isTablet ? 8 : 6,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.zoom_out_map_rounded,
+                                  size: isTablet ? 17 : 14,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'Reset Zoom',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: isTablet ? 13 : 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    : IgnorePointer(
+                        child: Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: isTablet ? 14 : 10,
-                            vertical: isTablet ? 8 : 6,
+                            vertical: isTablet ? 7 : 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                Icons.zoom_out_map_rounded,
-                                size: isTablet ? 17 : 14,
-                                color: Colors.white,
+                                Icons.pinch_rounded,
+                                size: isTablet ? 15 : 12,
+                                color: Colors.white70,
                               ),
                               const SizedBox(width: 5),
                               Text(
-                                'Reset Zoom',
+                                'Pinch or double-tap to inspect',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: isTablet ? 13 : 11,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: isTablet ? 12 : 11,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                    )
-                  : IgnorePointer(
+              ),
+              // Toggle Button Overlay (matching ResultScreen BeforeAfterCard)
+              Positioned(
+                bottom: 12,
+                right: 12,
+                child: Material(
+                  color: Colors.black.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(20),
+                  child: InkWell(
+                    key: const ValueKey('studio_toggle_original_button'),
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        _showOriginal = !_showOriginal;
+                      });
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isTablet ? 16 : 12,
+                        vertical: isTablet ? 8 : 6,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _showOriginal ? Icons.visibility : Icons.compare,
+                            color: _hasUpscaled
+                                ? const Color(0xFFA78BFA)
+                                : Colors.white,
+                            size: isTablet ? 19 : 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _showOriginal
+                                ? (_hasUpscaled
+                                      ? 'Viewing Pre-Upscale'
+                                      : 'Viewing Original')
+                                : (_hasUpscaled
+                                      ? 'Tap for Original'
+                                      : 'Tap for Original'),
+                            style: TextStyle(
+                              color: _hasUpscaled
+                                  ? const Color(0xFFA78BFA)
+                                  : Colors.white,
+                              fontSize: isTablet ? 13 : 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // AI Upscaled Badge
+              if (_hasUpscaled && !_isUpscaling)
+                Positioned(
+                  top: 10,
+                  right:
+                      (_quarterTurns != 0 || _flipHorizontal || _flipVertical)
+                      ? 80
+                      : 10,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 12 : 8,
+                      vertical: isTablet ? 6 : 4,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.auto_awesome_rounded,
+                          size: isTablet ? 15 : 12,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_upscaleSelectedScale}x AI ENHANCED',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: isTablet ? 12 : 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              // AI Upscaling in-place progress overlay
+              if (_isUpscaling)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(19),
+                    ),
+                    child: Center(
                       child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isTablet ? 14 : 10,
-                          vertical: isTablet ? 7 : 5,
-                        ),
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          borderRadius: BorderRadius.circular(14),
+                          color: isDark
+                              ? const Color(0xFF1E222B)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                        child: Row(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.pinch_rounded,
-                              size: isTablet ? 15 : 12,
-                              color: Colors.white70,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Pinch or double-tap to inspect',
-                              style: TextStyle(
+                            Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF8B5CF6),
+                                    Color(0xFF6366F1),
+                                  ],
+                                ),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF8B5CF6,
+                                    ).withValues(alpha: 0.4),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.auto_awesome_rounded,
                                 color: Colors.white,
-                                fontSize: isTablet ? 12 : 11,
-                                fontWeight: FontWeight.w500,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'AI Super-Resolution (${_upscaleSelectedScale}x)',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.textPrimaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _upscaleStatus.isNotEmpty
+                                  ? _upscaleStatus
+                                  : 'Enhancing pixels with neural engine...',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: LinearProgressIndicator(
+                                value: _upscaleProgress > 0
+                                    ? _upscaleProgress
+                                    : null,
+                                minHeight: 8,
+                                backgroundColor: isDark
+                                    ? Colors.white12
+                                    : Colors.grey.shade200,
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF8B5CF6),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${(_upscaleProgress * 100).toInt()}% Completed',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF8B5CF6),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-            ),
-            // Toggle Button Overlay (matching ResultScreen BeforeAfterCard)
-            Positioned(
-              bottom: 12,
-              right: 12,
-              child: Material(
-                color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(20),
-                child: InkWell(
-                  key: const ValueKey('studio_toggle_original_button'),
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      _showOriginal = !_showOriginal;
-                    });
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 16 : 12,
-                      vertical: isTablet ? 8 : 6,
+                  ),
+                ),
+              // Live preview updating indicator
+              if (_isGeneratingPreview)
+                Positioned(
+                  top: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
                     ),
-                    child: Row(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          _showOriginal ? Icons.visibility : Icons.compare,
-                          color: _hasUpscaled
-                              ? const Color(0xFFA78BFA)
-                              : Colors.white,
-                          size: isTablet ? 19 : 16,
+                        SizedBox(
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.6,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Text(
-                          _showOriginal
-                              ? (_hasUpscaled
-                                    ? 'Viewing Pre-Upscale'
-                                    : 'Viewing Original')
-                              : (_hasUpscaled
-                                    ? 'Tap for Original'
-                                    : 'Tap for Original'),
+                          'Updating preview...',
                           style: TextStyle(
-                            color: _hasUpscaled
-                                ? const Color(0xFFA78BFA)
-                                : Colors.white,
-                            fontSize: isTablet ? 13 : 12,
-                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-              ),
-            ),
-            // AI Upscaled Badge
-            if (_hasUpscaled && !_isUpscaling)
-              Positioned(
-                top: 10,
-                right: (_quarterTurns != 0 || _flipHorizontal || _flipVertical)
-                    ? 80
-                    : 10,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isTablet ? 12 : 8,
-                    vertical: isTablet ? 6 : 4,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+              // Status overlay chips (Rotation or Flip indicator if active)
+              if (_quarterTurns != 0 || _flipHorizontal || _flipVertical)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.auto_awesome_rounded,
-                        size: isTablet ? 15 : 12,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${_upscaleSelectedScale}x AI ENHANCED',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: isTablet ? 12 : 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            // AI Upscaling in-place progress overlay
-            if (_isUpscaling)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.65),
-                    borderRadius: BorderRadius.circular(19),
-                  ),
-                  child: Center(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E222B) : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_quarterTurns != 0) ...[
+                          const Icon(
+                            Icons.rotate_right,
+                            size: 14,
+                            color: Colors.white,
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-                              ),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFF8B5CF6,
-                                  ).withValues(alpha: 0.4),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.auto_awesome_rounded,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                          const SizedBox(width: 4),
                           Text(
-                            'AI Super-Resolution (${_upscaleSelectedScale}x)',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.white
-                                  : AppColors.textPrimaryLight,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _upscaleStatus.isNotEmpty
-                                ? _upscaleStatus
-                                : 'Enhancing pixels with neural engine...',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: LinearProgressIndicator(
-                              value: _upscaleProgress > 0
-                                  ? _upscaleProgress
-                                  : null,
-                              minHeight: 8,
-                              backgroundColor: isDark
-                                  ? Colors.white12
-                                  : Colors.grey.shade200,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Color(0xFF8B5CF6),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${(_upscaleProgress * 100).toInt()}% Completed',
+                            '${_quarterTurns * 90}°',
                             style: const TextStyle(
                               fontSize: 11,
+                              color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF8B5CF6),
                             ),
+                          ),
+                          if (_flipHorizontal || _flipVertical)
+                            const SizedBox(width: 8),
+                        ],
+                        if (_flipHorizontal) ...[
+                          const Icon(
+                            Icons.swap_horiz,
+                            size: 14,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 2),
+                          const Text(
+                            'Flip H',
+                            style: TextStyle(fontSize: 11, color: Colors.white),
+                          ),
+                        ],
+                        if (_flipVertical) ...[
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.swap_vert,
+                            size: 14,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 2),
+                          const Text(
+                            'Flip V',
+                            style: TextStyle(fontSize: 11, color: Colors.white),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              // On-canvas Quick Actions (Tablet View)
+              if (isTablet)
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  child: Material(
+                    color: Colors.black.withValues(alpha: 0.72),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.rotate_right_rounded,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                            tooltip: 'Rotate 90°',
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            padding: EdgeInsets.zero,
+                            onPressed: _handleRotate,
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.swap_horiz_rounded,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                            tooltip: 'Flip Horizontal',
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              setState(
+                                () => _flipHorizontal = !_flipHorizontal,
+                              );
+                              _recordHistory();
+                              _triggerPreviewUpdate(debounce: false);
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.swap_vert_rounded,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                            tooltip: 'Flip Vertical',
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              setState(() => _flipVertical = !_flipVertical);
+                              _recordHistory();
+                              _triggerPreviewUpdate(debounce: false);
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.crop_rounded,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                            tooltip: 'Crop',
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            padding: EdgeInsets.zero,
+                            onPressed: _handleCrop,
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
-              ),
-            // Live preview updating indicator
-            if (_isGeneratingPreview)
-              Positioned(
-                top: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 10,
-                        height: 10,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.6,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        'Updating preview...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            // Status overlay chips (Rotation or Flip indicator if active)
-            if (_quarterTurns != 0 || _flipHorizontal || _flipVertical)
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_quarterTurns != 0) ...[
-                        const Icon(
-                          Icons.rotate_right,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${_quarterTurns * 90}°',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (_flipHorizontal || _flipVertical)
-                          const SizedBox(width: 8),
-                      ],
-                      if (_flipHorizontal) ...[
-                        const Icon(
-                          Icons.swap_horiz,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 2),
-                        const Text(
-                          'Flip H',
-                          style: TextStyle(fontSize: 11, color: Colors.white),
-                        ),
-                      ],
-                      if (_flipVertical) ...[
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.swap_vert,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 2),
-                        const Text(
-                          'Flip V',
-                          style: TextStyle(fontSize: 11, color: Colors.white),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            // On-canvas Quick Actions (Tablet View)
-            if (isTablet)
-              Positioned(
-                bottom: 12,
-                left: 12,
-                child: Material(
-                  color: Colors.black.withValues(alpha: 0.72),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.rotate_right_rounded,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          tooltip: 'Rotate 90°',
-                          constraints: const BoxConstraints(
-                            minWidth: 36,
-                            minHeight: 36,
-                          ),
-                          padding: EdgeInsets.zero,
-                          onPressed: _handleRotate,
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.swap_horiz_rounded,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          tooltip: 'Flip Horizontal',
-                          constraints: const BoxConstraints(
-                            minWidth: 36,
-                            minHeight: 36,
-                          ),
-                          padding: EdgeInsets.zero,
-                          onPressed: () {
-                            setState(() => _flipHorizontal = !_flipHorizontal);
-                            _recordHistory();
-                            _triggerPreviewUpdate(debounce: false);
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.swap_vert_rounded,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          tooltip: 'Flip Vertical',
-                          constraints: const BoxConstraints(
-                            minWidth: 36,
-                            minHeight: 36,
-                          ),
-                          padding: EdgeInsets.zero,
-                          onPressed: () {
-                            setState(() => _flipVertical = !_flipVertical);
-                            _recordHistory();
-                            _triggerPreviewUpdate(debounce: false);
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.crop_rounded,
-                            size: 18,
-                            color: Colors.white,
-                          ),
-                          tooltip: 'Crop',
-                          constraints: const BoxConstraints(
-                            minWidth: 36,
-                            minHeight: 36,
-                          ),
-                          padding: EdgeInsets.zero,
-                          onPressed: _handleCrop,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

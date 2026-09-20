@@ -384,7 +384,8 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                               icon: Icons.add_photo_alternate_rounded,
                               label: 'ADD PHOTO',
                               isActive:
-                                  widget.activeTool == StudioActiveTool.addPhoto,
+                                  widget.activeTool ==
+                                  StudioActiveTool.addPhoto,
                               badgeText: 'NEW',
                               onTap: () {
                                 _dismissHint();

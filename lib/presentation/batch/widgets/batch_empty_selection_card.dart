@@ -122,10 +122,7 @@ class BatchEmptySelectionCard extends StatelessWidget {
                   ),
                   label: const Text(
                     'Import from Gallery',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],

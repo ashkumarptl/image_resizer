@@ -148,7 +148,11 @@ class _FullscreenImagePreviewState extends State<FullscreenImagePreview> {
                 child: currentFile.existsSync()
                     ? Hero(
                         tag: widget.heroTag,
-                        child: Image.file(currentFile, fit: BoxFit.contain),
+                        child: Image.file(
+                          currentFile,
+                          fit: BoxFit.contain,
+                          cacheWidth: 1800,
+                        ),
                       )
                     : const Icon(
                         Icons.broken_image,

@@ -393,6 +393,7 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                   child: Image.memory(
                     _foregroundBytes!,
                     fit: BoxFit.contain,
+                    cacheWidth: 1200,
                     filterQuality: FilterQuality.medium,
                   ),
                 ),

@@ -32,11 +32,7 @@ class OverlayLayerConfig {
   });
 }
 
-enum CanvasPageSize {
-  matchDocument,
-  a4Portrait,
-  a4Landscape,
-}
+enum CanvasPageSize { matchDocument, a4Portrait, a4Landscape }
 
 class DocumentOverlayParams {
   final String? baseImagePath; // null for blank paper
@@ -68,7 +64,9 @@ class DocumentOverlayCompositor {
     );
   }
 
-  static Future<ProcessResult> _compositeInternal(_IsolateParams isolateParams) async {
+  static Future<ProcessResult> _compositeInternal(
+    _IsolateParams isolateParams,
+  ) async {
     final stopwatch = Stopwatch()..start();
     final params = isolateParams.params;
 
@@ -79,7 +77,8 @@ class DocumentOverlayCompositor {
     int origSize = 0;
 
     // 1. Prepare Base Canvas
-    if (params.baseImagePath != null && File(params.baseImagePath!).existsSync()) {
+    if (params.baseImagePath != null &&
+        File(params.baseImagePath!).existsSync()) {
       final baseFile = File(params.baseImagePath!);
       final bytes = await baseFile.readAsBytes();
       origSize = bytes.length;
@@ -137,8 +136,14 @@ class DocumentOverlayCompositor {
       if (layerDecoded == null) continue;
 
       // Calculate pixel dimensions
-      int targetW = (layer.normalizedWidth * canvasW).round().clamp(10, canvasW * 2);
-      int targetH = (layer.normalizedHeight * canvasH).round().clamp(10, canvasH * 2);
+      int targetW = (layer.normalizedWidth * canvasW).round().clamp(
+        10,
+        canvasW * 2,
+      );
+      int targetH = (layer.normalizedHeight * canvasH).round().clamp(
+        10,
+        canvasH * 2,
+      );
 
       img.Image layerWorking = img.copyResize(
         layerDecoded,
@@ -186,12 +191,7 @@ class DocumentOverlayCompositor {
       final dstY = centerY - (layerWorking.height / 2).round();
 
       // Composite with alpha blending
-      img.compositeImage(
-        canvas,
-        layerWorking,
-        dstX: dstX,
-        dstY: dstY,
-      );
+      img.compositeImage(canvas, layerWorking, dstX: dstX, dstY: dstY);
     }
 
     // 3. Encode to desired output format
@@ -236,8 +236,5 @@ class _IsolateParams {
   final DocumentOverlayParams params;
   final String outputDirPath;
 
-  const _IsolateParams({
-    required this.params,
-    required this.outputDirPath,
-  });
+  const _IsolateParams({required this.params, required this.outputDirPath});
 }

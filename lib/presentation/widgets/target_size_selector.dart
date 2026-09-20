@@ -59,8 +59,8 @@ class TargetSizeSelector extends StatelessWidget {
               color: isSelected
                   ? AppColors.primary
                   : (isDark
-                      ? Colors.white10
-                      : Colors.black.withValues(alpha: 0.04)),
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.04)),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isSelected
@@ -83,13 +83,12 @@ class TargetSizeSelector extends StatelessWidget {
                   '$sizeKB KB',
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     color: isSelected
                         ? Colors.white
                         : (isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight),
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight),
                   ),
                 ),
               ],
@@ -110,11 +109,7 @@ class TargetSizeSelector extends StatelessWidget {
             child: Row(children: chipsList),
           )
         else
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: chipsList,
-          ),
+          Wrap(spacing: 6, runSpacing: 6, children: chipsList),
         if (showCustomField && customSizeController != null) ...[
           const SizedBox(height: 8),
           SizedBox(
@@ -144,13 +139,17 @@ class TargetSizeSelector extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    color: isDark
+                        ? AppColors.borderDark
+                        : AppColors.borderLight,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    color: isDark
+                        ? AppColors.borderDark
+                        : AppColors.borderLight,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(

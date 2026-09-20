@@ -449,7 +449,8 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                 // Press & Hold to Compare Button
                 HoldToCompareButton(
                   isComparing: _showOriginal,
-                  onComparisonChanged: (val) => setState(() => _showOriginal = val),
+                  onComparisonChanged: (val) =>
+                      setState(() => _showOriginal = val),
                   idleText: 'Hold Compare',
                   activeText: 'Original',
                   idleIcon: Icons.touch_app_rounded,

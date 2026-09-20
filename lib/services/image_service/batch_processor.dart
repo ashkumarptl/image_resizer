@@ -128,8 +128,8 @@ class BatchProcessor {
 
         final itemOptions =
             (itemOverrides != null && itemOverrides.containsKey(path))
-                ? itemOverrides[path]!.copyWith(sourcePath: path)
-                : baseOptions.copyWith(sourcePath: path);
+            ? itemOverrides[path]!.copyWith(sourcePath: path)
+            : baseOptions.copyWith(sourcePath: path);
 
         try {
           final result = await ImageProcessor.processImage(itemOptions);
@@ -171,7 +171,9 @@ class BatchProcessor {
     final results = indexedResults.whereType<ProcessResult>().toList();
 
     String? zipPath;
-    if (createZip && results.isNotEmpty && !(cancellationToken?.isCancelled ?? false)) {
+    if (createZip &&
+        results.isNotEmpty &&
+        !(cancellationToken?.isCancelled ?? false)) {
       zipPath = await _createZipArchive(results);
     }
 
@@ -201,7 +203,10 @@ class BatchProcessor {
       }
     }
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final zipFilePath = p.join(cacheDirPath, 'image_tools_batch_$timestamp.zip');
+    final zipFilePath = p.join(
+      cacheDirPath,
+      'image_tools_batch_$timestamp.zip',
+    );
 
     final filePaths = results
         .map((r) => r.outputPath)
@@ -243,8 +248,5 @@ class _ZipWorkerParams {
   final String zipFilePath;
   final List<String> filePaths;
 
-  const _ZipWorkerParams({
-    required this.zipFilePath,
-    required this.filePaths,
-  });
+  const _ZipWorkerParams({required this.zipFilePath, required this.filePaths});
 }

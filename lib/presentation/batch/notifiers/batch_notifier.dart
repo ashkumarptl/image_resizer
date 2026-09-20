@@ -12,7 +12,6 @@ import '../models/batch_item_model.dart';
 
 enum BatchMode { targetSize, scalePercentage }
 
-
 @immutable
 class BatchState {
   final List<BatchItemModel> items;
@@ -76,11 +75,17 @@ class BatchState {
 
       if (opts.targetSizeKB != null) {
         final targetBytes = opts.targetSizeKB! * 1024;
-        itemEst = item.fileSizeBytes > targetBytes ? targetBytes : item.fileSizeBytes;
-      } else if (opts.resizePercentage != null && opts.resizePercentage! < 100) {
+        itemEst = item.fileSizeBytes > targetBytes
+            ? targetBytes
+            : item.fileSizeBytes;
+      } else if (opts.resizePercentage != null &&
+          opts.resizePercentage! < 100) {
         final scaleRatio = opts.resizePercentage! / 100.0;
-        final scaledBytes = (item.fileSizeBytes * (scaleRatio * scaleRatio)).round();
-        itemEst = scaledBytes < item.fileSizeBytes ? scaledBytes : item.fileSizeBytes;
+        final scaledBytes = (item.fileSizeBytes * (scaleRatio * scaleRatio))
+            .round();
+        itemEst = scaledBytes < item.fileSizeBytes
+            ? scaledBytes
+            : item.fileSizeBytes;
       }
 
       // WEBP is typically ~25-30% more efficient than JPG/PNG
@@ -106,19 +111,20 @@ class BatchState {
   ProcessOptions createBaseOptions() {
     return ProcessOptions(
       sourcePath: '',
-      targetSizeKB:
-          activeMode == BatchMode.targetSize ? selectedTargetSizeKB : null,
+      targetSizeKB: activeMode == BatchMode.targetSize
+          ? selectedTargetSizeKB
+          : null,
       outputFormat: outputFormat,
       resizeMode:
           activeMode == BatchMode.scalePercentage &&
-                  selectedScalePercentage != 100
-              ? ResizeMode.percentage
-              : ResizeMode.none,
+              selectedScalePercentage != 100
+          ? ResizeMode.percentage
+          : ResizeMode.none,
       resizePercentage:
           activeMode == BatchMode.scalePercentage &&
-                  selectedScalePercentage != 100
-              ? selectedScalePercentage
-              : null,
+              selectedScalePercentage != 100
+          ? selectedScalePercentage
+          : null,
       preventSizeIncrease: true,
     );
   }
@@ -143,16 +149,15 @@ class BatchState {
       selectedPaths: selectedPaths ?? this.selectedPaths,
       isProcessing: isProcessing ?? this.isProcessing,
       progress: clearProgress ? null : (progress ?? this.progress),
-      batchResult:
-          clearBatchResult ? null : (batchResult ?? this.batchResult),
+      batchResult: clearBatchResult ? null : (batchResult ?? this.batchResult),
       activeMode: activeMode ?? this.activeMode,
-      selectedTargetSizeKB:
-          selectedTargetSizeKB ?? this.selectedTargetSizeKB,
+      selectedTargetSizeKB: selectedTargetSizeKB ?? this.selectedTargetSizeKB,
       selectedScalePercentage:
           selectedScalePercentage ?? this.selectedScalePercentage,
       outputFormat: outputFormat ?? this.outputFormat,
-      focusedItemPath:
-          clearFocusedItem ? null : (focusedItemPath ?? this.focusedItemPath),
+      focusedItemPath: clearFocusedItem
+          ? null
+          : (focusedItemPath ?? this.focusedItemPath),
     );
   }
 }
@@ -161,7 +166,7 @@ class BatchNotifier extends StateNotifier<BatchState> {
   final Ref _ref;
 
   BatchNotifier(this._ref, [List<File>? initialFiles])
-      : super(const BatchState()) {
+    : super(const BatchState()) {
     if (initialFiles != null && initialFiles.isNotEmpty) {
       setInitialFiles(initialFiles);
     }
@@ -187,9 +192,7 @@ class BatchNotifier extends StateNotifier<BatchState> {
 
   void addFiles(List<File> files, {bool append = false}) {
     final newItems = files.map((f) => BatchItemModel.fromFile(f)).toList();
-    final updatedList = append
-        ? [...state.items, ...newItems]
-        : newItems;
+    final updatedList = append ? [...state.items, ...newItems] : newItems;
     state = state.copyWith(items: updatedList, clearBatchResult: true);
     loadDimensionsForItems(newItems);
   }
@@ -197,7 +200,8 @@ class BatchNotifier extends StateNotifier<BatchState> {
   void removeItemAt(int index) {
     if (index >= 0 && index < state.items.length) {
       final removed = state.items[index];
-      final updatedList = List<BatchItemModel>.from(state.items)..removeAt(index);
+      final updatedList = List<BatchItemModel>.from(state.items)
+        ..removeAt(index);
       final updatedSelection = Set<String>.from(state.selectedPaths)
         ..remove(removed.path);
       state = state.copyWith(
@@ -253,15 +257,13 @@ class BatchNotifier extends StateNotifier<BatchState> {
   }
 
   void deselectAll() {
-    state = state.copyWith(
-      selectedPaths: {},
-      clearFocusedItem: true,
-    );
+    state = state.copyWith(selectedPaths: {}, clearFocusedItem: true);
   }
 
   void removeSelectedItems() {
     if (state.selectedPaths.isEmpty) return;
-    final clearFocus = state.focusedItemPath != null &&
+    final clearFocus =
+        state.focusedItemPath != null &&
         state.selectedPaths.contains(state.focusedItemPath);
     final updatedList = state.items
         .where((it) => !state.selectedPaths.contains(it.path))
@@ -310,11 +312,13 @@ class BatchNotifier extends StateNotifier<BatchState> {
     if (index >= 0 && index < state.items.length) {
       final updatedList = List<BatchItemModel>.from(state.items);
       if (customOpts != null) {
-        updatedList[index] =
-            updatedList[index].copyWith(customOptions: customOpts);
+        updatedList[index] = updatedList[index].copyWith(
+          customOptions: customOpts,
+        );
       } else {
-        updatedList[index] =
-            updatedList[index].copyWith(clearCustomOptions: true);
+        updatedList[index] = updatedList[index].copyWith(
+          clearCustomOptions: true,
+        );
       }
       state = state.copyWith(items: updatedList);
     }
@@ -329,23 +333,14 @@ class BatchNotifier extends StateNotifier<BatchState> {
 
   void setFocusedItem(String? path) {
     if (path == null) {
-      state = state.copyWith(
-        clearFocusedItem: true,
-        selectedPaths: {},
-      );
+      state = state.copyWith(clearFocusedItem: true, selectedPaths: {});
     } else {
-      state = state.copyWith(
-        focusedItemPath: path,
-        selectedPaths: {path},
-      );
+      state = state.copyWith(focusedItemPath: path, selectedPaths: {path});
     }
   }
 
   void clearFocusedItem() {
-    state = state.copyWith(
-      clearFocusedItem: true,
-      selectedPaths: {},
-    );
+    state = state.copyWith(clearFocusedItem: true, selectedPaths: {});
   }
 
   void resetFocusedItemOptions() {
@@ -354,7 +349,9 @@ class BatchNotifier extends StateNotifier<BatchState> {
     final index = state.items.indexWhere((it) => it.path == focused.path);
     if (index != -1) {
       final updatedList = List<BatchItemModel>.from(state.items);
-      updatedList[index] = updatedList[index].copyWith(clearCustomOptions: true);
+      updatedList[index] = updatedList[index].copyWith(
+        clearCustomOptions: true,
+      );
       state = state.copyWith(items: updatedList);
     }
   }
@@ -400,7 +397,9 @@ class BatchNotifier extends StateNotifier<BatchState> {
       final index = state.items.indexWhere((it) => it.path == focused.path);
       if (index != -1) {
         final updatedList = List<BatchItemModel>.from(state.items);
-        updatedList[index] = updatedList[index].copyWith(customOptions: updatedOpts);
+        updatedList[index] = updatedList[index].copyWith(
+          customOptions: updatedOpts,
+        );
         state = state.copyWith(items: updatedList);
       }
     } else {
@@ -413,9 +412,7 @@ class BatchNotifier extends StateNotifier<BatchState> {
       final updatedList = state.items.map((it) {
         if (state.selectedPaths.contains(it.path)) {
           final curOpts = it.customOptions ?? state.createBaseOptions();
-          return it.copyWith(
-            customOptions: curOpts.copyWith(targetSizeKB: kb),
-          );
+          return it.copyWith(customOptions: curOpts.copyWith(targetSizeKB: kb));
         }
         return it;
       }).toList();
@@ -427,7 +424,9 @@ class BatchNotifier extends StateNotifier<BatchState> {
       final index = state.items.indexWhere((it) => it.path == focused.path);
       if (index != -1) {
         final updatedList = List<BatchItemModel>.from(state.items);
-        updatedList[index] = updatedList[index].copyWith(customOptions: updatedOpts);
+        updatedList[index] = updatedList[index].copyWith(
+          customOptions: updatedOpts,
+        );
         state = state.copyWith(items: updatedList);
       }
     } else {
@@ -460,7 +459,9 @@ class BatchNotifier extends StateNotifier<BatchState> {
       final index = state.items.indexWhere((it) => it.path == focused.path);
       if (index != -1) {
         final updatedList = List<BatchItemModel>.from(state.items);
-        updatedList[index] = updatedList[index].copyWith(customOptions: updatedOpts);
+        updatedList[index] = updatedList[index].copyWith(
+          customOptions: updatedOpts,
+        );
         state = state.copyWith(items: updatedList);
       }
     } else {
@@ -487,7 +488,9 @@ class BatchNotifier extends StateNotifier<BatchState> {
       final index = state.items.indexWhere((it) => it.path == focused.path);
       if (index != -1) {
         final updatedList = List<BatchItemModel>.from(state.items);
-        updatedList[index] = updatedList[index].copyWith(customOptions: updatedOpts);
+        updatedList[index] = updatedList[index].copyWith(
+          customOptions: updatedOpts,
+        );
         state = state.copyWith(items: updatedList);
       }
     } else {
@@ -506,7 +509,8 @@ class BatchNotifier extends StateNotifier<BatchState> {
   }
 
   Future<BatchResult> processBatch({List<String>? specificPaths}) async {
-    final pathsToProcess = specificPaths ?? state.items.map((f) => f.path).toList();
+    final pathsToProcess =
+        specificPaths ?? state.items.map((f) => f.path).toList();
     if (pathsToProcess.isEmpty) {
       throw StateError('No images selected for batch processing');
     }
@@ -570,7 +574,8 @@ class BatchNotifier extends StateNotifier<BatchState> {
               results: [...state.batchResult!.results, ...result.results],
               failures: result.failures,
               zipFilePath: result.zipFilePath ?? state.batchResult!.zipFilePath,
-              totalDuration: state.batchResult!.totalDuration + result.totalDuration,
+              totalDuration:
+                  state.batchResult!.totalDuration + result.totalDuration,
               isCancelled: result.isCancelled,
             )
           : result;
@@ -600,7 +605,7 @@ class BatchNotifier extends StateNotifier<BatchState> {
   }
 }
 
-final batchNotifierProvider =
-    StateNotifierProvider.autoDispose.family<BatchNotifier, BatchState, List<File>?>(
-  (ref, initialFiles) => BatchNotifier(ref, initialFiles),
-);
+final batchNotifierProvider = StateNotifierProvider.autoDispose
+    .family<BatchNotifier, BatchState, List<File>?>(
+      (ref, initialFiles) => BatchNotifier(ref, initialFiles),
+    );

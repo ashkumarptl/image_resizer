@@ -51,6 +51,7 @@ class BatchImagePreviewDialog extends StatelessWidget {
                 child: Image.file(
                   item.file,
                   fit: BoxFit.contain,
+                  cacheWidth: 1200,
                   errorBuilder: (context, error, stackTrace) => Column(
                     mainAxisSize: MainAxisSize.min,
                     children: const [

@@ -55,7 +55,8 @@ class AppBottomSheetHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = iconColor ?? (isDark ? AppColors.primaryLight : AppColors.primary);
+    final primaryColor =
+        iconColor ?? (isDark ? AppColors.primaryLight : AppColors.primary);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -71,11 +72,7 @@ class AppBottomSheetHeader extends StatelessWidget {
                     color: primaryColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 18,
-                    color: primaryColor,
-                  ),
+                  child: Icon(icon, size: 18, color: primaryColor),
                 ),
                 const SizedBox(width: 10),
               ],

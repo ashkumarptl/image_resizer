@@ -436,7 +436,10 @@ void main() {
 
       // 3. Output Estimation
       expect(state.estimatedTotalOutputBytes, greaterThan(0));
-      expect(state.estimatedTotalOutputBytes, lessThanOrEqualTo(state.totalSelectedBytes));
+      expect(
+        state.estimatedTotalOutputBytes,
+        lessThanOrEqualTo(state.totalSelectedBytes),
+      );
       expect(state.estimatedSavedPercentage, greaterThanOrEqualTo(0.0));
 
       // 5. Bulk delete selected
@@ -481,138 +484,147 @@ void main() {
       expect(failureResult.successCount, 1);
     });
 
-    test('Dynamic Per-Image Settings: focusing item overrides its settings dynamically', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'Dynamic Per-Image Settings: focusing item overrides its settings dynamically',
+      () {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final notifier = container.read(batchNotifierProvider(null).notifier);
-      notifier.addFiles([sampleImage1, sampleImage2]);
-      var state = container.read(batchNotifierProvider(null));
+        final notifier = container.read(batchNotifierProvider(null).notifier);
+        notifier.addFiles([sampleImage1, sampleImage2]);
+        var state = container.read(batchNotifierProvider(null));
 
-      // Global defaults
-      expect(state.activeMode, BatchMode.targetSize);
-      expect(state.selectedTargetSizeKB, 100);
-      expect(state.focusedItemPath, isNull);
-      expect(state.focusedItem, isNull);
+        // Global defaults
+        expect(state.activeMode, BatchMode.targetSize);
+        expect(state.selectedTargetSizeKB, 100);
+        expect(state.focusedItemPath, isNull);
+        expect(state.focusedItem, isNull);
 
-      // Focus first image
-      notifier.setFocusedItem(sampleImage1.path);
-      state = container.read(batchNotifierProvider(null));
-      expect(state.focusedItemPath, sampleImage1.path);
-      expect(state.focusedItem?.fileName, sampleImage1.path.split('/').last);
+        // Focus first image
+        notifier.setFocusedItem(sampleImage1.path);
+        state = container.read(batchNotifierProvider(null));
+        expect(state.focusedItemPath, sampleImage1.path);
+        expect(state.focusedItem?.fileName, sampleImage1.path.split('/').last);
 
-      // Modifying setting while focused modifies customOptions for that item ONLY
-      notifier.setTargetSizeKB(350);
-      notifier.setOutputFormat('png');
-      state = container.read(batchNotifierProvider(null));
+        // Modifying setting while focused modifies customOptions for that item ONLY
+        notifier.setTargetSizeKB(350);
+        notifier.setOutputFormat('png');
+        state = container.read(batchNotifierProvider(null));
 
-      // Global defaults unchanged
-      expect(state.selectedTargetSizeKB, 100);
-      expect(state.outputFormat, 'jpg');
+        // Global defaults unchanged
+        expect(state.selectedTargetSizeKB, 100);
+        expect(state.outputFormat, 'jpg');
 
-      // Focused item has custom options
-      expect(state.focusedItem?.hasCustomOptions, true);
-      expect(state.focusedItem?.customOptions?.targetSizeKB, 350);
-      expect(state.focusedItem?.customOptions?.outputFormat, 'png');
+        // Focused item has custom options
+        expect(state.focusedItem?.hasCustomOptions, true);
+        expect(state.focusedItem?.customOptions?.targetSizeKB, 350);
+        expect(state.focusedItem?.customOptions?.outputFormat, 'png');
 
-      // Second image does not have custom options
-      expect(state.items[1].hasCustomOptions, false);
+        // Second image does not have custom options
+        expect(state.items[1].hasCustomOptions, false);
 
-      // Reset focused item options
-      notifier.resetFocusedItemOptions();
-      state = container.read(batchNotifierProvider(null));
-      expect(state.focusedItem?.hasCustomOptions, false);
+        // Reset focused item options
+        notifier.resetFocusedItemOptions();
+        state = container.read(batchNotifierProvider(null));
+        expect(state.focusedItem?.hasCustomOptions, false);
 
-      // Clear focus
-      notifier.clearFocusedItem();
-      state = container.read(batchNotifierProvider(null));
-      expect(state.focusedItemPath, isNull);
-      expect(state.focusedItem, isNull);
-    });
+        // Clear focus
+        notifier.clearFocusedItem();
+        state = container.read(batchNotifierProvider(null));
+        expect(state.focusedItemPath, isNull);
+        expect(state.focusedItem, isNull);
+      },
+    );
   });
 
   group('Dynamic Per-Image Settings Widget Tests', () {
-    testWidgets('Clicking image card dynamically opens custom settings in BatchSettingsCard', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: BatchScreen(initialImages: [sampleImage1, sampleImage2]),
+    testWidgets(
+      'Clicking image card dynamically opens custom settings in BatchSettingsCard',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: BatchScreen(initialImages: [sampleImage1, sampleImage2]),
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Initially shows global settings
-      expect(find.text('Default Batch Settings'), findsOneWidget);
-      expect(find.text('EDITING'), findsNothing);
-      expect(find.text('CUSTOM IMAGE'), findsNothing);
+        // Initially shows global settings
+        expect(find.text('Default Batch Settings'), findsOneWidget);
+        expect(find.text('EDITING'), findsNothing);
+        expect(find.text('CUSTOM IMAGE'), findsNothing);
 
-      // Tap on the first image thumbnail to focus it
-      await tester.tap(
-        find.descendant(
-          of: find.byType(BatchImageCard).first,
-          matching: find.byType(GestureDetector),
-        ).first,
-      );
-      await tester.pumpAndSettle();
+        // Tap on the first image thumbnail to focus it
+        await tester.tap(
+          find
+              .descendant(
+                of: find.byType(BatchImageCard).first,
+                matching: find.byType(GestureDetector),
+              )
+              .first,
+        );
+        await tester.pumpAndSettle();
 
-      // Now settings card morphs to focused item custom settings
-      expect(find.text('CUSTOM IMAGE'), findsOneWidget);
-      expect(find.text('EDITING'), findsOneWidget);
-      expect(find.text('Default Batch Settings'), findsNothing);
+        // Now settings card morphs to focused item custom settings
+        expect(find.text('CUSTOM IMAGE'), findsOneWidget);
+        expect(find.text('EDITING'), findsOneWidget);
+        expect(find.text('Default Batch Settings'), findsNothing);
 
-      // Tap close button on the focused settings banner
-      await tester.tap(find.byTooltip('Back to Batch Defaults'));
-      await tester.pumpAndSettle();
+        // Tap close button on the focused settings banner
+        await tester.tap(find.byTooltip('Back to Batch Defaults'));
+        await tester.pumpAndSettle();
 
-      // Reverts to Default Batch Settings
-      expect(find.text('Default Batch Settings'), findsOneWidget);
-      expect(find.text('EDITING'), findsNothing);
+        // Reverts to Default Batch Settings
+        expect(find.text('Default Batch Settings'), findsOneWidget);
+        expect(find.text('EDITING'), findsNothing);
 
-      // Now tap specifically on the mid-section (file name text)
-      final fileNameText = sampleImage2.path.split('/').last;
-      await tester.tap(find.text(fileNameText));
-      await tester.pumpAndSettle();
+        // Now tap specifically on the mid-section (file name text)
+        final fileNameText = sampleImage2.path.split('/').last;
+        await tester.tap(find.text(fileNameText));
+        await tester.pumpAndSettle();
 
-      // Should focus the second image
-      expect(find.text('CUSTOM IMAGE'), findsOneWidget);
-      expect(find.text('EDITING'), findsOneWidget);
-    });
+        // Should focus the second image
+        expect(find.text('CUSTOM IMAGE'), findsOneWidget);
+        expect(find.text('EDITING'), findsOneWidget);
+      },
+    );
 
-    testWidgets('Checking image select checkbox immediately opens custom settings, and multi-selection shows multi-select banner', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: BatchScreen(initialImages: [sampleImage1, sampleImage2]),
+    testWidgets(
+      'Checking image select checkbox immediately opens custom settings, and multi-selection shows multi-select banner',
+      (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: BatchScreen(initialImages: [sampleImage1, sampleImage2]),
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Initially shows global settings
-      expect(find.text('Default Batch Settings'), findsOneWidget);
+        // Initially shows global settings
+        expect(find.text('Default Batch Settings'), findsOneWidget);
 
-      // Tap select checkbox on first image
-      await tester.tap(find.byKey(ValueKey('batch_card_select_${sampleImage1.path}')));
-      await tester.pumpAndSettle();
+        // Tap select checkbox on first image
+        await tester.tap(
+          find.byKey(ValueKey('batch_card_select_${sampleImage1.path}')),
+        );
+        await tester.pumpAndSettle();
 
-      // Now custom settings card is displayed for the selected image!
-      expect(find.text('CUSTOM IMAGE'), findsOneWidget);
-      expect(find.text('Default Batch Settings'), findsNothing);
+        // Now custom settings card is displayed for the selected image!
+        expect(find.text('CUSTOM IMAGE'), findsOneWidget);
+        expect(find.text('Default Batch Settings'), findsNothing);
 
-      // Select second image as well
-      await tester.tap(find.byKey(ValueKey('batch_card_select_${sampleImage2.path}')));
-      await tester.pumpAndSettle();
+        // Select second image as well
+        await tester.tap(
+          find.byKey(ValueKey('batch_card_select_${sampleImage2.path}')),
+        );
+        await tester.pumpAndSettle();
 
-      // Now multi-selection banner is displayed in BatchSettingsCard
-      expect(find.text('2 SELECTED'), findsOneWidget);
-      expect(find.text('Settings apply to all 2 images'), findsOneWidget);
-    });
+        // Now multi-selection banner is displayed in BatchSettingsCard
+        expect(find.text('2 SELECTED'), findsOneWidget);
+        expect(find.text('Settings apply to all 2 images'), findsOneWidget);
+      },
+    );
   });
 }
-
-

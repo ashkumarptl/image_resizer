@@ -17,8 +17,8 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier({
     ThemeMode initialMode = ThemeMode.system,
     SharedPreferences? prefs,
-  })  : _prefs = prefs,
-        super(initialMode) {
+  }) : _prefs = prefs,
+       super(initialMode) {
     if (prefs == null) {
       _loadSavedTheme();
     }

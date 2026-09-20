@@ -32,9 +32,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: DocumentOverlayScreen(initialImage: dummyImage),
-        ),
+        MaterialApp(home: DocumentOverlayScreen(initialImage: dummyImage)),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
@@ -96,9 +94,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: DocumentOverlayScreen(initialImage: dummyImage),
-        ),
+        MaterialApp(home: DocumentOverlayScreen(initialImage: dummyImage)),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
@@ -143,9 +139,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: DocumentOverlayScreen(initialImage: dummyImage),
-        ),
+        MaterialApp(home: DocumentOverlayScreen(initialImage: dummyImage)),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));

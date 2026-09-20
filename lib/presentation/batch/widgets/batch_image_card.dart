@@ -44,19 +44,23 @@ class BatchImageCard extends StatelessWidget {
           color: isFocused
               ? AppColors.primary
               : (isSelected
-                  ? AppColors.primary
-                  : (item.hasCustomOptions
-                      ? AppColors.primary.withValues(alpha: 0.7)
-                      : (isDark ? AppColors.borderDark : AppColors.borderLight))),
-          width: isFocused ? 2.5 : (isSelected ? 2.0 : (item.hasCustomOptions ? 1.5 : 1.0)),
+                    ? AppColors.primary
+                    : (item.hasCustomOptions
+                          ? AppColors.primary.withValues(alpha: 0.7)
+                          : (isDark
+                                ? AppColors.borderDark
+                                : AppColors.borderLight))),
+          width: isFocused
+              ? 2.5
+              : (isSelected ? 2.0 : (item.hasCustomOptions ? 1.5 : 1.0)),
         ),
         boxShadow: [
           BoxShadow(
             color: isFocused
                 ? AppColors.primary.withValues(alpha: 0.35)
                 : (isSelected
-                    ? AppColors.primary.withValues(alpha: 0.15)
-                    : Colors.black.withValues(alpha: isDark ? 0.2 : 0.05)),
+                      ? AppColors.primary.withValues(alpha: 0.15)
+                      : Colors.black.withValues(alpha: isDark ? 0.2 : 0.05)),
             blurRadius: isFocused ? 12 : (isSelected ? 10 : 8),
             offset: const Offset(0, 2),
           ),
@@ -130,7 +134,9 @@ class BatchImageCard extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+                          shadows: [
+                            Shadow(color: Colors.black54, blurRadius: 4),
+                          ],
                         ),
                       ),
                     ),
@@ -160,7 +166,11 @@ class BatchImageCard extends StatelessWidget {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.tune_rounded, color: Colors.white, size: 10),
+                              Icon(
+                                Icons.tune_rounded,
+                                color: Colors.white,
+                                size: 10,
+                              ),
                               SizedBox(width: 3),
                               Text(
                                 'EDITING',
@@ -222,10 +232,7 @@ class BatchImageCard extends StatelessWidget {
                                 ? AppColors.primary
                                 : const Color(0x99000000),
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.5,
-                            ),
+                            border: Border.all(color: Colors.white, width: 1.5),
                           ),
                           child: Icon(
                             isSelected ? Icons.check_rounded : null,
@@ -238,11 +245,7 @@ class BatchImageCard extends StatelessWidget {
 
                   // Reorder drag handle (if provided)
                   if (dragHandle != null)
-                    Positioned(
-                      bottom: 4,
-                      right: 4,
-                      child: dragHandle!,
-                    ),
+                    Positioned(bottom: 4, right: 4, child: dragHandle!),
 
                   // Delete / Remove Button (Top Right)
                   Positioned(
@@ -359,10 +362,7 @@ class BatchImageCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Center(
-                            child: Icon(
-                              Icons.crop_rounded,
-                              size: 16,
-                            ),
+                            child: Icon(Icons.crop_rounded, size: 16),
                           ),
                         ),
                       ),

@@ -74,8 +74,7 @@ class ImageSourcePickerSheet {
       title: title,
       subtitle: subtitle,
       scannerTitle: 'Batch Document Scanner',
-      scannerSubtitle:
-          'Multi-page camera scanner with auto-boundary detection',
+      scannerSubtitle: 'Multi-page camera scanner with auto-boundary detection',
       galleryTitle: 'Import from Gallery',
       gallerySubtitle: 'Select multiple photos from your library',
     );
@@ -130,7 +129,9 @@ class ImageSourcePickerSheet {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const BottomSheetDragHandle(margin: EdgeInsets.only(bottom: 16)),
+                const BottomSheetDragHandle(
+                  margin: EdgeInsets.only(bottom: 16),
+                ),
                 Text(
                   title,
                   style: TextStyle(
@@ -194,9 +195,7 @@ class ImageSourcePickerSheet {
     String? badge,
   }) {
     return ListTile(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       tileColor: isDark
           ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
           : AppColors.surfaceVariantLight,

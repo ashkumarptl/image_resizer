@@ -221,6 +221,7 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
     Widget imageWidget = Image.file(
       _currentImage,
       fit: BoxFit.contain,
+      cacheWidth: 1400,
       filterQuality: FilterQuality.medium,
     );
 

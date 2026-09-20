@@ -106,83 +106,108 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'A4 Print & Document Studio',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'A4 Print & Document Studio',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEA580C).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.badge_rounded,
+                        color: Color(0xFFEA580C),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded),
-                      onPressed: () => Navigator.of(ctx).pop(),
+                    title: const Text(
+                      'Aadhaar / ID Card A4 Print',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEA580C).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                    subtitle: const Text(
+                      'Place Front & Back on A4 with cutting guide',
                     ),
-                    child: const Icon(Icons.badge_rounded, color: Color(0xFFEA580C)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    onTap: () => Navigator.of(ctx).pop('id_card'),
                   ),
-                  title: const Text('Aadhaar / ID Card A4 Print',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Place Front & Back on A4 with cutting guide'),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  onTap: () => Navigator.of(ctx).pop('id_card'),
-                ),
-                const SizedBox(height: 6),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 6),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.description_rounded,
+                        color: AppColors.primary,
+                      ),
                     ),
-                    child: const Icon(Icons.description_rounded, color: AppColors.primary),
-                  ),
-                  title: const Text('Sign or Attach Photo to Document',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Open document/form and place signature or photo'),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  onTap: () => Navigator.of(ctx).pop('document'),
-                ),
-                const SizedBox(height: 6),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                    title: const Text(
+                      'Sign or Attach Photo to Document',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    child: const Icon(Icons.note_add_rounded, color: AppColors.secondary),
+                    subtitle: const Text(
+                      'Open document/form and place signature or photo',
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    onTap: () => Navigator.of(ctx).pop('document'),
                   ),
-                  title: const Text('Blank A4 Canvas',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Start fresh with an empty A4 page'),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  onTap: () => Navigator.of(ctx).pop('blank'),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.note_add_rounded,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                    title: const Text(
+                      'Blank A4 Canvas',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: const Text('Start fresh with an empty A4 page'),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    onTap: () => Navigator.of(ctx).pop('blank'),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
+        );
       },
     );
 
@@ -191,7 +216,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (choice == 'id_card') {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => const DocumentOverlayScreen(startWithIdCardWizard: true),
+          builder: (_) =>
+              const DocumentOverlayScreen(startWithIdCardWizard: true),
         ),
       );
     } else if (choice == 'document') {
@@ -203,11 +229,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       );
     } else if (choice == 'blank') {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => const DocumentOverlayScreen(),
-        ),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const DocumentOverlayScreen()));
     }
   }
 
@@ -262,7 +286,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final historyAsync = ref.watch(recentHistoryProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -483,15 +506,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   _buildQuickUtilitiesSection(context, isDark),
                   SizedBox(height: context.isLargeTablet ? 30 : 22),
 
-                  // 3. Recent Processed Files Section
-                  historyAsync.when(
-                    data: (historyList) => RecentFilesSection(
-                      historyItems: historyList,
-                      onItemTap: _handleHistoryItemTap,
-                      onClearHistory: _handleClearHistory,
-                    ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, _) => const SizedBox.shrink(),
+                  // 3. Recent Processed Files Section (isolated rebuilds via local Consumer)
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final historyAsync = ref.watch(recentHistoryProvider);
+                      return historyAsync.when(
+                        data: (historyList) => RecentFilesSection(
+                          historyItems: historyList,
+                          onItemTap: _handleHistoryItemTap,
+                          onClearHistory: _handleClearHistory,
+                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, _) => const SizedBox.shrink(),
+                      );
+                    },
                   ),
                   SizedBox(height: context.isLargeTablet ? 48 : 100),
                 ],

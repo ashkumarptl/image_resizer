@@ -302,14 +302,20 @@ class _IdCardDuoPickerSheetState extends State<IdCardDuoPickerSheet> {
               ? Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.file(file, fit: BoxFit.cover),
+                    Image.file(
+                      file,
+                      fit: BoxFit.cover,
+                      cacheWidth: 400,
+                    ),
                     Positioned(
                       bottom: 0,
                       left: 0,
                       right: 0,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 6),
+                          vertical: 4,
+                          horizontal: 6,
+                        ),
                         color: Colors.black.withValues(alpha: 0.65),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

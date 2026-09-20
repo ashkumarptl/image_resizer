@@ -365,8 +365,16 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
         children: [
           if (_originalBytes != null)
             _upscaleResult != null && !_showComparisonOriginal
-                ? Image.memory(_upscaleResult!.imageBytes, fit: BoxFit.contain)
-                : Image.memory(_originalBytes!, fit: BoxFit.contain),
+                ? Image.memory(
+                    _upscaleResult!.imageBytes,
+                    fit: BoxFit.contain,
+                    cacheWidth: 1200,
+                  )
+                : Image.memory(
+                    _originalBytes!,
+                    fit: BoxFit.contain,
+                    cacheWidth: 1200,
+                  ),
 
           if (_isProcessing)
             Container(

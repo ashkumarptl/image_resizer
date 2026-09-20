@@ -13,14 +13,14 @@ void main() {
 
   Widget wrapWithMaterial(Widget child) {
     return MaterialApp(
-      home: Scaffold(
-        body: Center(child: child),
-      ),
+      home: Scaffold(body: Center(child: child)),
     );
   }
 
   group('TargetSizeSelector Tests', () {
-    testWidgets('renders default preset chips and responds to selection', (tester) async {
+    testWidgets('renders default preset chips and responds to selection', (
+      tester,
+    ) async {
       int? selectedSize;
       final controller = TextEditingController(text: '100');
 
@@ -45,7 +45,9 @@ void main() {
       expect(controller.text, '50');
     });
 
-    testWidgets('entering valid custom KB triggers onSizeChanged', (tester) async {
+    testWidgets('entering valid custom KB triggers onSizeChanged', (
+      tester,
+    ) async {
       int? selectedSize;
       final controller = TextEditingController(text: '100');
 
@@ -95,7 +97,9 @@ void main() {
   });
 
   group('ScalePercentageSelector Tests', () {
-    testWidgets('renders default percentages and fires callback on tap', (tester) async {
+    testWidgets('renders default percentages and fires callback on tap', (
+      tester,
+    ) async {
       int? chosenScale;
 
       await tester.pumpWidget(
@@ -120,7 +124,9 @@ void main() {
   });
 
   group('AppBottomSheet Tests', () {
-    testWidgets('renders BottomSheetDragHandle and AppBottomSheetHeader', (tester) async {
+    testWidgets('renders BottomSheetDragHandle and AppBottomSheetHeader', (
+      tester,
+    ) async {
       bool closed = false;
 
       await tester.pumpWidget(
@@ -153,7 +159,9 @@ void main() {
   });
 
   group('HoldToCompareButton Tests', () {
-    testWidgets('toggles comparison state on pointer down and up', (tester) async {
+    testWidgets('toggles comparison state on pointer down and up', (
+      tester,
+    ) async {
       bool isComparing = false;
 
       await tester.pumpWidget(

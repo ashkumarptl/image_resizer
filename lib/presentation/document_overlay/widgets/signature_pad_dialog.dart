@@ -258,7 +258,9 @@ class _SignaturePadDialogState extends State<SignaturePadDialog> {
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.4),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.4,
+                                    ),
                                     blurRadius: 6,
                                   ),
                                 ]
@@ -361,8 +363,10 @@ class _SignaturePadDialogState extends State<SignaturePadDialog> {
                               onPressed: _strokes.isEmpty ? null : _undo,
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline_rounded,
-                                  size: 20),
+                              icon: const Icon(
+                                Icons.delete_outline_rounded,
+                                size: 20,
+                              ),
                               tooltip: 'Clear',
                               onPressed: _strokes.isEmpty ? null : _clear,
                             ),

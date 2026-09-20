@@ -38,8 +38,8 @@ class ScalePercentageSelector extends StatelessWidget {
             color: isSelected
                 ? Colors.white
                 : (isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight),
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight),
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -63,8 +63,8 @@ class ScalePercentageSelector extends StatelessWidget {
                 color: isSelected
                     ? AppColors.primary
                     : (isDark
-                        ? Colors.white10
-                        : Colors.black.withValues(alpha: 0.04)),
+                          ? Colors.white10
+                          : Colors.black.withValues(alpha: 0.04)),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isSelected
@@ -76,13 +76,12 @@ class ScalePercentageSelector extends StatelessWidget {
                 '$pct%',
                 style: TextStyle(
                   fontSize: 11.5,
-                  fontWeight:
-                      isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   color: isSelected
                       ? Colors.white
                       : (isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimaryLight),
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight),
                 ),
               ),
             ),

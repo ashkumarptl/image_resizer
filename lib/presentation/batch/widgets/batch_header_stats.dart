@@ -119,17 +119,11 @@ class BatchCustomOverridesBanner extends StatelessWidget {
           alpha: isDark ? 0.3 : 0.15,
         ),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.tune_rounded,
-            size: 16,
-            color: AppColors.primary,
-          ),
+          const Icon(Icons.tune_rounded, size: 16, color: AppColors.primary),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -149,10 +143,7 @@ class BatchCustomOverridesBanner extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               padding: const EdgeInsets.symmetric(horizontal: 8),
             ),
-            child: const Text(
-              'Reset All',
-              style: TextStyle(fontSize: 12),
-            ),
+            child: const Text('Reset All', style: TextStyle(fontSize: 12)),
           ),
         ],
       ),

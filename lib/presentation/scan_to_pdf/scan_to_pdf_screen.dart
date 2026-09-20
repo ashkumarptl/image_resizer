@@ -1403,7 +1403,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
                           : AppColors.borderLight,
                     ),
                   ),
-                  child: coverFile != null && coverFile.existsSync()
+                  child: coverFile != null
                       ? Image.file(
                           coverFile,
                           fit: BoxFit.cover,

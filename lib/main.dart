@@ -23,7 +23,8 @@ void main() async {
 
   // Tune Flutter's decoded raster image cache to protect heap memory on budget devices
   PaintingBinding.instance.imageCache.maximumSizeBytes = 80 << 20; // 80 MB
-  PaintingBinding.instance.imageCache.maximumSize = 150; // Max 150 cached images
+  PaintingBinding.instance.imageCache.maximumSize =
+      150; // Max 150 cached images
 
   // Disable online font fetching so fonts are loaded 100% offline from bundled assets
   GoogleFonts.config.allowRuntimeFetching = false;
@@ -31,17 +32,17 @@ void main() async {
   // Clean old temporary cache files in background without blocking cold-start frame
   unawaited(StorageService.cleanOldCacheFiles());
 
-  // Concurrently initiate SharedPreferences and Firebase to minimize cold boot latency
-  final prefsFuture = SharedPreferences.getInstance().then<SharedPreferences?>((p) => p).catchError((e) {
-    debugPrint('[SharedPreferences] Init error: $e');
-    return null;
-  });
+  // Initiate SharedPreferences to resolve initial theme and onboarding status
+  final prefs = await SharedPreferences.getInstance()
+      .then<SharedPreferences?>((p) => p)
+      .catchError((e) {
+        debugPrint('[SharedPreferences] Init error: $e');
+        return null;
+      });
 
-  final firebaseFuture = _initFirebaseSafely();
-
-  // Await concurrent startup initializations
-  final results = await Future.wait([prefsFuture, firebaseFuture]);
-  final prefs = results[0] as SharedPreferences?;
+  // Initiate Firebase, Crashlytics, and Analytics non-blocking in the background
+  // to allow the first frame to paint immediately without network/bridge stalls.
+  unawaited(_initFirebaseSafely());
 
   // Apply correct system nav bar color BEFORE first frame and obtain saved mode
   final savedThemeMode = _applyInitialSystemUiStyle(prefs);
@@ -58,10 +59,8 @@ void main() async {
       builder: (context) => ProviderScope(
         overrides: [
           themeModeProvider.overrideWith(
-            (ref) => ThemeModeNotifier(
-              initialMode: savedThemeMode,
-              prefs: prefs,
-            ),
+            (ref) =>
+                ThemeModeNotifier(initialMode: savedThemeMode, prefs: prefs),
           ),
           onboardingCompletedProvider.overrideWith(
             (ref) => OnboardingNotifier(
@@ -108,8 +107,7 @@ ThemeMode _applyInitialSystemUiStyle(SharedPreferences? prefs) {
 
   final isDark =
       savedMode == ThemeMode.dark ||
-      (savedMode == ThemeMode.system &&
-          platformBrightness == Brightness.dark);
+      (savedMode == ThemeMode.system && platformBrightness == Brightness.dark);
 
   SystemChrome.setSystemUIOverlayStyle(
     isDark ? AppTheme.darkSystemUiStyle : AppTheme.lightSystemUiStyle,

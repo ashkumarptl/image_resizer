@@ -49,7 +49,9 @@ class BatchEstimatorBanner extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              hasSavings ? Icons.auto_awesome_rounded : Icons.info_outline_rounded,
+              hasSavings
+                  ? Icons.auto_awesome_rounded
+                  : Icons.info_outline_rounded,
               size: 16,
               color: hasSavings ? AppColors.success : AppColors.primary,
             ),

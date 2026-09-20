@@ -2005,15 +2005,18 @@ class _ScanProjectDetailScreenState
             child: Stack(
               fit: StackFit.expand,
               children: [
-                pageFile.existsSync()
-                    ? Image.file(pageFile, fit: BoxFit.cover, cacheWidth: 400)
-                    : const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 28,
-                          color: Colors.grey,
-                        ),
-                      ),
+                Image.file(
+                  pageFile,
+                  fit: BoxFit.cover,
+                  cacheWidth: 400,
+                  errorBuilder: (context, error, stackTrace) => const Center(
+                    child: Icon(
+                      Icons.broken_image,
+                      size: 28,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
                 if (isSelected || _isSelectionMode || isFeedback)
                   Positioned(
                     top: context.isLargeTablet ? 12 : 8,
@@ -2124,15 +2127,18 @@ class _ScanProjectDetailScreenState
           // 1. Full Image Display
           Container(
             color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-            child: pageFile.existsSync()
-                ? Image.file(pageFile, fit: BoxFit.contain, cacheWidth: 1000)
-                : const Center(
-                    child: Icon(
-                      Icons.broken_image,
-                      size: 36,
-                      color: Colors.grey,
-                    ),
-                  ),
+            child: Image.file(
+              pageFile,
+              fit: BoxFit.contain,
+              cacheWidth: 1000,
+              errorBuilder: (context, error, stackTrace) => const Center(
+                child: Icon(
+                  Icons.broken_image,
+                  size: 36,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
           ),
 
           // 2. Top-Left: Page Badge (e.g. "1/6" matching CamScanner)

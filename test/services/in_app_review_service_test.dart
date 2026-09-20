@@ -38,27 +38,30 @@ void main() {
   });
 
   group('InAppReviewService Tests', () {
-    test('does not prompt before reaching minimum 3 successful actions', () async {
-      // 1st action
-      final prompted1 =
-          await InAppReviewService.recordSuccessfulActionAndPromptIfNeeded(
-            reviewInstance: fakeReview,
-            prefsInstance: prefs,
-          );
-      expect(prompted1, false);
-      expect(fakeReview.requestReviewCallCount, 0);
-      expect(prefs.getInt(InAppReviewService.keySuccessCount), 1);
+    test(
+      'does not prompt before reaching minimum 3 successful actions',
+      () async {
+        // 1st action
+        final prompted1 =
+            await InAppReviewService.recordSuccessfulActionAndPromptIfNeeded(
+              reviewInstance: fakeReview,
+              prefsInstance: prefs,
+            );
+        expect(prompted1, false);
+        expect(fakeReview.requestReviewCallCount, 0);
+        expect(prefs.getInt(InAppReviewService.keySuccessCount), 1);
 
-      // 2nd action
-      final prompted2 =
-          await InAppReviewService.recordSuccessfulActionAndPromptIfNeeded(
-            reviewInstance: fakeReview,
-            prefsInstance: prefs,
-          );
-      expect(prompted2, false);
-      expect(fakeReview.requestReviewCallCount, 0);
-      expect(prefs.getInt(InAppReviewService.keySuccessCount), 2);
-    });
+        // 2nd action
+        final prompted2 =
+            await InAppReviewService.recordSuccessfulActionAndPromptIfNeeded(
+              reviewInstance: fakeReview,
+              prefsInstance: prefs,
+            );
+        expect(prompted2, false);
+        expect(fakeReview.requestReviewCallCount, 0);
+        expect(prefs.getInt(InAppReviewService.keySuccessCount), 2);
+      },
+    );
 
     test('prompts on 3rd action when threshold is reached', () async {
       await prefs.setInt(InAppReviewService.keySuccessCount, 2);
@@ -97,7 +100,9 @@ void main() {
 
     test('prompts again after 30 days interval', () async {
       // Set last prompt to 31 days ago
-      final thirtyOneDaysAgo = DateTime.now().subtract(const Duration(days: 31));
+      final thirtyOneDaysAgo = DateTime.now().subtract(
+        const Duration(days: 31),
+      );
       await prefs.setInt(
         InAppReviewService.keyLastPromptTime,
         thirtyOneDaysAgo.millisecondsSinceEpoch,
@@ -115,9 +120,12 @@ void main() {
       expect(prefs.getInt(InAppReviewService.keySuccessCount), 11);
     });
 
-    test('openStoreListing calls underlying inAppReview openStoreListing', () async {
-      await InAppReviewService.openStoreListing(reviewInstance: fakeReview);
-      expect(fakeReview.openStoreListingCallCount, 1);
-    });
+    test(
+      'openStoreListing calls underlying inAppReview openStoreListing',
+      () async {
+        await InAppReviewService.openStoreListing(reviewInstance: fakeReview);
+        expect(fakeReview.openStoreListingCallCount, 1);
+      },
+    );
   });
 }

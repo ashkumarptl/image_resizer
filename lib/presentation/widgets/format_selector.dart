@@ -6,11 +6,7 @@ class FormatItem {
   final String label;
   final String? subtitle;
 
-  const FormatItem({
-    required this.id,
-    required this.label,
-    this.subtitle,
-  });
+  const FormatItem({required this.id, required this.label, this.subtitle});
 }
 
 /// Reusable Format Selector widget supporting JPG, WebP, and PNG.
@@ -58,15 +54,15 @@ class FormatSelector extends StatelessWidget {
                     color: isSelected
                         ? AppColors.primary
                         : (isDark
-                            ? Colors.white10
-                            : Colors.black.withValues(alpha: 0.04)),
+                              ? Colors.white10
+                              : Colors.black.withValues(alpha: 0.04)),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isSelected
                           ? AppColors.primary
                           : (isDark
-                              ? AppColors.borderDark
-                              : AppColors.borderLight),
+                                ? AppColors.borderDark
+                                : AppColors.borderLight),
                     ),
                   ),
                   child: Row(
@@ -89,8 +85,8 @@ class FormatSelector extends StatelessWidget {
                           color: isSelected
                               ? Colors.white
                               : (isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textPrimaryLight),
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimaryLight),
                         ),
                       ),
                     ],
@@ -117,8 +113,8 @@ class FormatSelector extends StatelessWidget {
             color: isSelected
                 ? Colors.white
                 : (isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight),
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight),
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),

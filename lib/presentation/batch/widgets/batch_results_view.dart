@@ -61,207 +61,211 @@ class BatchResultsView extends StatelessWidget {
       children: [
         // 1. Summary Header Card
         Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: batchResult.isCancelled
-                  ? const Color(0xFFF59E0B).withValues(alpha: 0.5)
-                  : AppColors.success.withValues(alpha: 0.5),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: (batchResult.isCancelled
-                        ? const Color(0xFFF59E0B)
-                        : AppColors.success)
-                    .withValues(alpha: 0.08),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    batchResult.isCancelled
-                        ? Icons.pause_circle_rounded
-                        : Icons.check_circle_rounded,
-                    color: batchResult.isCancelled
-                        ? const Color(0xFFF59E0B)
-                        : AppColors.success,
-                    size: 24,
-                  ).animate().scale(
-                    begin: const Offset(0.5, 0.5),
-                    end: const Offset(1, 1),
-                    curve: Curves.easeOutBack,
-                    duration: 350.ms,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      batchResult.isCancelled
-                          ? 'Batch Paused (${results.length} Files)'
-                          : 'Batch Complete (${results.length} Files)',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
-                      ),
-                    ),
-                  ),
-                  if (savedBytes > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.successContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '-${savedPct.toStringAsFixed(0)}%',
-                        style: const TextStyle(
-                          color: AppColors.success,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    )
-                        .animate()
-                        .scale(delay: 150.ms, curve: Curves.easeOutBack)
-                        .shimmer(delay: 500.ms, duration: 1200.ms),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Total Size: ${totalOrigBytes.toReadableFileSize()} ➔ ${totalOutBytes.toReadableFileSize()}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                  Text(
-                    'Time: ${batchResult.totalDuration.inSeconds}s',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                ],
-              ),
-
-              if (results.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 8),
-
-                // Individual Results List
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: results.length,
-                  separatorBuilder: (_, _) => const Divider(height: 16),
-                  itemBuilder: (context, idx) {
-                    final item = results[idx];
-                    return Row(
-                      children: [
-                        // Thumbnail of processed image
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            File(item.outputPath),
-                            width: 44,
-                            height: 44,
-                            fit: BoxFit.cover,
-                            cacheWidth: 100,
-                            errorBuilder: (_, _, _) => Container(
-                              width: 44,
-                              height: 44,
-                              color: Colors.grey.shade300,
-                              child: const Icon(Icons.image, size: 20),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-
-                        // Text details
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Image #${idx + 1} (${item.outputFormat.toUpperCase()})',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${item.originalSizeBytes.toReadableFileSize()} ➔ ${item.outputSizeBytes.toReadableFileSize()}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.success,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Action icons
-                        IconButton(
-                          icon: const Icon(
-                            Icons.fullscreen_rounded,
-                            size: 20,
-                          ),
-                          tooltip: 'Preview',
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () {
-                            final batchItem = BatchItemModel.fromFile(
-                              File(item.outputPath),
-                            );
-                            BatchImagePreviewDialog.show(
-                              context,
-                              item: batchItem,
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.save_alt_rounded, size: 20),
-                          tooltip: 'Save to Gallery',
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => onSaveSingleResult(item),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.share_outlined, size: 20),
-                          tooltip: 'Share',
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => onShareSingleResult(item),
-                        ),
-                      ],
-                    );
-                  },
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: batchResult.isCancelled
+                      ? const Color(0xFFF59E0B).withValues(alpha: 0.5)
+                      : AppColors.success.withValues(alpha: 0.5),
                 ),
-              ],
-            ],
-          ),
-        )
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        (batchResult.isCancelled
+                                ? const Color(0xFFF59E0B)
+                                : AppColors.success)
+                            .withValues(alpha: 0.08),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        batchResult.isCancelled
+                            ? Icons.pause_circle_rounded
+                            : Icons.check_circle_rounded,
+                        color: batchResult.isCancelled
+                            ? const Color(0xFFF59E0B)
+                            : AppColors.success,
+                        size: 24,
+                      ).animate().scale(
+                        begin: const Offset(0.5, 0.5),
+                        end: const Offset(1, 1),
+                        curve: Curves.easeOutBack,
+                        duration: 350.ms,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          batchResult.isCancelled
+                              ? 'Batch Paused (${results.length} Files)'
+                              : 'Batch Complete (${results.length} Files)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                      ),
+                      if (savedBytes > 0)
+                        Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.successContainer,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '-${savedPct.toStringAsFixed(0)}%',
+                                style: const TextStyle(
+                                  color: AppColors.success,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            )
+                            .animate()
+                            .scale(delay: 150.ms, curve: Curves.easeOutBack)
+                            .shimmer(delay: 500.ms, duration: 1200.ms),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Size: ${totalOrigBytes.toReadableFileSize()} ➔ ${totalOutBytes.toReadableFileSize()}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                      Text(
+                        'Time: ${batchResult.totalDuration.inSeconds}s',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  if (results.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 8),
+
+                    // Individual Results List
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: results.length,
+                      separatorBuilder: (_, _) => const Divider(height: 16),
+                      itemBuilder: (context, idx) {
+                        final item = results[idx];
+                        return Row(
+                          children: [
+                            // Thumbnail of processed image
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                File(item.outputPath),
+                                width: 44,
+                                height: 44,
+                                fit: BoxFit.cover,
+                                cacheWidth: 100,
+                                errorBuilder: (_, _, _) => Container(
+                                  width: 44,
+                                  height: 44,
+                                  color: Colors.grey.shade300,
+                                  child: const Icon(Icons.image, size: 20),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+
+                            // Text details
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Image #${idx + 1} (${item.outputFormat.toUpperCase()})',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${item.originalSizeBytes.toReadableFileSize()} ➔ ${item.outputSizeBytes.toReadableFileSize()}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.success,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Action icons
+                            IconButton(
+                              icon: const Icon(
+                                Icons.fullscreen_rounded,
+                                size: 20,
+                              ),
+                              tooltip: 'Preview',
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () {
+                                final batchItem = BatchItemModel.fromFile(
+                                  File(item.outputPath),
+                                );
+                                BatchImagePreviewDialog.show(
+                                  context,
+                                  item: batchItem,
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.save_alt_rounded,
+                                size: 20,
+                              ),
+                              tooltip: 'Save to Gallery',
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => onSaveSingleResult(item),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.share_outlined, size: 20),
+                              tooltip: 'Share',
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => onShareSingleResult(item),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            )
             .animate()
             .fadeIn(duration: 350.ms)
             .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
@@ -274,9 +278,7 @@ class BatchResultsView extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.error.withValues(alpha: isDark ? 0.15 : 0.08),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.error.withValues(alpha: 0.4),
-              ),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +325,10 @@ class BatchResultsView extends StatelessWidget {
                         icon: const Icon(Icons.refresh_rounded, size: 16),
                         label: const Text(
                           'Retry Failed',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                   ],

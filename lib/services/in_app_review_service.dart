@@ -90,7 +90,9 @@ class InAppReviewService {
     // Fallback: direct Play Store URL launch on Android or web
     try {
       if (!kIsWeb && Platform.isAndroid) {
-        final marketUri = Uri.parse('market://details?id=$playStorePackageName');
+        final marketUri = Uri.parse(
+          'market://details?id=$playStorePackageName',
+        );
         if (await canLaunchUrl(marketUri)) {
           await launchUrl(marketUri, mode: LaunchMode.externalApplication);
           return;

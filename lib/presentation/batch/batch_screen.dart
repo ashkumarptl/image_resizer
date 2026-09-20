@@ -71,8 +71,10 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       if (scannedFiles.isNotEmpty) {
         _notifier.addFiles(scannedFiles, append: append);
         if (!mounted) return;
-        final totalCount =
-            ref.read(batchNotifierProvider(widget.initialImages)).items.length;
+        final totalCount = ref
+            .read(batchNotifierProvider(widget.initialImages))
+            .items
+            .length;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -113,8 +115,10 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
       _notifier.addFiles(files, append: append);
 
       if (!mounted) return;
-      final totalCount =
-          ref.read(batchNotifierProvider(widget.initialImages)).items.length;
+      final totalCount = ref
+          .read(batchNotifierProvider(widget.initialImages))
+          .items
+          .length;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -332,11 +336,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
 
       _notifier.updateItemAt(
         index,
-        item.copyWith(
-          file: editedFile,
-          fileSizeBytes: size,
-          dimensions: dims,
-        ),
+        item.copyWith(file: editedFile, fileSizeBytes: size, dimensions: dims),
       );
 
       HapticFeedback.lightImpact();
@@ -464,14 +464,18 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
     final isWide = context.isMediumOrWider;
     final batchState = ref.watch(batchNotifierProvider(widget.initialImages));
 
-    ref.listen<BatchState>(batchNotifierProvider(widget.initialImages), (previous, next) {
+    ref.listen<BatchState>(batchNotifierProvider(widget.initialImages), (
+      previous,
+      next,
+    ) {
       final prevFocused = previous?.focusedItem;
       final nextFocused = next.focusedItem;
       if (previous?.focusedItemPath != next.focusedItemPath ||
           previous?.selectedPaths != next.selectedPaths ||
           prevFocused?.customOptions != nextFocused?.customOptions) {
         final size = nextFocused != null
-            ? (nextFocused.customOptions?.targetSizeKB ?? next.selectedTargetSizeKB)
+            ? (nextFocused.customOptions?.targetSizeKB ??
+                  next.selectedTargetSizeKB)
             : next.selectedTargetSizeKB;
         if (_customSizeController.text != size.toString()) {
           _customSizeController.text = size.toString();
@@ -489,7 +493,8 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
             IconButton(
               icon: const Icon(Icons.picture_as_pdf_outlined),
               tooltip: 'Export Selected to PDF',
-              onPressed: () => _handleExportAsPdf(batchState, fromResults: false),
+              onPressed: () =>
+                  _handleExportAsPdf(batchState, fromResults: false),
             ),
             TextButton.icon(
               onPressed: _notifier.clearAll,
@@ -541,8 +546,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
                             totalOriginalBytes: batchState.totalSelectedBytes,
                             estimatedOutputBytes:
                                 batchState.estimatedTotalOutputBytes,
-                            estimatedSavedBytes:
-                                batchState.estimatedSavedBytes,
+                            estimatedSavedBytes: batchState.estimatedSavedBytes,
                             estimatedSavedPercentage:
                                 batchState.estimatedSavedPercentage,
                           ),
@@ -672,8 +676,7 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
               }
             },
             onRemoveSelected: _notifier.removeSelectedItems,
-            onApplySettingsToSelected:
-                _notifier.applyCurrentSettingsToSelected,
+            onApplySettingsToSelected: _notifier.applyCurrentSettingsToSelected,
             onDeselectAll: _notifier.deselectAll,
           ),
           const SizedBox(height: 14),
@@ -776,11 +779,13 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
           child: ReorderableListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: batchState.items.length + 1,
-            // ignore: deprecated_member_use
-            onReorder: (oldIndex, newIndex) {
+            onReorderItem: (oldIndex, newIndex) {
               if (oldIndex < batchState.items.length &&
-                  newIndex <= batchState.items.length) {
-                _notifier.reorderItems(oldIndex, newIndex);
+                  newIndex < batchState.items.length) {
+                _notifier.reorderItems(
+                  oldIndex,
+                  oldIndex < newIndex ? newIndex + 1 : newIndex,
+                );
               }
             },
             itemBuilder: (context, index) {
@@ -901,15 +906,16 @@ class _BatchScreenState extends ConsumerState<BatchScreen> {
     final focused = batchState.focusedItem;
     final activeMode = focused?.customOptions != null
         ? (focused!.customOptions!.resizeMode == ResizeMode.percentage
-            ? BatchMode.scalePercentage
-            : BatchMode.targetSize)
+              ? BatchMode.scalePercentage
+              : BatchMode.targetSize)
         : batchState.activeMode;
-    final targetSizeKB = focused?.customOptions?.targetSizeKB ??
-        batchState.selectedTargetSizeKB;
-    final scalePercentage = focused?.customOptions?.resizePercentage ??
+    final targetSizeKB =
+        focused?.customOptions?.targetSizeKB ?? batchState.selectedTargetSizeKB;
+    final scalePercentage =
+        focused?.customOptions?.resizePercentage ??
         batchState.selectedScalePercentage;
-    final outputFormat = focused?.customOptions?.outputFormat ??
-        batchState.outputFormat;
+    final outputFormat =
+        focused?.customOptions?.outputFormat ?? batchState.outputFormat;
 
     final selectedCount = batchState.selectionCount;
 
