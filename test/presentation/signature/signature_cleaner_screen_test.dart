@@ -38,9 +38,9 @@ void main() {
       final sliderFinder = find.byType(Slider);
       expect(sliderFinder, findsOneWidget);
 
-      // Initial value is 0.65 (Balanced)
+      // Initial value is 0.0 (None / 0%)
       final Slider initialSlider = tester.widget(sliderFinder);
-      expect(initialSlider.value, 0.65);
+      expect(initialSlider.value, 0.0);
 
       // Drag slider far to the right to reach the maximum (0.90)
       await tester.drag(sliderFinder, const Offset(300, 0));
@@ -50,16 +50,16 @@ void main() {
       // Verify it settled at max (0.90) without throwing any AssertionError
       final Slider maxSlider = tester.widget(sliderFinder);
       expect(maxSlider.value, lessThanOrEqualTo(0.90));
-      expect(maxSlider.value, greaterThanOrEqualTo(0.30));
+      expect(maxSlider.value, greaterThanOrEqualTo(0.0));
 
-      // Drag slider far to the left to reach the minimum (0.30)
+      // Drag slider far to the left to reach the minimum (0.0)
       await tester.drag(sliderFinder, const Offset(-600, 0));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
       // Verify it settled at min without error
       final Slider minSlider = tester.widget(sliderFinder);
-      expect(minSlider.value, greaterThanOrEqualTo(0.30));
+      expect(minSlider.value, greaterThanOrEqualTo(0.0));
       expect(minSlider.value, lessThanOrEqualTo(0.90));
 
       // Tap Deep (80%) chip

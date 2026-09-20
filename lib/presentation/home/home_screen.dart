@@ -12,6 +12,7 @@ import '../../data/repositories/history_repository.dart';
 import '../../data/repositories/usage_limit_repository.dart';
 import '../batch/batch_screen.dart';
 import '../ai_upscaler/ai_upscaler_screen.dart';
+import '../document_overlay/document_overlay_screen.dart';
 import '../photo_stamp/photo_stamp_screen.dart';
 import '../result/result_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
@@ -87,6 +88,127 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => PhotoStampScreen(initialImage: file)),
     );
+  }
+
+  Future<void> _handleA4IdPrintTool() async {
+    final canAccess = await checkFeatureAccess(context, ref);
+    if (!canAccess || !mounted) return;
+
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Material(
+          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'A4 Print & Document Studio',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEA580C).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.badge_rounded, color: Color(0xFFEA580C)),
+                  ),
+                  title: const Text('Aadhaar / ID Card A4 Print',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Place Front & Back on A4 with cutting guide'),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  onTap: () => Navigator.of(ctx).pop('id_card'),
+                ),
+                const SizedBox(height: 6),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.description_rounded, color: AppColors.primary),
+                  ),
+                  title: const Text('Sign or Attach Photo to Document',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Open document/form and place signature or photo'),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  onTap: () => Navigator.of(ctx).pop('document'),
+                ),
+                const SizedBox(height: 6),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.note_add_rounded, color: AppColors.secondary),
+                  ),
+                  title: const Text('Blank A4 Canvas',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Start fresh with an empty A4 page'),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  onTap: () => Navigator.of(ctx).pop('blank'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      },
+    );
+
+    if (choice == null || !mounted) return;
+
+    if (choice == 'id_card') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const DocumentOverlayScreen(startWithIdCardWizard: true),
+        ),
+      );
+    } else if (choice == 'document') {
+      final docFile = await _pickImage(title: 'Select Document or Form');
+      if (docFile == null || !mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => DocumentOverlayScreen(initialImage: docFile),
+        ),
+      );
+    } else if (choice == 'blank') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const DocumentOverlayScreen(),
+        ),
+      );
+    }
   }
 
   Future<void> _handleAiUpscalerTool() async {
@@ -1089,6 +1211,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   accentColor: const Color(0xFF6366F1),
                   isDark: isDark,
                   onTap: _handlePhotoStampTool,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _QuickUtilityTile(
+                  title: 'A4 ID Print',
+                  subtitle: 'Aadhaar Duo',
+                  icon: Icons.picture_in_picture_alt_rounded,
+                  accentColor: const Color(0xFFEA580C),
+                  isDark: isDark,
+                  onTap: _handleA4IdPrintTool,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _QuickUtilityTile(
+                  title: 'Add Photo & Sign',
+                  subtitle: 'Form Signer',
+                  icon: Icons.add_photo_alternate_rounded,
+                  accentColor: const Color(0xFF0284C7),
+                  isDark: isDark,
+                  onTap: _handleA4IdPrintTool,
                 ),
               ),
             ],

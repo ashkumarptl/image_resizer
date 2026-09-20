@@ -8,6 +8,7 @@ import '../../data/models/process_options.dart';
 import '../../data/models/process_result.dart';
 import 'image_processor.dart';
 
+/// Progress information for batch processing
 class BatchProgress {
   final int completed;
   final int total;
@@ -24,34 +25,73 @@ class BatchProgress {
   double get percentage => total == 0 ? 0 : completed / total;
 }
 
+/// Record of an image that failed during batch processing
+class BatchFailure {
+  final String path;
+  final String fileName;
+  final String errorMessage;
+
+  const BatchFailure({
+    required this.path,
+    required this.fileName,
+    required this.errorMessage,
+  });
+
+  @override
+  String toString() => '$fileName: $errorMessage';
+}
+
+/// Token to allow cancellation of an ongoing batch process
+class BatchCancellationToken {
+  bool _isCancelled = false;
+
+  bool get isCancelled => _isCancelled;
+
+  void cancel() {
+    _isCancelled = true;
+  }
+}
+
+/// Summary result of a batch processing operation
 class BatchResult {
   final List<ProcessResult> results;
+  final List<BatchFailure> failures;
   final String? zipFilePath;
   final Duration totalDuration;
+  final bool isCancelled;
 
   const BatchResult({
     required this.results,
+    this.failures = const [],
     this.zipFilePath,
     required this.totalDuration,
+    this.isCancelled = false,
   });
+
+  bool get hasFailures => failures.isNotEmpty;
+  int get successCount => results.length;
+  int get failureCount => failures.length;
 }
 
 class BatchProcessor {
   BatchProcessor._();
 
-  /// Process multiple images using controlled worker concurrency and report progress
+  /// Process multiple images using controlled worker concurrency and report progress.
+  /// Supports cancellation via [cancellationToken] and granular failure tracking.
   static Future<BatchResult> processBatch({
     required List<String> sourceFilePaths,
     required ProcessOptions baseOptions,
     Map<String, ProcessOptions>? itemOverrides,
     bool createZip = true,
     Function(BatchProgress progress)? onProgress,
+    BatchCancellationToken? cancellationToken,
   }) async {
     final stopwatch = Stopwatch()..start();
     final total = sourceFilePaths.length;
     if (total == 0) {
-      return BatchResult(
-        results: const [],
+      return const BatchResult(
+        results: [],
+        failures: [],
         zipFilePath: null,
         totalDuration: Duration.zero,
       );
@@ -66,17 +106,21 @@ class BatchProcessor {
     );
 
     final indexedResults = List<ProcessResult?>.filled(total, null);
+    final failures = <BatchFailure>[];
     int completedCount = 0;
     int nextIndex = 0;
 
     final isTest = Platform.environment.containsKey('FLUTTER_TEST');
-    // Concurrency limit: 2 to 3 parallel workers on multi-core systems, avoiding OOM while boosting speed
+    // Concurrency limit: 2 to 4 parallel workers on multi-core systems, avoiding OOM while boosting speed
     final concurrency = isTest
         ? 1
-        : math.min(math.max(1, Platform.numberOfProcessors - 1), 3);
+        : math.min(math.max(1, Platform.numberOfProcessors - 1), 4);
 
     Future<void> worker() async {
       while (true) {
+        if (cancellationToken != null && cancellationToken.isCancelled) {
+          break;
+        }
         if (nextIndex >= total) break;
         final i = nextIndex++;
         final path = sourceFilePaths[i];
@@ -84,8 +128,8 @@ class BatchProcessor {
 
         final itemOptions =
             (itemOverrides != null && itemOverrides.containsKey(path))
-            ? itemOverrides[path]!.copyWith(sourcePath: path)
-            : baseOptions.copyWith(sourcePath: path);
+                ? itemOverrides[path]!.copyWith(sourcePath: path)
+                : baseOptions.copyWith(sourcePath: path);
 
         try {
           final result = await ImageProcessor.processImage(itemOptions);
@@ -102,6 +146,20 @@ class BatchProcessor {
         } catch (e) {
           completedCount++;
           debugPrint('Error processing $path in batch: $e');
+          failures.add(
+            BatchFailure(
+              path: path,
+              fileName: fileName,
+              errorMessage: e.toString(),
+            ),
+          );
+          onProgress?.call(
+            BatchProgress(
+              completed: completedCount,
+              total: total,
+              currentFileName: fileName,
+            ),
+          );
         }
       }
     }
@@ -113,7 +171,7 @@ class BatchProcessor {
     final results = indexedResults.whereType<ProcessResult>().toList();
 
     String? zipPath;
-    if (createZip && results.isNotEmpty) {
+    if (createZip && results.isNotEmpty && !(cancellationToken?.isCancelled ?? false)) {
       zipPath = await _createZipArchive(results);
     }
 
@@ -121,8 +179,10 @@ class BatchProcessor {
 
     return BatchResult(
       results: results,
+      failures: failures,
       zipFilePath: zipPath,
       totalDuration: stopwatch.elapsed,
+      isCancelled: cancellationToken?.isCancelled ?? false,
     );
   }
 
@@ -159,6 +219,24 @@ class BatchProcessor {
 
     return compute(_runZipWorker, params);
   }
+
+  static String _runZipWorker(_ZipWorkerParams params) {
+    final archive = Archive();
+
+    for (final path in params.filePaths) {
+      final file = File(path);
+      if (file.existsSync()) {
+        final bytes = file.readAsBytesSync();
+        final name = p.basename(path);
+        archive.addFile(ArchiveFile(name, bytes.length, bytes));
+      }
+    }
+
+    final zipData = ZipEncoder().encode(archive);
+    final zipFile = File(params.zipFilePath);
+    zipFile.writeAsBytesSync(zipData);
+    return zipFile.path;
+  }
 }
 
 class _ZipWorkerParams {
@@ -169,24 +247,4 @@ class _ZipWorkerParams {
     required this.zipFilePath,
     required this.filePaths,
   });
-}
-
-String _runZipWorker(_ZipWorkerParams params) {
-  final zipFile = File(params.zipFilePath);
-  if (!zipFile.parent.existsSync()) {
-    zipFile.parent.createSync(recursive: true);
-  }
-
-  final encoder = ZipFileEncoder();
-  encoder.create(zipFile.path);
-
-  for (final path in params.filePaths) {
-    final file = File(path);
-    if (file.existsSync()) {
-      encoder.addFile(file);
-    }
-  }
-
-  encoder.close();
-  return zipFile.path;
 }

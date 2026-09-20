@@ -9,6 +9,7 @@ import '../../data/repositories/tool_guide_repository.dart';
 import '../../services/image_service/perspective_cropper.dart';
 import '../perspective_crop/perspective_crop_screen.dart';
 import '../result/result_screen.dart';
+import '../widgets/hold_to_compare_button.dart';
 import '../widgets/tool_instruction_sheet.dart';
 
 class _FilterItem {
@@ -346,67 +347,11 @@ class _DocumentFilterScreenState extends State<DocumentFilterScreen> {
         Positioned(
           bottom: 12,
           right: 14,
-          child: Listener(
-            onPointerDown: (_) {
-              HapticFeedback.selectionClick();
-              setState(() => _isComparing = true);
+          child: HoldToCompareButton(
+            isComparing: _isComparing,
+            onComparisonChanged: (val) {
+              if (mounted) setState(() => _isComparing = val);
             },
-            onPointerUp: (_) {
-              if (mounted) setState(() => _isComparing = false);
-            },
-            onPointerCancel: (_) {
-              if (mounted) setState(() => _isComparing = false);
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _isComparing
-                        ? Colors.black.withValues(alpha: 0.88)
-                        : Colors.black.withValues(alpha: 0.60),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _isComparing ? Colors.amber : Colors.white24,
-                      width: 1.2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.compare_rounded,
-                        size: 15,
-                        color: _isComparing ? Colors.amber : Colors.white,
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'Hold to Compare',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ),
         ),
       ],

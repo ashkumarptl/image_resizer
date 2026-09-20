@@ -97,6 +97,9 @@ void main() {
         // Verify privacy & security badge in right column
         expect(find.textContaining('100% Offline & Private'), findsOneWidget);
 
+        // Verify Rate on Google Play option exists in ABOUT section
+        expect(find.text('Rate on Google Play'), findsOneWidget);
+
         // Verify no assertion or overflow occurred
         expect(tester.takeException(), isNull);
       },

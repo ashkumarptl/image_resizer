@@ -4,6 +4,7 @@ import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../../data/models/process_result.dart';
+import 'target_size_compressor.dart';
 
 class PhotoStampOptions {
   final String sourcePath;
@@ -59,7 +60,7 @@ class NameDateStamper {
     final origSize = bytes.length;
 
     // 1. Resize photo to standard dimensions (e.g. 350 x 450)
-    final working = img.copyResize(
+    img.Image working = img.copyResize(
       decoded,
       width: options.targetWidth,
       height: options.targetHeight,
@@ -126,13 +127,13 @@ class NameDateStamper {
 
     // 4. Encode & Compress to strictly under targetSizeKB
     final targetMaxBytes = options.targetSizeKB * 1024;
-    var quality = 85;
-    var encoded = img.encodeJpg(working, quality: quality);
-
-    while (encoded.length > targetMaxBytes && quality > 15) {
-      quality -= 10;
-      encoded = img.encodeJpg(working, quality: quality);
-    }
+    final compressed = TargetSizeCompressor.compressToTargetSize(
+      working,
+      targetMaxBytes: targetMaxBytes,
+    );
+    final encoded = compressed.bytes;
+    final quality = compressed.quality;
+    working = compressed.image;
 
     // 5. Save output file
     final timestamp = DateTime.now().millisecondsSinceEpoch;

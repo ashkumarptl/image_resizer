@@ -10,6 +10,7 @@ import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../data/repositories/usage_limit_repository.dart';
 import '../../services/analytics_service.dart';
+import '../../services/in_app_review_service.dart';
 import '../../services/share_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/system_integration_service.dart';
@@ -79,6 +80,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
         sizeKb: (widget.result.outputSizeBytes / 1024).round(),
         destination: 'gallery',
       );
+      InAppReviewService.recordSuccessfulActionAndPromptIfNeeded();
     }
 
     if (!mounted) return;

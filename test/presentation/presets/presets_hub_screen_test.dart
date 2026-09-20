@@ -192,4 +192,35 @@ void main() {
       expect(find.text('Perspective Crop & Deskew'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'Narrow phone screen renders presets and exam tools without RenderFlex overflow',
+    (WidgetTester tester) async {
+      // Narrow device: 320px width
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(buildPresetsHubScreen(initialTabIndex: 1));
+      await tester.pumpAndSettle();
+
+      // Verify presets render cleanly without error
+      expect(find.text('SSC Signature'), findsOneWidget);
+
+      // Search for preset with longer badge text like 'Postcard' or 'NEET'
+      await tester.enterText(find.byType(TextField), 'NEET');
+      await tester.pumpAndSettle();
+
+      // Verify NEET preset renders
+      expect(find.text('NEET 4x6 Postcard Photo'), findsOneWidget);
+
+      // Switch to Exam Tools tab on narrow screen
+      await tester.tap(find.text('Exam Tools'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Signature B&W Cleaner'), findsOneWidget);
+    },
+  );
 }
+

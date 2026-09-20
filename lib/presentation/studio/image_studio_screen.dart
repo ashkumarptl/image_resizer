@@ -17,6 +17,7 @@ import '../../services/image_service/dpi_service.dart';
 import '../../services/image_service/heic_converter.dart';
 import '../../services/image_service/image_processor.dart';
 import '../document_filter/document_filter_screen.dart';
+import '../document_overlay/document_overlay_screen.dart';
 import '../perspective_crop/perspective_crop_screen.dart';
 import '../result/result_screen.dart';
 import '../widgets/discard_changes_sheet.dart';
@@ -447,6 +448,29 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         _currentImage = filteredFile;
         _fileSizeBytes = filteredFile.lengthSync();
         _hasAppliedFilter = true;
+        _showOriginal = false;
+        _previewImageFile = null;
+        _previewResult = null;
+      });
+      await _loadImageMetadata();
+      _recordHistory();
+    }
+  }
+
+  Future<void> _handleAddPhoto() async {
+    final compositedFile = await Navigator.of(context).push<File>(
+      MaterialPageRoute(
+        builder: (_) => DocumentOverlayScreen(
+          initialImage: _currentImage,
+          returnCompositedFile: true,
+        ),
+      ),
+    );
+
+    if (compositedFile != null && mounted) {
+      setState(() {
+        _currentImage = compositedFile;
+        _fileSizeBytes = compositedFile.lengthSync();
         _showOriginal = false;
         _previewImageFile = null;
         _previewResult = null;
@@ -1190,6 +1214,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
                   onDocFilter: _handleDocumentFilter,
                   onBgRemover: _handleBgRemover,
                   onUpscale: _handleAiUpscaleToolbar,
+                  onAddPhoto: _handleAddPhoto,
                   onCompress: _handleCompressToolbar,
                   onCompressLongPress: _openCompressSheet,
                   onResize: _handleResize,
@@ -1978,6 +2003,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
       case StudioActiveTool.crop:
       case StudioActiveTool.docFilter:
       case StudioActiveTool.upscale:
+      case StudioActiveTool.addPhoto:
       case StudioActiveTool.tools:
       case StudioActiveTool.rotate:
       case StudioActiveTool.flip:
@@ -3029,7 +3055,86 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 5. Quick Transform Controls (Rotate, Flip H, Flip V with theme-matching active states)
+        // 5. Add Photo & Digital Signature / A4 ID Card (Themed card action button)
+        Material(
+          color: isDark
+              ? AppColors.surfaceVariantDark.withValues(alpha: 0.45)
+              : AppColors.surfaceVariantLight,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).pop();
+              _handleAddPhoto();
+            },
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 1.0,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0EA5E9).withValues(
+                        alpha: isDark ? 0.22 : 0.10,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.add_photo_alternate_rounded,
+                      size: 18,
+                      color: Color(0xFF0EA5E9),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Add Photo & Digital Signature',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                        Text(
+                          'Overlay signatures, ID cards & photo stamps',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 13,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 6. Quick Transform Controls (Rotate, Flip H, Flip V with theme-matching active states)
         Row(
           children: [
             _buildTabletTransformAction(

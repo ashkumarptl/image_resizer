@@ -301,7 +301,7 @@ void main() {
   group('Phase 4 Services & Options Tests', () {
     test('SignatureEnhanceOptions initializes with defaults', () {
       const opts = SignatureEnhanceOptions(sourcePath: '/sig.jpg');
-      expect(opts.threshold, 0.65);
+      expect(opts.threshold, 0.0);
       expect(opts.targetSizeKB, 19);
       expect(opts.targetWidth, 400);
     });

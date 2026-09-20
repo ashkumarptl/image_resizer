@@ -479,20 +479,24 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                         : AppColors.textSecondaryLight),
             ),
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: context.adaptiveFontSize(
-                  13,
-                  tabletSize: 16,
-                  largeTabletSize: 17.5,
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: context.adaptiveFontSize(
+                    13,
+                    tabletSize: 16,
+                    largeTabletSize: 17.5,
+                  ),
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight),
                 ),
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected
-                    ? Colors.white
-                    : (isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight),
               ),
             ),
           ],
@@ -1052,60 +1056,71 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                     const SizedBox(height: 6),
                     // Specs Pills
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: context.isLargeTablet ? 8 : 6,
-                            vertical: context.isLargeTablet ? 3 : 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(
-                              alpha: isDark ? 0.18 : 0.08,
-                            ),
-                            borderRadius: AppRadii.badgeRadius,
-                          ),
-                          child: Text(
-                            preset.badgeText,
-                            style: TextStyle(
-                              fontSize: context.adaptiveFontSize(
-                                10.5,
-                                tabletSize: 12.5,
-                                largeTabletSize: 14.5,
+                        if (preset.badgeText.isNotEmpty)
+                          Flexible(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: context.isLargeTablet ? 8 : 6,
+                                vertical: context.isLargeTablet ? 3 : 2,
                               ),
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? AppColors.primaryLight
-                                  : AppColors.primary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: context.isLargeTablet ? 7 : 5,
-                            vertical: context.isLargeTablet ? 3 : 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.06)
-                                : Colors.black.withValues(alpha: 0.04),
-                            borderRadius: AppRadii.badgeRadius,
-                          ),
-                          child: Text(
-                            preset.outputFormat.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: context.adaptiveFontSize(
-                                10,
-                                tabletSize: 12,
-                                largeTabletSize: 13.5,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(
+                                  alpha: isDark ? 0.18 : 0.08,
+                                ),
+                                borderRadius: AppRadii.badgeRadius,
                               ),
-                              fontWeight: FontWeight.w500,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight,
+                              child: Text(
+                                preset.badgeText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: context.adaptiveFontSize(
+                                    10.5,
+                                    tabletSize: 12.5,
+                                    largeTabletSize: 14.5,
+                                  ),
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? AppColors.primaryLight
+                                      : AppColors.primary,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        if (preset.badgeText.isNotEmpty &&
+                            preset.outputFormat.isNotEmpty)
+                          const SizedBox(width: 6),
+                        if (preset.outputFormat.isNotEmpty)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.isLargeTablet ? 7 : 5,
+                              vertical: context.isLargeTablet ? 3 : 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.06)
+                                  : Colors.black.withValues(alpha: 0.04),
+                              borderRadius: AppRadii.badgeRadius,
+                            ),
+                            child: Text(
+                              preset.outputFormat.toUpperCase(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: context.adaptiveFontSize(
+                                  10,
+                                  tabletSize: 12,
+                                  largeTabletSize: 13.5,
+                                ),
+                                fontWeight: FontWeight.w500,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ],

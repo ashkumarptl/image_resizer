@@ -8,6 +8,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/theme_provider.dart';
 import '../../data/repositories/history_repository.dart';
+import '../../services/in_app_review_service.dart';
 import '../../services/in_app_update_service.dart';
 import '../../services/storage_service.dart';
 import '../home/home_screen.dart';
@@ -698,6 +699,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             largeTabletSize: 28,
                           ),
                           color: AppColors.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const Divider(height: 20),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    InAppReviewService.openStoreListing();
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: context.isMediumOrWider ? 8 : 4,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Rate on Google Play',
+                            style: TextStyle(fontSize: rowFontSize),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Icon(
+                          Icons.star_rate_rounded,
+                          size: context.adaptiveIconSize(
+                            20,
+                            tabletSize: 24,
+                            largeTabletSize: 28,
+                          ),
+                          color: Colors.amber,
                         ),
                       ],
                     ),

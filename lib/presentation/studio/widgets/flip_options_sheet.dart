@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../widgets/app_bottom_sheet.dart';
 
 class FlipOptionsSheet extends StatefulWidget {
   final bool initialFlipHorizontal;
@@ -78,55 +79,13 @@ class _FlipOptionsSheetState extends State<FlipOptionsSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Drag handle
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
+          const BottomSheetDragHandle(margin: EdgeInsets.only(bottom: 16)),
+
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.flip_outlined,
-                      color: AppColors.primary,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Flip Image Orientation',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
+          AppBottomSheetHeader(
+            title: 'Flip Image Orientation',
+            icon: Icons.flip_outlined,
+            onClose: () => Navigator.of(context).pop(),
           ),
           const SizedBox(height: 16),
 

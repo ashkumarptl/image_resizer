@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../services/scanner/document_scanner_service.dart';
+import 'app_bottom_sheet.dart';
 
 /// Available sources for selecting or scanning images in the app.
 enum AppImageSource { smartScanner, gallery }
@@ -26,173 +27,14 @@ class ImageSourcePickerSheet {
       return _pickFromGallery();
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final source = await showModalBottomSheet<AppImageSource>(
-      context: context,
-      backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(
-                      alpha: 0.2,
-                    ),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimaryLight,
-                  ),
-                ),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 18),
-                ListTile(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  tileColor: isDark
-                      ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
-                      : AppColors.surfaceVariantLight,
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.document_scanner_rounded,
-                      color: AppColors.primary,
-                      size: 24,
-                    ),
-                  ),
-                  title: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'Smart Document Scanner',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14.5,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'ML KIT',
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  subtitle: Text(
-                    'Camera with auto-edge detection & perspective crop',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                  onTap: () =>
-                      Navigator.of(ctx).pop(AppImageSource.smartScanner),
-                ),
-                const SizedBox(height: 10),
-                ListTile(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  tileColor: isDark
-                      ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
-                      : AppColors.surfaceVariantLight,
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.photo_library_rounded,
-                      color: Color(0xFF10B981),
-                      size: 24,
-                    ),
-                  ),
-                  title: Text(
-                    'Import from Gallery',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14.5,
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimaryLight,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Choose an existing photo from your device',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                  onTap: () => Navigator.of(ctx).pop(AppImageSource.gallery),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    final source = await _showSourceSheet(
+      context,
+      title: title,
+      subtitle: subtitle,
+      scannerTitle: 'Smart Document Scanner',
+      scannerSubtitle: 'Camera with auto-edge detection & perspective crop',
+      galleryTitle: 'Import from Gallery',
+      gallerySubtitle: 'Choose an existing photo from your device',
     );
 
     if (source == null) return null;
@@ -227,173 +69,15 @@ class ImageSourcePickerSheet {
     String subtitle = 'Choose how you want to add batch images',
     int maxPages = 25,
   }) async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final source = await showModalBottomSheet<AppImageSource>(
-      context: context,
-      backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(
-                      alpha: 0.2,
-                    ),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? AppColors.textPrimaryDark
-                        : AppColors.textPrimaryLight,
-                  ),
-                ),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 18),
-                ListTile(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  tileColor: isDark
-                      ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
-                      : AppColors.surfaceVariantLight,
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.document_scanner_rounded,
-                      color: AppColors.primary,
-                      size: 24,
-                    ),
-                  ),
-                  title: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'Batch Document Scanner',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14.5,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'ML KIT',
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  subtitle: Text(
-                    'Multi-page camera scanner with auto-boundary detection',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                  onTap: () =>
-                      Navigator.of(ctx).pop(AppImageSource.smartScanner),
-                ),
-                const SizedBox(height: 10),
-                ListTile(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  tileColor: isDark
-                      ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
-                      : AppColors.surfaceVariantLight,
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.photo_library_rounded,
-                      color: Color(0xFF10B981),
-                      size: 24,
-                    ),
-                  ),
-                  title: Text(
-                    'Import from Gallery',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14.5,
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimaryLight,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Select multiple photos from your library',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                  onTap: () => Navigator.of(ctx).pop(AppImageSource.gallery),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    final source = await _showSourceSheet(
+      context,
+      title: title,
+      subtitle: subtitle,
+      scannerTitle: 'Batch Document Scanner',
+      scannerSubtitle:
+          'Multi-page camera scanner with auto-boundary detection',
+      galleryTitle: 'Import from Gallery',
+      gallerySubtitle: 'Select multiple photos from your library',
     );
 
     if (source == null) return [];
@@ -419,6 +103,159 @@ class ImageSourcePickerSheet {
     }
 
     return _pickMultiFromGallery(maxPages);
+  }
+
+  /// Shared modal bottom sheet presentation for single & batch image picking
+  static Future<AppImageSource?> _showSourceSheet(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required String scannerTitle,
+    required String scannerSubtitle,
+    required String galleryTitle,
+    required String gallerySubtitle,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return showModalBottomSheet<AppImageSource>(
+      context: context,
+      backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const BottomSheetDragHandle(margin: EdgeInsets.only(bottom: 16)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimaryLight,
+                  ),
+                ),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 18),
+                _buildSourceTile(
+                  context: ctx,
+                  source: AppImageSource.smartScanner,
+                  title: scannerTitle,
+                  subtitle: scannerSubtitle,
+                  badge: 'ML KIT',
+                  icon: Icons.document_scanner_rounded,
+                  iconColor: AppColors.primary,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 10),
+                _buildSourceTile(
+                  context: ctx,
+                  source: AppImageSource.gallery,
+                  title: galleryTitle,
+                  subtitle: gallerySubtitle,
+                  icon: Icons.photo_library_rounded,
+                  iconColor: const Color(0xFF10B981),
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static Widget _buildSourceTile({
+    required BuildContext context,
+    required AppImageSource source,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required bool isDark,
+    String? badge,
+  }) {
+    return ListTile(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      tileColor: isDark
+          ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
+          : AppColors.surfaceVariantLight,
+      leading: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: Icon(icon, color: iconColor, size: 24),
+      ),
+      title: Row(
+        children: [
+          Flexible(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14.5,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (badge != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                badge,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w800,
+                  color: iconColor,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: 12,
+          color: isDark
+              ? AppColors.textSecondaryDark
+              : AppColors.textSecondaryLight,
+        ),
+      ),
+      onTap: () => Navigator.of(context).pop(source),
+    );
   }
 
   static Future<File?> _pickFromGallery() async {

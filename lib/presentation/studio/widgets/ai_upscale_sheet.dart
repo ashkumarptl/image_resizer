@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../services/ai_upscaler_service.dart';
 import '../../widgets/gradient_button.dart';
+import '../../widgets/hold_to_compare_button.dart';
 
 class AiUpscaleSheetResult {
   final File file;
@@ -455,44 +456,14 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
             Positioned(
               top: 10,
               right: 10,
-              child: GestureDetector(
-                onTapDown: (_) =>
-                    setState(() => _showComparisonOriginal = true),
-                onTapUp: (_) => setState(() => _showComparisonOriginal = false),
-                onTapCancel: () =>
-                    setState(() => _showComparisonOriginal = false),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.75),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _showComparisonOriginal
-                            ? Icons.visibility
-                            : Icons.touch_app_rounded,
-                        color: Colors.white,
-                        size: 13,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _showComparisonOriginal
-                            ? 'Original'
-                            : 'Hold to Compare',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              child: HoldToCompareButton(
+                isComparing: _showComparisonOriginal,
+                onComparisonChanged: (val) =>
+                    setState(() => _showComparisonOriginal = val),
+                idleText: 'Hold to Compare',
+                activeText: 'Original',
+                idleIcon: Icons.touch_app_rounded,
+                activeIcon: Icons.visibility,
               ),
             ),
         ],

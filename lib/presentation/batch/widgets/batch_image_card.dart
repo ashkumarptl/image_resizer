@@ -4,12 +4,18 @@ import '../../../core/constants/app_colors.dart';
 import '../models/batch_item_model.dart';
 
 /// Card widget representing an individual image in the batch selection
+/// with selection toggle, thumbnail, metadata, and quick actions.
 class BatchImageCard extends StatelessWidget {
   final BatchItemModel item;
   final VoidCallback onRemove;
   final VoidCallback onTapPreview;
   final VoidCallback? onTapCrop;
-  final VoidCallback onCustomize;
+  final VoidCallback? onCustomize;
+  final bool isSelected;
+  final bool isFocused;
+  final VoidCallback? onToggleSelect;
+  final VoidCallback? onTapFocus;
+  final Widget? dragHandle;
 
   const BatchImageCard({
     super.key,
@@ -17,7 +23,12 @@ class BatchImageCard extends StatelessWidget {
     required this.onRemove,
     required this.onTapPreview,
     this.onTapCrop,
-    required this.onCustomize,
+    this.onCustomize,
+    this.isSelected = false,
+    this.isFocused = false,
+    this.onToggleSelect,
+    this.onTapFocus,
+    this.dragHandle,
   });
 
   @override
@@ -30,15 +41,23 @@ class BatchImageCard extends StatelessWidget {
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: item.hasCustomOptions
+          color: isFocused
               ? AppColors.primary
-              : (isDark ? AppColors.borderDark : AppColors.borderLight),
-          width: item.hasCustomOptions ? 1.5 : 1.0,
+              : (isSelected
+                  ? AppColors.primary
+                  : (item.hasCustomOptions
+                      ? AppColors.primary.withValues(alpha: 0.7)
+                      : (isDark ? AppColors.borderDark : AppColors.borderLight))),
+          width: isFocused ? 2.5 : (isSelected ? 2.0 : (item.hasCustomOptions ? 1.5 : 1.0)),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-            blurRadius: 8,
+            color: isFocused
+                ? AppColors.primary.withValues(alpha: 0.35)
+                : (isSelected
+                    ? AppColors.primary.withValues(alpha: 0.15)
+                    : Colors.black.withValues(alpha: isDark ? 0.2 : 0.05)),
+            blurRadius: isFocused ? 12 : (isSelected ? 10 : 8),
             offset: const Offset(0, 2),
           ),
         ],
@@ -54,7 +73,16 @@ class BatchImageCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   GestureDetector(
-                    onTap: onTapPreview,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      if (onTapFocus != null) {
+                        onTapFocus!();
+                      } else if (onToggleSelect != null) {
+                        onToggleSelect!();
+                      } else {
+                        onTapPreview();
+                      }
+                    },
                     child: Image.file(
                       item.file,
                       fit: BoxFit.cover,
@@ -78,12 +106,14 @@ class BatchImageCard extends StatelessWidget {
                     right: 0,
                     bottom: 0,
                     height: 40,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black87],
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Colors.black87],
+                          ),
                         ),
                       ),
                     ),
@@ -93,44 +123,128 @@ class BatchImageCard extends StatelessWidget {
                   Positioned(
                     bottom: 6,
                     left: 8,
-                    child: Text(
-                      item.readableSize,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+                    child: IgnorePointer(
+                      child: Text(
+                        item.readableSize,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+                        ),
                       ),
                     ),
                   ),
 
-                  // Custom badge indicator
-                  if (item.hasCustomOptions)
+                  // Focused or Custom badge indicator
+                  if (isFocused)
                     Positioned(
                       top: 6,
-                      left: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                      left: onToggleSelect != null ? 34 : 6,
+                      child: IgnorePointer(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.5),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.tune_rounded, color: Colors.white, size: 10),
+                              SizedBox(width: 3),
+                              Text(
+                                'EDITING',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'CUSTOM',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
+                      ),
+                    )
+                  else if (item.hasCustomOptions)
+                    Positioned(
+                      top: 6,
+                      left: onToggleSelect != null ? 34 : 6,
+                      child: IgnorePointer(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'CUSTOM',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
                       ),
                     ),
 
-                  // Delete / Remove Button
+                  // Multi-select Checkbox Badge (Top Left)
+                  if (onToggleSelect != null)
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: GestureDetector(
+                        key: ValueKey('batch_card_select_${item.path}'),
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          onToggleSelect!();
+                        },
+                        child: Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.primary
+                                : const Color(0x99000000),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            isSelected ? Icons.check_rounded : null,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Reorder drag handle (if provided)
+                  if (dragHandle != null)
+                    Positioned(
+                      bottom: 4,
+                      right: 4,
+                      child: dragHandle!,
+                    ),
+
+                  // Delete / Remove Button (Top Right)
                   Positioned(
                     top: 4,
                     right: 4,
@@ -158,117 +272,101 @@ class BatchImageCard extends StatelessWidget {
               ),
             ),
 
-            // Card Bottom Actions & Details
+            // Card Mid Section: File Name & Resolution (100% Clickable)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onTapFocus?.call();
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.fileName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimaryLight,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      item.resolutionString,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Card Bottom Action Buttons
             Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+              child: Row(
                 children: [
-                  Text(
-                    item.fileName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimaryLight,
+                  // Preview Button
+                  Expanded(
+                    child: Tooltip(
+                      message: 'Fullscreen Preview',
+                      child: InkWell(
+                        onTap: onTapPreview,
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white10
+                                : Colors.black.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Center(
+                            child: Icon(Icons.fullscreen_rounded, size: 16),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.resolutionString,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondaryLight,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      // Preview Button
-                      Expanded(
-                        child: InkWell(
-                          onTap: onTapPreview,
-                          borderRadius: BorderRadius.circular(6),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white10
-                                  : Colors.black.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Center(
-                              child: Icon(Icons.fullscreen_rounded, size: 16),
+                  const SizedBox(width: 6),
+                  // Studio / Crop Editing Button
+                  Expanded(
+                    child: Tooltip(
+                      message: 'Crop & Studio Editing',
+                      child: InkWell(
+                        onTap: onTapCrop,
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white10
+                                : Colors.black.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.crop_rounded,
+                              size: 16,
                             ),
                           ),
                         ),
                       ),
-                      if (onTapCrop != null) ...[
-                        const SizedBox(width: 4),
-                        // Studio Edit Button
-                        Expanded(
-                          child: Tooltip(
-                            message: 'Edit in Studio',
-                            child: InkWell(
-                              onTap: onTapCrop,
-                              borderRadius: BorderRadius.circular(6),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.white10
-                                      : Colors.black.withValues(alpha: 0.05),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: const Center(
-                                  child: Icon(Icons.crop_rounded, size: 16),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(width: 4),
-                      // Customize Button
-                      Expanded(
-                        child: InkWell(
-                          onTap: onCustomize,
-                          borderRadius: BorderRadius.circular(6),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            decoration: BoxDecoration(
-                              color: item.hasCustomOptions
-                                  ? AppColors.primaryContainerDark.withValues(
-                                      alpha: 0.4,
-                                    )
-                                  : (isDark
-                                        ? Colors.white10
-                                        : Colors.black.withValues(alpha: 0.05)),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.tune_rounded,
-                                size: 16,
-                                color: item.hasCustomOptions
-                                    ? AppColors.primaryLight
-                                    : null,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),

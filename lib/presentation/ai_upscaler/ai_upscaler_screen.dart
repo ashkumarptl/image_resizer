@@ -12,6 +12,7 @@ import '../../data/repositories/tool_guide_repository.dart';
 import '../../services/ai_upscaler_service.dart';
 import '../../services/share_service.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/hold_to_compare_button.dart';
 import '../widgets/tool_instruction_sheet.dart';
 
 class AiUpscalerScreen extends StatefulWidget {
@@ -441,46 +442,12 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
                 Positioned(
                   top: 12,
                   right: 12,
-                  child: GestureDetector(
-                    onTapDown: (_) =>
-                        setState(() => _showComparisonOriginal = true),
-                    onTapUp: (_) =>
-                        setState(() => _showComparisonOriginal = false),
-                    onTapCancel: () =>
-                        setState(() => _showComparisonOriginal = false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.75),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _showComparisonOriginal
-                                ? Icons.visibility
-                                : Icons.touch_app_rounded,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _showComparisonOriginal
-                                ? 'Showing Original'
-                                : 'Hold to Compare',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  child: HoldToCompareButton(
+                    isComparing: _showComparisonOriginal,
+                    onComparisonChanged: (val) =>
+                        setState(() => _showComparisonOriginal = val),
+                    idleIcon: Icons.touch_app_rounded,
+                    activeIcon: Icons.visibility,
                   ),
                 ),
             ],

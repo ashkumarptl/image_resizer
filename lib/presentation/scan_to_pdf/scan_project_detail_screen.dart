@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/extensions/file_size_extension.dart';
 import '../../core/layout/adaptive_layout.dart';
 import '../../data/models/scan_project.dart';
 import '../../services/scanner/document_scanner_service.dart';
@@ -90,14 +91,7 @@ class _ScanProjectDetailScreenState
     _project = widget.initialProject;
   }
 
-  String _formatBytes(int bytes) {
-    if (bytes <= 0) return '0 B';
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) {
-      return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    }
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
-  }
+  String _formatBytes(int bytes) => bytes.toReadableFileSize();
 
   Future<void> _handleRename() async {
     final controller = TextEditingController(text: _project.name);
@@ -147,16 +141,10 @@ class _ScanProjectDetailScreenState
       ),
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border(
-              top: BorderSide(
-                color: isDark ? AppColors.borderDark : AppColors.borderLight,
-              ),
-            ),
-          ),
+        return Material(
+          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
           child: SafeArea(
             top: false,
             child: Padding(

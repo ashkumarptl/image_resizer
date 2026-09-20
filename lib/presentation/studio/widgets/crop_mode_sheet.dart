@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../widgets/app_bottom_sheet.dart';
 
 /// Minimal, modern bottom sheet for selecting the cropping mode in Edit Studio
 class CropModeSheet extends StatelessWidget {
@@ -45,65 +46,13 @@ class CropModeSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // 1. Drag Handle
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.black12,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
+          const BottomSheetDragHandle(width: 36),
 
           // 2. Minimal Header Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color:
-                          (isDark ? AppColors.primaryLight : AppColors.primary)
-                              .withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.crop_rounded,
-                      size: 16,
-                      color: isDark
-                          ? AppColors.primaryLight
-                          : AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Cropping Mode',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimaryLight,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close_rounded, size: 20),
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
-                tooltip: 'Close',
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
+          AppBottomSheetHeader(
+            title: 'Cropping Mode',
+            icon: Icons.crop_rounded,
+            onClose: () => Navigator.of(context).pop(),
           ),
           const SizedBox(height: 14),
 

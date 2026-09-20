@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import 'app_bottom_sheet.dart';
 import 'gradient_button.dart';
 
 class DiscardChangesSheet extends StatelessWidget {
@@ -62,15 +63,7 @@ class DiscardChangesSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Drag Handle
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              const BottomSheetDragHandle(margin: EdgeInsets.only(bottom: 20)),
 
               // Warning Icon Container
               Container(

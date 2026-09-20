@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/extensions/file_size_extension.dart';
 import '../../core/layout/adaptive_layout.dart';
 import '../../data/models/scan_project.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -97,14 +98,7 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
     }
   }
 
-  String _formatBytes(int bytes) {
-    if (bytes <= 0) return '0 B';
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) {
-      return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    }
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
-  }
+  String _formatBytes(int bytes) => bytes.toReadableFileSize();
 
   Future<void> _handleScanWithCamera() async {
     final canAccess = await checkFeatureAccess(context, ref);

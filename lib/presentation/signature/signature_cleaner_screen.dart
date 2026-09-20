@@ -11,6 +11,7 @@ import '../../services/image_service/signature_enhancer.dart';
 import '../result/result_screen.dart';
 import '../widgets/discard_changes_sheet.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/hold_to_compare_button.dart';
 import '../widgets/tool_instruction_sheet.dart';
 
 class SignatureCleanerScreen extends StatefulWidget {
@@ -26,7 +27,7 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   late int _originalSizeBytes;
 
   // Processing & Adjustment state
-  double _threshold = 0.65;
+  double _threshold = 0.0;
   int _targetSizeKB = 19;
   SignatureInkColor _inkColor = SignatureInkColor.darkNavy;
 
@@ -40,7 +41,7 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   bool _isProcessing = false;
 
   bool get _hasChanges =>
-      _threshold != 0.65 ||
+      _threshold != 0.0 ||
       _targetSizeKB != 19 ||
       _inkColor != SignatureInkColor.darkNavy;
 
@@ -107,7 +108,7 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   void _handleReset() {
     HapticFeedback.mediumImpact();
     setState(() {
-      _threshold = 0.65;
+      _threshold = 0.0;
       _targetSizeKB = 19;
       _inkColor = SignatureInkColor.darkNavy;
       _showOriginal = false;
@@ -446,55 +447,12 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                 ),
 
                 // Press & Hold to Compare Button
-                GestureDetector(
-                  onTapDown: (_) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _showOriginal = true);
-                  },
-                  onTapUp: (_) {
-                    setState(() => _showOriginal = false);
-                  },
-                  onTapCancel: () {
-                    setState(() => _showOriginal = false);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white12 : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isDark
-                            ? AppColors.borderDark
-                            : AppColors.borderLight,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.touch_app_rounded,
-                          size: 15,
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Hold Compare',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                HoldToCompareButton(
+                  isComparing: _showOriginal,
+                  onComparisonChanged: (val) => setState(() => _showOriginal = val),
+                  idleText: 'Hold Compare',
+                  activeText: 'Original',
+                  idleIcon: Icons.touch_app_rounded,
                 ),
               ],
             ),
@@ -605,18 +563,24 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
           Row(
             children: [
               _buildThresholdChip(
+                label: 'None (0%)',
+                value: 0.0,
+                isDark: isDark,
+                isRecommended: true,
+              ),
+              const SizedBox(width: 6),
+              _buildThresholdChip(
                 label: 'Light (50%)',
                 value: 0.50,
                 isDark: isDark,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               _buildThresholdChip(
                 label: 'Balanced (65%)',
                 value: 0.65,
                 isDark: isDark,
-                isRecommended: true,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               _buildThresholdChip(
                 label: 'Deep (80%)',
                 value: 0.80,
@@ -632,14 +596,14 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
             ),
             child: Slider(
-              value: _threshold.clamp(0.30, 0.90),
-              min: 0.30,
+              value: _threshold.clamp(0.0, 0.90),
+              min: 0.0,
               max: 0.90,
-              divisions: 12,
+              divisions: 18,
               activeColor: AppColors.primary,
               onChanged: (val) {
                 final normalizedVal = ((val * 100).round() / 100.0).clamp(
-                  0.30,
+                  0.0,
                   0.90,
                 );
                 if ((normalizedVal * 100).round() !=

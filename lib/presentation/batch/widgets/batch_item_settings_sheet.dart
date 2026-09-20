@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../data/models/process_options.dart';
+import '../../widgets/app_bottom_sheet.dart';
+import '../../widgets/format_selector.dart';
+import '../../widgets/scale_percentage_selector.dart';
+import '../../widgets/target_size_selector.dart';
 import '../models/batch_item_model.dart';
 
 /// Modal bottom sheet to customize settings for an individual image
@@ -67,15 +70,6 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
     super.dispose();
   }
 
-  void _applyCustomSize(String text) {
-    final parsed = int.tryParse(text);
-    if (parsed != null && parsed >= 5 && parsed <= 50000) {
-      setState(() {
-        _targetSizeKB = parsed;
-      });
-    }
-  }
-
   void _handleSave() {
     if (!_isCustom) {
       widget.onSave(null);
@@ -112,17 +106,7 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Handle bar
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.black12,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+            const BottomSheetDragHandle(margin: EdgeInsets.only(bottom: 16)),
 
             // Header info
             Row(
@@ -244,60 +228,17 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                 ),
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: AppConstants.defaultTargetSizesKB.map((sizeKB) {
-                  final isSelected = _targetSizeKB == sizeKB;
-                  return ChoiceChip(
-                    label: Text('$sizeKB KB'),
-                    selected: isSelected,
-                    selectedColor: AppColors.primary,
-                    checkmarkColor: Colors.white,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight),
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    onSelected: (sel) {
-                      if (sel) {
-                        setState(() {
-                          _targetSizeKB = sizeKB;
-                          _customSizeController.text = sizeKB.toString();
-                        });
-                      }
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 10),
-
-              // Custom KB text field
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _customSizeController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Custom KB',
-                        hintText: 'e.g. 75',
-                        isDense: true,
-                        suffixText: 'KB',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onChanged: _applyCustomSize,
-                    ),
-                  ),
-                ],
+              TargetSizeSelector(
+                selectedSizeKB: _targetSizeKB,
+                onSizeChanged: (val) {
+                  setState(() {
+                    _targetSizeKB = val;
+                    _customSizeController.text = val.toString();
+                  });
+                },
+                customSizeController: _customSizeController,
+                isCompact: false,
+                customLabel: 'Custom KB',
               ),
               const SizedBox(height: 16),
 
@@ -313,71 +254,19 @@ class _BatchItemSettingsSheetState extends State<BatchItemSettingsSheet> {
                 ),
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: ['jpg', 'webp', 'png'].map((fmt) {
-                  final isSelected = _format == fmt;
-                  return ChoiceChip(
-                    label: Text(fmt.toUpperCase()),
-                    selected: isSelected,
-                    selectedColor: AppColors.primary,
-                    checkmarkColor: Colors.white,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight),
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    onSelected: (sel) {
-                      if (sel) setState(() => _format = fmt);
-                    },
-                  );
-                }).toList(),
+              FormatSelector(
+                selectedFormat: _format,
+                onFormatChanged: (fmt) => setState(() => _format = fmt),
+                isSegmented: false,
               ),
               const SizedBox(height: 16),
 
               // Scale %
-              Text(
-                'Scale / Dimension (% of original)',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [100, 75, 50, 25].map((pct) {
-                  final isSelected = _scalePercentage == pct;
-                  return ChoiceChip(
-                    label: Text('$pct%'),
-                    selected: isSelected,
-                    selectedColor: AppColors.primary,
-                    checkmarkColor: Colors.white,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight),
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    onSelected: (sel) {
-                      if (sel) setState(() => _scalePercentage = pct);
-                    },
-                  );
-                }).toList(),
+              ScalePercentageSelector(
+                selectedScalePercentage: _scalePercentage,
+                onScalePercentageChanged: (pct) => setState(() => _scalePercentage = pct),
+                headerLabel: 'Scale / Dimension (% of original)',
+                isSegmented: false,
               ),
               const SizedBox(height: 20),
             ],

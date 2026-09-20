@@ -16,6 +16,7 @@ enum StudioActiveTool {
   bgRemover,
   docFilter,
   upscale,
+  addPhoto,
   tools,
 }
 
@@ -30,6 +31,7 @@ class StudioBottomToolbar extends StatefulWidget {
   final VoidCallback onBgRemover;
   final VoidCallback? onDocFilter;
   final VoidCallback? onUpscale;
+  final VoidCallback? onAddPhoto;
   final VoidCallback? onCompressLongPress;
   final bool hasFlipped;
   final bool hasRotated;
@@ -51,6 +53,7 @@ class StudioBottomToolbar extends StatefulWidget {
     required this.onBgRemover,
     this.onDocFilter,
     this.onUpscale,
+    this.onAddPhoto,
     this.onCompressLongPress,
     this.hasFlipped = false,
     this.hasRotated = false,
@@ -373,6 +376,19 @@ class _StudioBottomToolbarState extends State<StudioBottomToolbar>
                               onTap: () {
                                 _dismissHint();
                                 widget.onUpscale!();
+                              },
+                            ),
+                          if (widget.onAddPhoto != null)
+                            _buildToolButton(
+                              context,
+                              icon: Icons.add_photo_alternate_rounded,
+                              label: 'ADD PHOTO',
+                              isActive:
+                                  widget.activeTool == StudioActiveTool.addPhoto,
+                              badgeText: 'NEW',
+                              onTap: () {
+                                _dismissHint();
+                                widget.onAddPhoto!();
                               },
                             ),
                           _buildToolButton(

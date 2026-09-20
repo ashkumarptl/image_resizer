@@ -7,12 +7,13 @@ import 'package:path_provider/path_provider.dart';
 import '../../data/models/process_result.dart';
 
 import 'safe_image_decoder.dart';
+import 'target_size_compressor.dart';
 
 enum SignatureInkColor { original, darkNavy, pureBlack, royalBlue }
 
 class SignatureEnhanceOptions {
   final String sourcePath;
-  final double threshold; // 0.0 to 1.0 (default ~0.65)
+  final double threshold; // 0.0 to 1.0 (default 0.0)
   final int targetSizeKB; // Default 19 KB (Strictly under 20 KB)
   final int? targetWidth; // e.g. 400
   final int? targetHeight; // e.g. 200
@@ -21,7 +22,7 @@ class SignatureEnhanceOptions {
 
   const SignatureEnhanceOptions({
     required this.sourcePath,
-    this.threshold = 0.65,
+    this.threshold = 0.0,
     this.targetSizeKB = 19,
     this.targetWidth = 400,
     this.targetHeight = 200,
@@ -107,12 +108,6 @@ class SignatureEnhancer {
     final origSize = bytes.length;
 
     // 1. High-contrast thresholding with white background isolation
-    final thresholdInt = (options.threshold * 255).round().clamp(0, 255);
-    final enhanced = img.Image(
-      width: workingSource.width,
-      height: workingSource.height,
-    );
-
     final isOriginalInk = options.inkColor == SignatureInkColor.original;
     final (r, g, b) = switch (options.inkColor) {
       SignatureInkColor.pureBlack => (0, 0, 0),
@@ -121,30 +116,42 @@ class SignatureEnhancer {
       SignatureInkColor.original => (0, 0, 0),
     };
 
-    for (var y = 0; y < workingSource.height; y++) {
-      for (var x = 0; x < workingSource.width; x++) {
-        final pixel = workingSource.getPixel(x, y);
-        // Luminance calculation
-        final lum = (0.299 * pixel.r + 0.587 * pixel.g + 0.114 * pixel.b)
-            .round();
+    final img.Image enhanced;
+    if (options.threshold <= 0.0) {
+      // Threshold 0 means no background / shadow removal
+      enhanced = img.Image.from(workingSource);
+    } else {
+      final thresholdInt = (options.threshold * 255).round().clamp(0, 255);
+      enhanced = img.Image(
+        width: workingSource.width,
+        height: workingSource.height,
+      );
 
-        if (lum > thresholdInt) {
-          // Pure white background
-          enhanced.setPixelRgba(x, y, 255, 255, 255, 255);
-        } else {
-          if (isOriginalInk) {
-            // Retain original vibrant ink stroke color
-            enhanced.setPixelRgba(
-              x,
-              y,
-              pixel.r.toInt(),
-              pixel.g.toInt(),
-              pixel.b.toInt(),
-              255,
-            );
+      for (var y = 0; y < workingSource.height; y++) {
+        for (var x = 0; x < workingSource.width; x++) {
+          final pixel = workingSource.getPixel(x, y);
+          // Luminance calculation
+          final lum = (0.299 * pixel.r + 0.587 * pixel.g + 0.114 * pixel.b)
+              .round();
+
+          if (lum > thresholdInt) {
+            // Pure white background
+            enhanced.setPixelRgba(x, y, 255, 255, 255, 255);
           } else {
-            // Sharp dark ink
-            enhanced.setPixelRgba(x, y, r, g, b, 255);
+            if (isOriginalInk) {
+              // Retain original vibrant ink stroke color
+              enhanced.setPixelRgba(
+                x,
+                y,
+                pixel.r.toInt(),
+                pixel.g.toInt(),
+                pixel.b.toInt(),
+                255,
+              );
+            } else {
+              // Sharp dark ink
+              enhanced.setPixelRgba(x, y, r, g, b, 255);
+            }
           }
         }
       }
@@ -163,19 +170,13 @@ class SignatureEnhancer {
 
     // 4. Encode & Compress to strictly under targetSizeKB
     final targetMaxBytes = options.targetSizeKB * 1024;
-    var quality = 85;
-    var encoded = img.encodeJpg(working, quality: quality);
-
-    while (encoded.length > targetMaxBytes && quality > 15) {
-      quality -= 10;
-      encoded = img.encodeJpg(working, quality: quality);
-    }
-
-    // If still too big, scale down dimensions
-    if (encoded.length > targetMaxBytes) {
-      working = img.copyResize(working, width: (working.width * 0.75).round());
-      encoded = img.encodeJpg(working, quality: 70);
-    }
+    final compressed = TargetSizeCompressor.compressToTargetSize(
+      working,
+      targetMaxBytes: targetMaxBytes,
+    );
+    final encoded = compressed.bytes;
+    final quality = compressed.quality;
+    working = compressed.image;
 
     // 5. Save output file
     final timestamp = DateTime.now().millisecondsSinceEpoch;
