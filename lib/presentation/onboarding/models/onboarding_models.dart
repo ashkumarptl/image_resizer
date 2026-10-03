@@ -167,7 +167,7 @@ class OnboardingPageData {
       badge: 'GOVT & EXAM READY',
       title: 'Exam Tools & Presets',
       subtitle:
-          'Official dimension presets and specialized utilities tailored for Indian Govt & Competitive Exam portals.',
+          'Pre-configured dimension presets and specialized utilities tailored for competitive exam & ID portals.',
       heroIcon: Icons.verified_outlined,
       gradientColors: [Color(0xFF059669), Color(0xFF10B981)],
       features: [
@@ -192,7 +192,7 @@ class OnboardingPageData {
           description:
               'Imprints candidate name and Date of Photo (DOP) on passport photos with the mandatory white label.',
           icon: Icons.badge_outlined,
-          badge: 'Official Stamp',
+          badge: 'Date Stamp',
           accentColor: Color(0xFFEA580C),
         ),
         OnboardingFeatureItem(

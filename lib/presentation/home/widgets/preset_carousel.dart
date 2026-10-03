@@ -57,7 +57,7 @@ class PresetCarousel extends StatelessWidget {
                     ),
                     Flexible(
                       child: Text(
-                        hasPinned ? 'Pinned & Popular' : 'Govt & Exam Presets',
+                        hasPinned ? 'Pinned & Popular' : 'Exam & Photo Presets',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

@@ -589,12 +589,79 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     }
   }
 
+  bool get _hasPendingTransforms =>
+      (_quarterTurns % 4 != 0) || _flipHorizontal || _flipVertical;
+
+  /// Bakes active rotation and flip directly into the current image file
+  /// so external/sub-tools (Crop, Filters, Bg Remover, AI Upscale) operate on the
+  /// exact visual orientation seen on the studio canvas.
+  Future<void> _commitPendingTransformsIfNeeded() async {
+    if (!_hasPendingTransforms || !_currentImage.existsSync()) return;
+
+    try {
+      final wasOddTurn = _quarterTurns % 2 != 0;
+
+      final options = ProcessOptions(
+        sourcePath: _currentImage.path,
+        quality: 100,
+        outputFormat: _outputFormat,
+        resizeMode: ResizeMode.none,
+        keepAspectRatio: true,
+        quarterTurns: _quarterTurns,
+        flipHorizontal: _flipHorizontal,
+        flipVertical: _flipVertical,
+        targetDpi: _imageDpi,
+        preventSizeIncrease: false,
+      );
+
+      final result = await ImageProcessor.processImage(options);
+      final bakedFile = File(result.outputPath);
+
+      if (bakedFile.existsSync() && mounted) {
+        setState(() {
+          _currentImage = bakedFile;
+          _fileSizeBytes = bakedFile.lengthSync();
+          _quarterTurns = 0;
+          _flipHorizontal = false;
+          _flipVertical = false;
+          _originalWidth = result.outputWidth;
+          _originalHeight = result.outputHeight;
+
+          if (wasOddTurn) {
+            final tmp = _targetWidth;
+            _targetWidth = _targetHeight;
+            _targetHeight = tmp;
+          }
+
+          _previewImageFile = null;
+          _previewResult = null;
+        });
+
+        await _updatePreviewProxy();
+        _recordHistory();
+        _triggerPreviewUpdate(debounce: false);
+      }
+    } catch (e, stack) {
+      debugPrint('[ImageStudioScreen] Failed to commit pending transforms: $e');
+      CrashlyticsService.recordNonFatalError(
+        e,
+        stack,
+        reason: 'Failed to commit pending transforms before opening tool',
+      );
+    }
+  }
+
   Future<void> _handleCrop() async {
     setState(() => _activeTool = StudioActiveTool.crop);
 
     final choice = await CropModeSheet.show(context);
 
     if (choice == null || !mounted) return;
+
+    if (_hasPendingTransforms) {
+      await _commitPendingTransformsIfNeeded();
+      if (!mounted) return;
+    }
 
     if (choice == 'perspective') {
       await _handlePerspectiveCrop();
@@ -604,6 +671,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   }
 
   Future<void> _handleDocumentFilter() async {
+    if (_hasPendingTransforms) {
+      await _commitPendingTransformsIfNeeded();
+      if (!mounted) return;
+    }
+
     final filteredFile = await Navigator.of(context).push<File>(
       MaterialPageRoute(
         builder: (_) => DocumentFilterScreen(
@@ -628,6 +700,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   }
 
   Future<void> _handleAddPhoto() async {
+    if (_hasPendingTransforms) {
+      await _commitPendingTransformsIfNeeded();
+      if (!mounted) return;
+    }
+
     final compositedFile = await Navigator.of(context).push<File>(
       MaterialPageRoute(
         builder: (_) => DocumentOverlayScreen(
@@ -651,6 +728,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   }
 
   Future<void> _handlePerspectiveCrop() async {
+    if (_hasPendingTransforms) {
+      await _commitPendingTransformsIfNeeded();
+      if (!mounted) return;
+    }
+
     final croppedFile = await Navigator.of(context).push<File>(
       MaterialPageRoute(
         builder: (_) => PerspectiveCropScreen(
@@ -678,6 +760,11 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   }
 
   Future<void> _handleStandardCrop() async {
+    if (_hasPendingTransforms) {
+      await _commitPendingTransformsIfNeeded();
+      if (!mounted) return;
+    }
+
     try {
       final cropped = await ImageCropper().cropImage(
         sourcePath: _currentImage.path,
@@ -737,6 +824,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
   Future<void> _handleBgRemover() async {
     setState(() => _activeTool = StudioActiveTool.bgRemover);
+    if (_hasPendingTransforms) {
+      await _commitPendingTransformsIfNeeded();
+      if (!mounted) return;
+    }
     final result = await BgRemoverSheet.show(context, imageFile: _currentImage);
 
     if (result != null && mounted) {
@@ -786,6 +877,10 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
 
   Future<void> _handleExecuteUpscale() async {
     if (_isUpscaling) return;
+    if (_hasPendingTransforms) {
+      await _commitPendingTransformsIfNeeded();
+      if (!mounted) return;
+    }
 
     final bytes = await _currentImage.readAsBytes();
     HapticFeedback.mediumImpact();

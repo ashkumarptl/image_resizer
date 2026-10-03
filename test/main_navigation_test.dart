@@ -288,7 +288,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Verify Presets Hub content is shown
-        expect(find.text('Govt & Exam Presets'), findsWidgets);
+        expect(find.text('Exam & Document Presets'), findsWidgets);
         expect(find.text('SSC Signature'), findsOneWidget);
         expect(find.text('UPSC Civil Services Photo'), findsOneWidget);
 

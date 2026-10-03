@@ -725,7 +725,7 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Preserves natural ink color or converts to official monochrome tones.',
+            'Preserves natural ink color or converts to clean monochrome ink tones.',
             style: TextStyle(
               fontSize: 11.5,
               color: isDark

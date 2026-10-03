@@ -179,12 +179,12 @@ class ToolGuideData {
               stepNumber: 3,
               title: 'Set Target KB & Stamp',
               description:
-                  'Set target size (e.g., 20 - 50 KB). Generates an official high-contrast white label at the bottom.',
+                  'Set target size (e.g., 20 - 50 KB). Generates a standard high-contrast white label at the bottom.',
               icon: Icons.verified_rounded,
             ),
           ],
           proTip:
-              'Government portals reject photos without standard white background label and clear bold font.',
+              'Many online portals require photos with a clean white background label and clear bold font.',
         );
 
       case ToolGuideType.aiUpscaler:
@@ -247,7 +247,7 @@ class ToolGuideData {
               stepNumber: 3,
               title: 'Export Clean Document',
               description:
-                  'Save as a crisp document photo ready for printing, official submission, or PDF assembly.',
+                  'Save as a crisp document photo ready for printing, online form submission, or PDF assembly.',
               icon: Icons.download_done_rounded,
             ),
           ],

@@ -17,6 +17,7 @@ import '../signature/signature_cleaner_screen.dart';
 import '../widgets/account_section.dart';
 import '../widgets/image_source_picker_sheet.dart';
 import '../widgets/login_gate_dialog.dart';
+import 'widgets/government_disclaimer_sheet.dart';
 import 'preset_apply_screen.dart';
 
 class PresetsHubScreen extends ConsumerStatefulWidget {
@@ -269,7 +270,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
             Text(
               _selectedTabIndex == 0
                   ? 'Exam Document Tools'
-                  : 'Govt & Exam Presets',
+                  : 'Exam & Document Presets',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: context.adaptiveFontSize(
@@ -282,7 +283,7 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
             const SizedBox(height: 2),
             Text(
               _selectedTabIndex == 0
-                  ? 'Specialized utilities for Govt & Exam portals'
+                  ? 'Specialized utilities for Exam & ID portals'
                   : 'Exact dimensions & strict KB limits for forms',
               style: TextStyle(
                 fontSize: context.adaptiveFontSize(
@@ -299,6 +300,18 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              Icons.info_outline_rounded,
+              size: context.adaptiveIconSize(
+                22,
+                tabletSize: 28,
+                largeTabletSize: 32,
+              ),
+            ),
+            tooltip: 'Disclaimer & Official Sources',
+            onPressed: () => GovernmentDisclaimerSheet.show(context),
+          ),
           Consumer(
             builder: (context, ref, child) {
               final authState = ref.watch(authStateProvider);
@@ -673,6 +686,68 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
                   ),
                 );
               },
+            ),
+          ),
+
+          // 2.5 Non-Government Disclaimer & Official Sources Notice
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              context.adaptiveMargin,
+              4,
+              context.adaptiveMargin,
+              4,
+            ),
+            child: InkWell(
+              onTap: () => GovernmentDisclaimerSheet.show(context),
+              borderRadius: BorderRadius.circular(AppRadii.cardSmall),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(AppRadii.cardSmall),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFCBD5E1),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.shield_outlined,
+                      size: 14,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Non-Govt Utility: Specifications based on public notices. Tap for official source links.',
+                        style: TextStyle(
+                          fontSize: context.adaptiveFontSize(
+                            10.5,
+                            tabletSize: 12.5,
+                            largeTabletSize: 14,
+                          ),
+                          color: isDark
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFF475569),
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 16,
+                      color: isDark
+                          ? const Color(0xFF64748B)
+                          : const Color(0xFF94A3B8),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
 

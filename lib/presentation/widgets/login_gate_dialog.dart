@@ -192,7 +192,7 @@ class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
                 const SizedBox(height: 8),
                 _buildBenefitRow(
                   Icons.account_balance_rounded,
-                  'All Indian Govt & Exam Presets',
+                  'All Exam & Document Presets',
                   isDark,
                 ),
                 const SizedBox(height: 8),
