@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -6,12 +7,29 @@ import 'package:package_info_plus/package_info_plus.dart';
 class CrashlyticsService {
   CrashlyticsService._();
 
-  static final FirebaseCrashlytics _crashlytics = FirebaseCrashlytics.instance;
+  static FirebaseCrashlytics? get _crashlytics {
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        return FirebaseCrashlytics.instance;
+      }
+    } catch (e) {
+      debugPrint('[Crashlytics] FirebaseCrashlytics not ready: $e');
+    }
+    return null;
+  }
 
   /// Initialize Crashlytics handlers for Flutter and Async errors
   static Future<void> initialize() async {
+    final crashlytics = _crashlytics;
+    if (crashlytics == null) {
+      debugPrint(
+        '[Crashlytics] Skipped initialization because Firebase is not ready.',
+      );
+      return;
+    }
+
     // 1. Configure collection: Always enable so crashes & test events are sent to Firebase Console
-    await _crashlytics.setCrashlyticsCollectionEnabled(true);
+    await crashlytics.setCrashlyticsCollectionEnabled(true);
     debugPrint('[Crashlytics] Collection enabled (kDebugMode: $kDebugMode).');
 
     // 2. Flutter framework errors (UI / Widget build exceptions)
@@ -19,20 +37,20 @@ class CrashlyticsService {
       if (kDebugMode) {
         FlutterError.presentError(details);
       }
-      _crashlytics.recordFlutterFatalError(details);
+      _crashlytics?.recordFlutterFatalError(details);
     };
 
     // 3. Platform Dispatcher errors (Async / Isolate / Uncaught Zone errors)
     PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      _crashlytics.recordError(error, stack, fatal: true);
+      _crashlytics?.recordError(error, stack, fatal: true);
       return true;
     };
 
     // 4. Set App Version metadata for version vs crash rate tracking
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      await _crashlytics.setCustomKey('app_version', packageInfo.version);
-      await _crashlytics.setCustomKey('build_number', packageInfo.buildNumber);
+      await _crashlytics?.setCustomKey('app_version', packageInfo.version);
+      await _crashlytics?.setCustomKey('build_number', packageInfo.buildNumber);
     } catch (e) {
       debugPrint('[Crashlytics] Could not read PackageInfo: $e');
     }
@@ -47,14 +65,14 @@ class CrashlyticsService {
     String? outputFormat,
   }) async {
     try {
-      await _crashlytics.setCustomKey('current_operation', operation);
-      await _crashlytics.setCustomKey('last_image_width', inputWidth);
-      await _crashlytics.setCustomKey('last_image_height', inputHeight);
-      await _crashlytics.setCustomKey('last_image_size_kb', inputSizeKb);
+      await _crashlytics?.setCustomKey('current_operation', operation);
+      await _crashlytics?.setCustomKey('last_image_width', inputWidth);
+      await _crashlytics?.setCustomKey('last_image_height', inputHeight);
+      await _crashlytics?.setCustomKey('last_image_size_kb', inputSizeKb);
       if (outputFormat != null) {
-        await _crashlytics.setCustomKey('output_format', outputFormat);
+        await _crashlytics?.setCustomKey('output_format', outputFormat);
       }
-      await _crashlytics.log(
+      await _crashlytics?.log(
         'Starting $operation on ${inputWidth}x$inputHeight (${inputSizeKb}KB)',
       );
     } catch (e) {
@@ -65,7 +83,7 @@ class CrashlyticsService {
   /// Clear or reset the operation context after completion
   static Future<void> clearProcessingContext() async {
     try {
-      await _crashlytics.setCustomKey('current_operation', 'idle');
+      await _crashlytics?.setCustomKey('current_operation', 'idle');
     } catch (_) {}
   }
 
@@ -76,7 +94,7 @@ class CrashlyticsService {
     String? reason,
   }) async {
     try {
-      await _crashlytics.recordError(
+      await _crashlytics?.recordError(
         exception,
         stack,
         reason: reason,

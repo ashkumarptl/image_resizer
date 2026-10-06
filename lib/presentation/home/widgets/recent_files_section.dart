@@ -172,7 +172,8 @@ class RecentFilesSection extends StatelessWidget {
           cacheWidth: 160,
           cacheHeight: 160,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => buildBrokenPlaceholder(),
+          errorBuilder: (context, error, stackTrace) =>
+              buildBrokenPlaceholder(),
         ),
       );
     } else {

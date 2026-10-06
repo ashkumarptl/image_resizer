@@ -3,15 +3,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/extensions/file_size_extension.dart';
 import '../../core/layout/adaptive_layout.dart';
 import '../../data/models/process_result.dart';
 import '../../data/repositories/tool_guide_repository.dart';
+import '../../services/image_service/safe_image_decoder.dart';
 import '../../services/image_service/signature_enhancer.dart';
+import 'signature_cropper_helper.dart';
+import 'widgets/signature_studio_bottom_toolbar.dart';
+import 'widgets/signature_studio_contextual_dock.dart';
 import '../result/result_screen.dart';
+import '../studio/widgets/studio_info_card.dart';
 import '../widgets/discard_changes_sheet.dart';
-import '../widgets/gradient_button.dart';
 import '../widgets/hold_to_compare_button.dart';
+import '../widgets/image_source_picker_sheet.dart';
 import '../widgets/tool_instruction_sheet.dart';
 
 class SignatureCleanerScreen extends StatefulWidget {
@@ -24,12 +28,27 @@ class SignatureCleanerScreen extends StatefulWidget {
 }
 
 class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
+  late File _currentImage;
   late int _originalSizeBytes;
+  int _originalWidth = 0;
+  int _originalHeight = 0;
+
+  // Active Studio Tool
+  SignatureStudioTool _activeTool = SignatureStudioTool.clean;
 
   // Processing & Adjustment state
   double _threshold = 0.0;
   int _targetSizeKB = 19;
+  late TextEditingController _sizeController;
   SignatureInkColor _inkColor = SignatureInkColor.darkNavy;
+  int? _targetWidth = 400;
+  int? _targetHeight = 200;
+  int _quarterTurns = 0;
+  bool _hasCropped = false;
+
+  // Interactive Viewer & Zoom state
+  late TransformationController _transformationController;
+  bool _isZoomedIn = false;
 
   // Live preview state
   Timer? _debounceTimer;
@@ -41,15 +60,27 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   bool _isProcessing = false;
 
   bool get _hasChanges =>
+      _currentImage.path != widget.initialImage.path ||
       _threshold != 0.0 ||
       _targetSizeKB != 19 ||
-      _inkColor != SignatureInkColor.darkNavy;
+      _inkColor != SignatureInkColor.darkNavy ||
+      _quarterTurns != 0 ||
+      _hasCropped ||
+      _targetWidth != 400 ||
+      _targetHeight != 200;
 
   @override
   void initState() {
     super.initState();
-    _originalSizeBytes = widget.initialImage.lengthSync();
+    _transformationController = TransformationController();
+    _transformationController.addListener(_onTransformationChanged);
+    _sizeController = TextEditingController(text: '$_targetSizeKB');
+
+    _currentImage = widget.initialImage;
+    _originalSizeBytes = _currentImage.lengthSync();
+    _loadImageMetadata();
     _triggerPreviewUpdate(debounce: false);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ToolInstructionSheet.show(context, ToolGuideType.signatureCleaner);
     });
@@ -58,9 +89,50 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _sizeController.dispose();
+    _transformationController.removeListener(_onTransformationChanged);
+    _transformationController.dispose();
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
     super.dispose();
+  }
+
+  void _onTransformationChanged() {
+    final scale = _transformationController.value.getMaxScaleOnAxis();
+    final isZoomed = (scale - 1.0).abs() > 0.05;
+    if (isZoomed != _isZoomedIn && mounted) {
+      setState(() => _isZoomedIn = isZoomed);
+    }
+  }
+
+  void _resetZoom() {
+    HapticFeedback.selectionClick();
+    _transformationController.value = Matrix4.identity();
+  }
+
+  void _handleDoubleTap() {
+    if (_isZoomedIn) {
+      _resetZoom();
+    } else {
+      HapticFeedback.selectionClick();
+      _transformationController.value = Matrix4.diagonal3Values(2.2, 2.2, 1.0);
+    }
+  }
+
+  Future<void> _loadImageMetadata() async {
+    try {
+      final bytes = await _currentImage.readAsBytes();
+      final decoded = await SafeImageDecoder.decodeSafe(
+        bytes,
+        maxDimension: 1200,
+      );
+      if (decoded != null && mounted) {
+        setState(() {
+          _originalWidth = decoded.width;
+          _originalHeight = decoded.height;
+        });
+      }
+    } catch (_) {}
   }
 
   void _triggerPreviewUpdate({bool debounce = true}) {
@@ -75,6 +147,52 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
     }
   }
 
+  Future<void> _handleCropArea() async {
+    final cropped = await SignatureCropperHelper.cropSignature(_currentImage);
+    if (cropped != null && mounted) {
+      setState(() {
+        _currentImage = cropped;
+        _originalSizeBytes = cropped.lengthSync();
+        _hasCropped = true;
+      });
+      _loadImageMetadata();
+      _triggerPreviewUpdate(debounce: false);
+    }
+  }
+
+  void _handleRotate() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _quarterTurns = (_quarterTurns + 1) % 4;
+      // Swap width and height display if rotated
+      if (_originalWidth > 0 && _originalHeight > 0) {
+        final temp = _originalWidth;
+        _originalWidth = _originalHeight;
+        _originalHeight = temp;
+      }
+    });
+    _triggerPreviewUpdate(debounce: false);
+  }
+
+  Future<void> _handleRePickImage() async {
+    final picked = await ImageSourcePickerSheet.show(
+      context,
+      title: 'Change Signature Photo',
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _currentImage = picked;
+        _originalSizeBytes = picked.lengthSync();
+        _hasCropped = false;
+        _quarterTurns = 0;
+        _showOriginal = false;
+      });
+      _resetZoom();
+      _loadImageMetadata();
+      _triggerPreviewUpdate(debounce: false);
+    }
+  }
+
   Future<void> _generatePreview() async {
     if (!mounted) return;
     final requestId = ++_previewRequestId;
@@ -83,11 +201,12 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
 
     try {
       final options = SignatureEnhanceOptions(
-        sourcePath: widget.initialImage.path,
+        sourcePath: _currentImage.path,
         threshold: _threshold,
         targetSizeKB: _targetSizeKB,
-        targetWidth: 400,
-        targetHeight: 200,
+        targetWidth: _targetWidth,
+        targetHeight: _targetHeight,
+        quarterTurns: _quarterTurns,
         inkColor: _inkColor,
       );
 
@@ -108,11 +227,21 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   void _handleReset() {
     HapticFeedback.mediumImpact();
     setState(() {
+      _currentImage = widget.initialImage;
+      _originalSizeBytes = widget.initialImage.lengthSync();
       _threshold = 0.0;
       _targetSizeKB = 19;
+      _sizeController.text = '19';
       _inkColor = SignatureInkColor.darkNavy;
+      _targetWidth = 400;
+      _targetHeight = 200;
+      _quarterTurns = 0;
+      _hasCropped = false;
       _showOriginal = false;
+      _activeTool = SignatureStudioTool.clean;
     });
+    _resetZoom();
+    _loadImageMetadata();
     _triggerPreviewUpdate(debounce: false);
   }
 
@@ -134,11 +263,12 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
 
     try {
       final options = SignatureEnhanceOptions(
-        sourcePath: widget.initialImage.path,
+        sourcePath: _currentImage.path,
         threshold: _threshold,
         targetSizeKB: _targetSizeKB,
-        targetWidth: 400,
-        targetHeight: 200,
+        targetWidth: _targetWidth,
+        targetHeight: _targetHeight,
+        quarterTurns: _quarterTurns,
         inkColor: _inkColor,
       );
 
@@ -165,14 +295,33 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isWide = context.isMediumOrWider;
+    final isTablet = context.isMediumOrWider;
+    final appBarBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final appBarFg = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimaryLight;
 
     return PopScope(
       canPop: !_hasChanges,
       onPopInvokedWithResult: (didPop, result) => _handlePopScope(didPop),
       child: Scaffold(
+        backgroundColor: isDark
+            ? AppColors.backgroundDark
+            : const Color(0xFFF6F8FB),
         appBar: AppBar(
+          backgroundColor: appBarBg,
+          foregroundColor: appBarFg,
+          elevation: 0,
+          titleSpacing: 4,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(
+              height: 1,
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            ),
+          ),
           leading: BackButton(
+            color: appBarFg,
             onPressed: () async {
               if (_hasChanges) {
                 await _handlePopScope(false);
@@ -181,17 +330,64 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
               }
             },
           ),
-          title: const Text('Signature B&W Cleaner'),
+          title: Text(
+            'Signature Studio',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style:
+                (Theme.of(context).appBarTheme.titleTextStyle ??
+                        const TextStyle())
+                    .copyWith(
+                      color: appBarFg,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                    ),
+          ),
           actions: [
-            if (_hasChanges)
-              IconButton(
-                icon: const Icon(Icons.refresh_rounded),
-                tooltip: 'Reset to Defaults',
-                onPressed: _handleReset,
-              ),
+            // Standard Crop Signature Area button
             IconButton(
-              icon: const Icon(Icons.help_outline_rounded),
-              tooltip: 'How to use Signature Cleaner',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 40),
+              icon: const Icon(Icons.crop_free_rounded, size: 21),
+              tooltip: 'Crop Signature Area',
+              color: appBarFg,
+              onPressed: _handleCropArea,
+            ),
+            // Rotate button
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 40),
+              icon: const Icon(Icons.rotate_90_degrees_cw_outlined, size: 21),
+              tooltip: 'Rotate',
+              color: appBarFg,
+              onPressed: _handleRotate,
+            ),
+            // Reset Adjustments
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 40),
+              icon: const Icon(Icons.refresh_rounded, size: 21),
+              tooltip: 'Reset Adjustments',
+              color: appBarFg,
+              disabledColor: appBarFg.withValues(alpha: 0.25),
+              onPressed: (_isProcessing || !_hasChanges) ? null : _handleReset,
+            ),
+            // Re-pick image
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 40),
+              icon: const Icon(Icons.photo_library_outlined, size: 20),
+              tooltip: 'Change Image',
+              color: appBarFg,
+              onPressed: _isProcessing ? null : _handleRePickImage,
+            ),
+            // Guide / Help
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 40),
+              icon: const Icon(Icons.help_outline_rounded, size: 21),
+              tooltip: 'How to use Signature Studio',
+              color: appBarFg,
               onPressed: () {
                 ToolInstructionSheet.show(
                   context,
@@ -200,79 +396,309 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                 );
               },
             ),
+            // Primary Save Action Checkmark
+            Padding(
+              padding: const EdgeInsets.only(right: 10, left: 2),
+              child: _isProcessing
+                  ? Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    )
+                  : IconButton.filled(
+                      constraints: const BoxConstraints(
+                        minWidth: 36,
+                        minHeight: 36,
+                      ),
+                      style: IconButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 2,
+                        shadowColor: AppColors.primary.withValues(alpha: 0.4),
+                      ),
+                      icon: const Icon(Icons.check_rounded, size: 20),
+                      tooltip: 'Save Clean Signature',
+                      onPressed: _handleEnhance,
+                    ),
+            ),
           ],
         ),
         body: SafeArea(
-          child: AdaptiveSupportingPane(
-            stretchPrimaryPane: false,
-            primaryFlex: 6,
-            supportingFlex: 5,
-            primaryPane: _buildPreviewCard(isDark, isWide: isWide),
-            supportingPane: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildExplanationBanner(isDark),
-                const SizedBox(height: 16),
-                _buildThresholdSection(isDark),
-                const SizedBox(height: 16),
-                _buildInkToneSection(isDark),
-                const SizedBox(height: 16),
-                _buildTargetSizeSection(isDark),
-                const SizedBox(height: 8),
-              ],
-            ),
-            bottomAction: _buildBottomActionBar(isDark),
+          child: Column(
+            children: [
+              // 1. Top File & Output Info HUD
+              RepaintBoundary(
+                child: StudioInfoCard(
+                  filePath: _currentImage.path,
+                  width: _originalWidth > 0 ? _originalWidth : 400,
+                  height: _originalHeight > 0 ? _originalHeight : 200,
+                  fileSizeBytes: _originalSizeBytes,
+                  targetSummary: 'Gov Exam: < $_targetSizeKB KB',
+                  estimatedSizeBytes: (!_showOriginal && _previewResult != null)
+                      ? _previewResult!.outputSizeBytes
+                      : null,
+                  outputWidth: (!_showOriginal && _previewResult != null)
+                      ? _previewResult!.outputWidth
+                      : (_targetWidth ?? 400),
+                  outputHeight: (!_showOriginal && _previewResult != null)
+                      ? _previewResult!.outputHeight
+                      : (_targetHeight ?? 200),
+                  outputFormat: 'JPG',
+                  isCalculating: _isGeneratingPreview,
+                  isDark: isDark,
+                ),
+              ),
+
+              // 2. Large Central Viewport (Dominant Canvas - Maximized Height)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 4,
+                  ),
+                  child: _buildImagePreviewCanvas(isDark, isTablet: isTablet),
+                ),
+              ),
+
+              // 3. Contextual Tool Controls Dock (Docked directly above bottom toolbar)
+              SignatureStudioContextualDock(
+                activeTool: _activeTool,
+                threshold: _threshold,
+                onThresholdChanged: (val) {
+                  setState(() => _threshold = val);
+                  _triggerPreviewUpdate();
+                },
+                inkColor: _inkColor,
+                onInkColorChanged: (color) {
+                  setState(() => _inkColor = color);
+                  _triggerPreviewUpdate();
+                },
+                targetSizeKB: _targetSizeKB,
+                sizeController: _sizeController,
+                onTargetSizeKBChanged: (val) {
+                  setState(() {
+                    _targetSizeKB = val;
+                    _sizeController.text = '$val';
+                  });
+                  _triggerPreviewUpdate();
+                },
+                targetWidth: _targetWidth,
+                targetHeight: _targetHeight,
+                onDimensionsChanged: (w, h) {
+                  setState(() {
+                    _targetWidth = w;
+                    _targetHeight = h;
+                  });
+                  _triggerPreviewUpdate();
+                },
+                isDark: isDark,
+              ),
+
+              const SizedBox(height: 4),
+            ],
           ),
+        ),
+        bottomNavigationBar: SignatureStudioBottomToolbar(
+          activeTool: _activeTool,
+          onToolSelected: (tool) {
+            HapticFeedback.selectionClick();
+            setState(() => _activeTool = tool);
+          },
+          isDark: isDark,
         ),
       ),
     );
   }
 
-  Widget _buildPreviewCard(bool isDark, {bool isWide = false}) {
+  // --- Dominant Canvas ---
+  Widget _buildImagePreviewCanvas(bool isDark, {bool isTablet = false}) {
     final hasPreview =
         _previewImageFile != null && _previewImageFile!.existsSync();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black38
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return RepaintBoundary(
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white, // Signatures preview on pure white paper
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : Colors.grey.shade300,
+            width: 1.5,
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Header: Mode Badge
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: Row(
-              children: [
-                // Status Badge
-                Container(
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black38
+                  : Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(17),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Subtle background paper texture/tint
+              Positioned.fill(
+                child: Container(
+                  color: _showOriginal
+                      ? (isDark
+                            ? const Color(0xFF1E222B)
+                            : const Color(0xFFF3F4F6))
+                      : Colors.white,
+                ),
+              ),
+
+              // Live preview generating linear progress bar at the top
+              if (_isGeneratingPreview && !_showOriginal)
+                const Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SizedBox(
+                    height: 3,
+                    child: LinearProgressIndicator(
+                      backgroundColor: Colors.transparent,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Zoomable & Transformed Signature Canvas
+              GestureDetector(
+                onDoubleTap: _handleDoubleTap,
+                child: InteractiveViewer(
+                  transformationController: _transformationController,
+                  minScale: 0.8,
+                  maxScale: 5.0,
+                  clipBehavior: Clip.none,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Center(
+                      child: _showOriginal
+                          ? Image.file(
+                              _currentImage,
+                              fit: BoxFit.contain,
+                              cacheWidth: 900,
+                            )
+                          : (hasPreview
+                                ? Image.file(
+                                    _previewImageFile!,
+                                    fit: BoxFit.contain,
+                                    cacheWidth: 900,
+                                  )
+                                : Image.file(
+                                    _currentImage,
+                                    fit: BoxFit.contain,
+                                    cacheWidth: 900,
+                                  )),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Top-left: Zoom instruction badge or Reset Zoom button
+              Positioned(
+                top: 10,
+                left: 10,
+                child: _isZoomedIn
+                    ? Material(
+                        color: Colors.black.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(16),
+                        child: InkWell(
+                          onTap: _resetZoom,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(
+                                  Icons.zoom_out_map_rounded,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 5),
+                                Text(
+                                  'Reset Zoom',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(
+                              Icons.pinch_rounded,
+                              size: 12,
+                              color: Colors.white70,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'Pinch to Zoom',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+
+              // Top-right: Status Mode Badge (CLEANED PREVIEW vs ORIGINAL SCAN)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 3.5,
                   ),
                   decoration: BoxDecoration(
                     color: _showOriginal
-                        ? Colors.amber.withValues(alpha: 0.15)
-                        : AppColors.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: _showOriginal
-                          ? Colors.amber.withValues(alpha: 0.35)
-                          : AppColors.primary.withValues(alpha: 0.3),
-                      width: 0.8,
-                    ),
+                        ? Colors.amber.withValues(alpha: 0.9)
+                        : AppColors.primary.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -281,705 +707,38 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                         _showOriginal
                             ? Icons.image_outlined
                             : Icons.auto_fix_high_rounded,
-                        size: 13,
-                        color: _showOriginal
-                            ? (isDark
-                                  ? Colors.amber.shade300
-                                  : Colors.amber.shade900)
-                            : AppColors.primary,
+                        size: 12,
+                        color: Colors.white,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         _showOriginal ? 'ORIGINAL SCAN' : 'CLEANED PREVIEW',
-                        style: TextStyle(
-                          fontSize: 10.5,
+                        style: const TextStyle(
+                          fontSize: 10,
                           fontWeight: FontWeight.w800,
-                          color: _showOriginal
-                              ? (isDark
-                                    ? Colors.amber.shade300
-                                    : Colors.amber.shade900)
-                              : AppColors.primary,
+                          color: Colors.white,
                           letterSpacing: 0.3,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          // Central Canvas Viewport
-          Container(
-            height: isWide ? 280 : 190,
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors
-                  .white, // Signatures always preview on crisp pure white paper
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300, width: 1),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Display Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(11),
-                  child: Center(
-                    child: _showOriginal
-                        ? Image.file(
-                            widget.initialImage,
-                            fit: BoxFit.contain,
-                            cacheWidth: 800,
-                          )
-                        : (hasPreview
-                              ? Image.file(
-                                  _previewImageFile!,
-                                  fit: BoxFit.contain,
-                                  cacheWidth: 800,
-                                )
-                              : Image.file(
-                                  widget.initialImage,
-                                  fit: BoxFit.contain,
-                                  cacheWidth: 800,
-                                )),
-                  ),
-                ),
-
-                // Preview Generating Indicator
-                if (_isGeneratingPreview && !_showOriginal)
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Bottom Specifications & Compare Row
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                // Specs pill (Resolution + Estimated Size)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.bolt_rounded,
-                            size: 15,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _previewResult != null
-                                ? 'Est: ${(_previewResult!.outputSizeBytes / 1024).toStringAsFixed(1)} KB'
-                                : 'Target: < $_targetSizeKB KB',
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          if (_previewResult != null &&
-                              _originalSizeBytes > 0) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(
-                                        0xFF14532D,
-                                      ).withValues(alpha: 0.5)
-                                    : AppColors.successContainer,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                '-${_previewResult!.savedPercentage.toStringAsFixed(0)}% saved',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? const Color(0xFF4ADE80)
-                                      : AppColors.success,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Original: ${_originalSizeBytes.toReadableFileSize()}  •  Output: 400 × 200 px',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textSecondaryLight,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Press & Hold to Compare Button
-                HoldToCompareButton(
+              // Bottom-right: Hold to Compare Button
+              Positioned(
+                bottom: 10,
+                right: 10,
+                child: HoldToCompareButton(
                   isComparing: _showOriginal,
-                  onComparisonChanged: (val) =>
-                      setState(() => _showOriginal = val),
-                  idleText: 'Hold Compare',
-                  activeText: 'Original',
-                  idleIcon: Icons.touch_app_rounded,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExplanationBanner(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.primaryContainerDark
-            : AppColors.primaryContainerLight,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.verified_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Paper grain, yellowing, and shadows removed. Crisp ink on pure white background (Government Exam Ready).',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.primaryDark,
-                height: 1.3,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildThresholdSection(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.tune_rounded,
-                      size: 18,
-                      color: AppColors.primary,
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        'Shadow Removal Strength',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '${(_threshold * 100).toInt()}%',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
+                  onComparisonChanged: (active) {
+                    setState(() => _showOriginal = active);
+                  },
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
-          // Quick threshold presets
-          Row(
-            children: [
-              _buildThresholdChip(
-                label: 'None (0%)',
-                value: 0.0,
-                isDark: isDark,
-                isRecommended: true,
-              ),
-              const SizedBox(width: 6),
-              _buildThresholdChip(
-                label: 'Light (50%)',
-                value: 0.50,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 6),
-              _buildThresholdChip(
-                label: 'Balanced (65%)',
-                value: 0.65,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 6),
-              _buildThresholdChip(
-                label: 'Deep (80%)',
-                value: 0.80,
-                isDark: isDark,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 4,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
-            ),
-            child: Slider(
-              value: _threshold.clamp(0.0, 0.90),
-              min: 0.0,
-              max: 0.90,
-              divisions: 18,
-              activeColor: AppColors.primary,
-              onChanged: (val) {
-                final normalizedVal = ((val * 100).round() / 100.0).clamp(
-                  0.0,
-                  0.90,
-                );
-                if ((normalizedVal * 100).round() !=
-                    (_threshold * 100).round()) {
-                  HapticFeedback.selectionClick();
-                }
-                setState(() => _threshold = normalizedVal);
-                _triggerPreviewUpdate();
-              },
-            ),
-          ),
-          Text(
-            'Increase if your scanned photo has heavy background shadows or dark paper grain.',
-            style: TextStyle(
-              fontSize: 11.5,
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondaryLight,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildThresholdChip({
-    required String label,
-    required double value,
-    required bool isDark,
-    bool isRecommended = false,
-  }) {
-    final isSelected = (_threshold - value).abs() < 0.02;
-
-    return Expanded(
-      child: Material(
-        color: isSelected
-            ? AppColors.primary
-            : (isDark ? AppColors.surfaceVariantDark : Colors.grey.shade100),
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            setState(() => _threshold = value);
-            _triggerPreviewUpdate(debounce: false);
-          },
-          borderRadius: BorderRadius.circular(10),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              children: [
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    color: isSelected
-                        ? Colors.white
-                        : (isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight),
-                  ),
-                ),
-                if (isRecommended && !isSelected)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      'Default',
-                      style: TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.primary,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInkToneSection(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.palette_outlined,
-                size: 18,
-                color: AppColors.primary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Ink Appearance',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimaryLight,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Preserves natural ink color or converts to clean monochrome ink tones.',
-            style: TextStyle(
-              fontSize: 11.5,
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondaryLight,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          Row(
-            children: [
-              _buildInkChoice(
-                label: 'Original',
-                isOriginal: true,
-                inkColor: SignatureInkColor.original,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 8),
-              _buildInkChoice(
-                label: 'Deep Black',
-                color: Colors.black,
-                inkColor: SignatureInkColor.pureBlack,
-                isDark: isDark,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _buildInkChoice(
-                label: 'Classic Navy',
-                color: const Color(0xFF0F172A),
-                inkColor: SignatureInkColor.darkNavy,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 8),
-              _buildInkChoice(
-                label: 'Royal Blue',
-                color: const Color(0xFF0E37A0),
-                inkColor: SignatureInkColor.royalBlue,
-                isDark: isDark,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInkChoice({
-    required String label,
-    Color color = Colors.black,
-    bool isOriginal = false,
-    required SignatureInkColor inkColor,
-    required bool isDark,
-  }) {
-    final isSelected = _inkColor == inkColor;
-
-    return Expanded(
-      child: Material(
-        color: isSelected
-            ? AppColors.primary.withValues(alpha: 0.12)
-            : (isDark ? AppColors.surfaceVariantDark : Colors.grey.shade100),
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            setState(() => _inkColor = inkColor);
-            _triggerPreviewUpdate(debounce: false);
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected
-                    ? AppColors.primary
-                    : (isDark ? AppColors.borderDark : AppColors.borderLight),
-                width: isSelected ? 1.5 : 1.0,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    gradient: isOriginal
-                        ? const SweepGradient(
-                            colors: [
-                              Color(0xFFEF4444),
-                              Color(0xFFF59E0B),
-                              Color(0xFF10B981),
-                              Color(0xFF3B82F6),
-                              Color(0xFF8B5CF6),
-                              Color(0xFFEF4444),
-                            ],
-                          )
-                        : null,
-                    color: isOriginal ? null : color,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isOriginal
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade400,
-                      width: 0.8,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 7),
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w600,
-                      color: isSelected
-                          ? AppColors.primary
-                          : (isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTargetSizeSection(bool isDark) {
-    const sizeOptions = [
-      (size: 19, label: '< 20 KB (SSC/UPSC)'),
-      (size: 50, label: '< 50 KB (IBPS/Bank)'),
-      (size: 10, label: '< 10 KB (State PSC)'),
-      (size: 30, label: '< 30 KB'),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.compress_rounded,
-                size: 18,
-                color: AppColors.primary,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Target File Size',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimaryLight,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Strictly compressed to fit government & job exam application portals.',
-            style: TextStyle(
-              fontSize: 11.5,
-              color: isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondaryLight,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: sizeOptions.map((opt) {
-              final isSelected = _targetSizeKB == opt.size;
-              return ChoiceChip(
-                label: Text(opt.label),
-                selected: isSelected,
-                selectedColor: AppColors.primary,
-                checkmarkColor: Colors.white,
-                shape: const StadiumBorder(),
-                labelStyle: TextStyle(
-                  fontSize: 12,
-                  color: isSelected
-                      ? Colors.white
-                      : (isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight),
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                ),
-                onSelected: (sel) {
-                  if (sel) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _targetSizeKB = opt.size);
-                    _triggerPreviewUpdate();
-                  }
-                },
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomActionBar(bool isDark) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        10,
-        16,
-        12 + MediaQuery.paddingOf(context).bottom,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.borderDark : AppColors.borderLight,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: GradientButton(
-        text: _isProcessing
-            ? 'Enhancing Signature...'
-            : '✍️ Save Clean Signature',
-        isLoading: _isProcessing,
-        onPressed: _isProcessing ? null : _handleEnhance,
       ),
     );
   }

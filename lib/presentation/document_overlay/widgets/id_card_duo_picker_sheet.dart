@@ -90,48 +90,49 @@ class _IdCardDuoPickerSheetState extends State<IdCardDuoPickerSheet> {
           children: [
             // Header
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.badge_rounded,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Aadhaar / ID Card Duo Setup',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimaryLight,
-                          ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.badge_rounded,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Aadhaar / ID Card Duo Setup',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
-                        Text(
-                          'Align Front & Back on single A4 Sheet',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondaryLight,
-                          ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'Align Front & Back on single A4 Sheet',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
-                      ],
-                    ),
-                  ],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded),
@@ -177,12 +178,14 @@ class _IdCardDuoPickerSheetState extends State<IdCardDuoPickerSheet> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      const Icon(Icons.dashboard_outlined, size: 18),
+                      const SizedBox(width: 8),
                       Text(
-                        'A4 Placement Layout:',
+                        'A4 Placement Layout',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -191,45 +194,63 @@ class _IdCardDuoPickerSheetState extends State<IdCardDuoPickerSheet> {
                               : AppColors.textPrimaryLight,
                         ),
                       ),
-                      Row(
-                        children: [
-                          ChoiceChip(
-                            label: const Text('Stacked (Top/Bottom)'),
-                            selected: _isVertical,
-                            onSelected: (val) {
-                              if (val) setState(() => _isVertical = true);
-                            },
-                          ),
-                          const SizedBox(width: 6),
-                          ChoiceChip(
-                            label: const Text('Side-by-Side'),
-                            selected: !_isVertical,
-                            onSelected: (val) {
-                              if (val) setState(() => _isVertical = false);
-                            },
-                          ),
-                        ],
-                      ),
                     ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<bool>(
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment<bool>(
+                          value: true,
+                          label: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text('Stacked (Top/Bottom)'),
+                          ),
+                          icon: Icon(Icons.table_rows_rounded, size: 16),
+                        ),
+                        ButtonSegment<bool>(
+                          value: false,
+                          label: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text('Side-by-Side'),
+                          ),
+                          icon: Icon(Icons.view_column_rounded, size: 16),
+                        ),
+                      ],
+                      selected: {_isVertical},
+                      onSelectionChanged: (val) {
+                        setState(() => _isVertical = val.first);
+                      },
+                      style: SegmentedButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 0,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
                   const Divider(height: 16),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.crop_square_rounded, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Add Cutting Guide Border',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textPrimaryLight,
-                            ),
+                      const Icon(Icons.crop_square_rounded, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Add Cutting Guide Border',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
                           ),
-                        ],
+                        ),
                       ),
                       Switch(
                         value: _hasBorder,
@@ -302,11 +323,7 @@ class _IdCardDuoPickerSheetState extends State<IdCardDuoPickerSheet> {
               ? Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.file(
-                      file,
-                      fit: BoxFit.cover,
-                      cacheWidth: 400,
-                    ),
+                    Image.file(file, fit: BoxFit.cover, cacheWidth: 400),
                     Positioned(
                       bottom: 0,
                       left: 0,

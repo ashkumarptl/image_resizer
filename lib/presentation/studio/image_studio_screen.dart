@@ -272,7 +272,8 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     setState(() => _isGeneratingPreview = true);
 
     try {
-      final isUsingProxy = _previewProxyFile != null &&
+      final isUsingProxy =
+          _previewProxyFile != null &&
           _previewProxyFile!.existsSync() &&
           _proxyWidth > 0 &&
           _proxyHeight > 0;
@@ -288,12 +289,16 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
           final scaleX = _proxyWidth / _originalWidth;
           final scaleY = _proxyHeight / _originalHeight;
           if (_targetWidth > 0) {
-            previewTargetWidth =
-                (_targetWidth * scaleX).round().clamp(1, _proxyWidth);
+            previewTargetWidth = (_targetWidth * scaleX).round().clamp(
+              1,
+              _proxyWidth,
+            );
           }
           if (_targetHeight > 0) {
-            previewTargetHeight =
-                (_targetHeight * scaleY).round().clamp(1, _proxyHeight);
+            previewTargetHeight = (_targetHeight * scaleY).round().clamp(
+              1,
+              _proxyHeight,
+            );
           }
         } else {
           previewTargetWidth = _targetWidth > 0 ? _targetWidth : null;

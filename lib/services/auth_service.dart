@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -16,23 +17,50 @@ class AuthService {
                 '739988890096-5ufkdp2lec91avsfsb7sjvq94onvralt.apps.googleusercontent.com',
           );
 
-  FirebaseAuth get _auth {
-    return _authInstance ??= FirebaseAuth.instance;
+  FirebaseAuth? get _auth {
+    if (_authInstance != null) return _authInstance;
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        return _authInstance = FirebaseAuth.instance;
+      }
+    } catch (e) {
+      debugPrint('[AuthService] Firebase not ready: $e');
+    }
+    return null;
+  }
+
+  FirebaseAuth _getRequiredAuth() {
+    final auth = _auth;
+    if (auth == null) {
+      throw FirebaseAuthException(
+        code: 'firebase-not-initialized',
+        message:
+            'Authentication service is not available or Firebase is not initialized.',
+      );
+    }
+    return auth;
   }
 
   /// Stream of user authentication state changes
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<User?> get authStateChanges {
+    final auth = _auth;
+    if (auth == null) {
+      return Stream<User?>.value(null);
+    }
+    return auth.authStateChanges();
+  }
 
   /// Current authenticated Firebase user (null if signed out)
-  User? get currentUser => _auth.currentUser;
+  User? get currentUser => _auth?.currentUser;
 
   /// Sign in using Google OAuth flow across Web and Mobile
   Future<UserCredential?> signInWithGoogle() async {
+    final auth = _getRequiredAuth();
     try {
       if (kIsWeb) {
         // Flutter Web uses Firebase Auth popup flow
         final GoogleAuthProvider authProvider = GoogleAuthProvider();
-        return await _auth.signInWithPopup(authProvider);
+        return await auth.signInWithPopup(authProvider);
       } else {
         // Mobile (Android / iOS) uses native GoogleSignIn account picker
         final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -49,7 +77,7 @@ class AuthService {
           idToken: googleAuth.idToken,
         );
 
-        return await _auth.signInWithCredential(credential);
+        return await auth.signInWithCredential(credential);
       }
     } on FirebaseAuthException catch (e) {
       debugPrint(
@@ -68,7 +96,7 @@ class AuthService {
       if (!kIsWeb) {
         await _googleSignIn.signOut();
       }
-      await _auth.signOut();
+      await _auth?.signOut();
     } catch (e) {
       debugPrint('[AuthService] Error during sign out: $e');
       rethrow;
@@ -77,7 +105,8 @@ class AuthService {
 
   /// Re-authenticate the current user with Google if credentials expired
   Future<void> reauthenticateWithGoogle() async {
-    final user = _auth.currentUser;
+    final auth = _getRequiredAuth();
+    final user = auth.currentUser;
     if (user == null) {
       throw FirebaseAuthException(
         code: 'no-current-user',
@@ -108,7 +137,8 @@ class AuthService {
 
   /// Permanently delete the user's account from Firebase Auth and sign out from Google
   Future<void> deleteAccount() async {
-    final user = _auth.currentUser;
+    final auth = _getRequiredAuth();
+    final user = auth.currentUser;
     if (user == null) {
       throw FirebaseAuthException(
         code: 'no-current-user',
@@ -129,7 +159,7 @@ class AuthService {
         );
         await reauthenticateWithGoogle();
         // Retry delete
-        await _auth.currentUser?.delete();
+        await auth.currentUser?.delete();
         if (!kIsWeb) {
           await _googleSignIn.signOut();
         }

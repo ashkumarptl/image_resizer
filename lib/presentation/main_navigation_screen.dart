@@ -17,6 +17,7 @@ import 'photo_stamp/photo_stamp_screen.dart';
 import 'presets/presets_hub_screen.dart';
 import 'settings/settings_screen.dart';
 import 'signature/signature_cleaner_screen.dart';
+import 'signature/signature_cropper_helper.dart';
 import 'studio/image_studio_screen.dart';
 import 'studio/widgets/studio_bottom_toolbar.dart';
 import 'widgets/floating_bottom_nav_bar.dart';
@@ -159,11 +160,14 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
         );
         break;
       case 'clean_signature':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => SignatureCleanerScreen(initialImage: file),
-          ),
-        );
+        final cropped = await SignatureCropperHelper.cropSignature(file);
+        if (cropped != null && mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => SignatureCleanerScreen(initialImage: cropped),
+            ),
+          );
+        }
         break;
       case 'photo_stamp':
         Navigator.of(context).push(

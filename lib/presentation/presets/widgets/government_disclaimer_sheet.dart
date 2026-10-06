@@ -105,9 +105,9 @@ class GovernmentDisclaimerSheet extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening link: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error opening link: $e')));
       }
     }
   }
@@ -168,7 +168,10 @@ class GovernmentDisclaimerSheet extends StatelessWidget {
                       Text(
                         'Disclaimer & Official Sources',
                         style: TextStyle(
-                          fontSize: context.adaptiveFontSize(16, tabletSize: 18),
+                          fontSize: context.adaptiveFontSize(
+                            16,
+                            tabletSize: 18,
+                          ),
                           fontWeight: FontWeight.bold,
                           color: isDark
                               ? AppColors.textPrimaryDark
@@ -239,7 +242,9 @@ class GovernmentDisclaimerSheet extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 height: 1.4,
-                                color: const Color(0xFF78350F).withValues(alpha: 0.9),
+                                color: const Color(
+                                  0xFF78350F,
+                                ).withValues(alpha: 0.9),
                               ),
                             ),
                           ],
@@ -312,14 +317,18 @@ class GovernmentDisclaimerSheet extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Material(
-                      color: isDark ? AppColors.surfaceVariantDark : Colors.white,
+                      color: isDark
+                          ? AppColors.surfaceVariantDark
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(AppRadii.cardSmall),
                       child: InkWell(
                         onTap: () => _openUrl(context, source.url),
                         borderRadius: BorderRadius.circular(AppRadii.cardSmall),
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(AppRadii.cardSmall),
+                            borderRadius: BorderRadius.circular(
+                              AppRadii.cardSmall,
+                            ),
                             border: Border.all(
                               color: isDark
                                   ? AppColors.borderDark

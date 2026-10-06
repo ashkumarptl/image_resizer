@@ -8,6 +8,7 @@ import '../../perspective_crop/perspective_crop_screen.dart';
 import '../../photo_stamp/photo_stamp_screen.dart';
 import '../../scan_to_pdf/scan_to_pdf_screen.dart';
 import '../../signature/signature_cleaner_screen.dart';
+import '../../signature/signature_cropper_helper.dart';
 import '../../widgets/bouncy_tap.dart';
 import '../../widgets/image_source_picker_sheet.dart';
 
@@ -73,7 +74,13 @@ class NextActionsSection extends ConsumerWidget {
               title: 'Select Signature Photo',
             );
             if (file != null && context.mounted) {
-              _navigateTo(context, SignatureCleanerScreen(initialImage: file));
+              final cropped = await SignatureCropperHelper.cropSignature(file);
+              if (cropped != null && context.mounted) {
+                _navigateTo(
+                  context,
+                  SignatureCleanerScreen(initialImage: cropped),
+                );
+              }
             }
           },
         ),

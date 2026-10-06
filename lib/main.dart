@@ -32,17 +32,17 @@ void main() async {
   // Clean old temporary cache files in background without blocking cold-start frame
   unawaited(StorageService.cleanOldCacheFiles());
 
-  // Initiate SharedPreferences to resolve initial theme and onboarding status
-  final prefs = await SharedPreferences.getInstance()
-      .then<SharedPreferences?>((p) => p)
-      .catchError((e) {
-        debugPrint('[SharedPreferences] Init error: $e');
-        return null;
-      });
-
-  // Initiate Firebase, Crashlytics, and Analytics non-blocking in the background
-  // to allow the first frame to paint immediately without network/bridge stalls.
-  unawaited(_initFirebaseSafely());
+  // Concurrently initiate SharedPreferences and Firebase core dependencies
+  // to ensure all platform bindings are ready before the first frame without sequential latency.
+  final (prefs, _) = await (
+    SharedPreferences.getInstance()
+        .then<SharedPreferences?>((p) => p)
+        .catchError((e) {
+          debugPrint('[SharedPreferences] Init error: $e');
+          return null;
+        }),
+    _initFirebaseSafely(),
+  ).wait;
 
   // Apply correct system nav bar color BEFORE first frame and obtain saved mode
   final savedThemeMode = _applyInitialSystemUiStyle(prefs);
@@ -80,8 +80,9 @@ Future<void> _initFirebaseSafely() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    await CrashlyticsService.initialize();
-    await AnalyticsService.logAppOpen();
+    // Non-critical telemetry and crashlytics initialize non-blocking
+    unawaited(CrashlyticsService.initialize());
+    unawaited(AnalyticsService.logAppOpen());
   } catch (e) {
     debugPrint('[Firebase] Initialization error: $e');
     // Still allow app to boot if offline or running in mock environment

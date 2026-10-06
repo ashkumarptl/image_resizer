@@ -22,11 +22,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: GovernmentDisclaimerSheet(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: GovernmentDisclaimerSheet())),
       );
       await tester.pumpAndSettle();
 
@@ -34,7 +30,10 @@ void main() {
       expect(find.text('Disclaimer & Official Sources'), findsOneWidget);
 
       // Check non-affiliation disclaimer text
-      expect(find.text('Non-Government Affiliation Disclaimer'), findsOneWidget);
+      expect(
+        find.text('Non-Government Affiliation Disclaimer'),
+        findsOneWidget,
+      );
       expect(
         find.textContaining(
           'Image Tools is an independent utility application developed by Ash Spark',
@@ -47,57 +46,50 @@ void main() {
         find.text('Official Government & Examination Portals'),
         findsOneWidget,
       );
-      expect(
-        find.text('Staff Selection Commission (SSC)'),
-        findsOneWidget,
-      );
+      expect(find.text('Staff Selection Commission (SSC)'), findsOneWidget);
       expect(
         find.text('Union Public Service Commission (UPSC)'),
         findsOneWidget,
       );
-      expect(
-        find.text('https://ssc.gov.in'),
-        findsOneWidget,
-      );
-      expect(
-        find.text('https://upsc.gov.in'),
-        findsOneWidget,
-      );
+      expect(find.text('https://ssc.gov.in'), findsOneWidget);
+      expect(find.text('https://upsc.gov.in'), findsOneWidget);
 
       // Dismiss button exists
       expect(find.text('I Understand'), findsOneWidget);
     });
 
-    testWidgets('PresetsHubScreen banner opens GovernmentDisclaimerSheet on tap', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
-            home: PresetsHubScreen(initialTabIndex: 1),
+    testWidgets(
+      'PresetsHubScreen banner opens GovernmentDisclaimerSheet on tap',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const ProviderScope(
+            child: MaterialApp(home: PresetsHubScreen(initialTabIndex: 1)),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Find the disclaimer banner
-      final bannerFinder = find.textContaining('Non-Govt Utility:');
-      expect(bannerFinder, findsOneWidget);
+        // Find the disclaimer banner
+        final bannerFinder = find.textContaining('Non-Govt Utility:');
+        expect(bannerFinder, findsOneWidget);
 
-      // Tap the banner to open the bottom sheet
-      await tester.tap(bannerFinder);
-      await tester.pumpAndSettle();
+        // Tap the banner to open the bottom sheet
+        await tester.tap(bannerFinder);
+        await tester.pumpAndSettle();
 
-      // Bottom sheet is now visible
-      expect(find.byType(GovernmentDisclaimerSheet), findsOneWidget);
-      expect(find.text('Non-Government Affiliation Disclaimer'), findsOneWidget);
+        // Bottom sheet is now visible
+        expect(find.byType(GovernmentDisclaimerSheet), findsOneWidget);
+        expect(
+          find.text('Non-Government Affiliation Disclaimer'),
+          findsOneWidget,
+        );
 
-      // Tap 'I Understand' button
-      await tester.tap(find.text('I Understand'));
-      await tester.pumpAndSettle();
+        // Tap 'I Understand' button
+        await tester.tap(find.text('I Understand'));
+        await tester.pumpAndSettle();
 
-      // Bottom sheet is closed
-      expect(find.byType(GovernmentDisclaimerSheet), findsNothing);
-    });
+        // Bottom sheet is closed
+        expect(find.byType(GovernmentDisclaimerSheet), findsNothing);
+      },
+    );
   });
 }

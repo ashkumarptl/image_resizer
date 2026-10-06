@@ -2132,11 +2132,7 @@ class _ScanProjectDetailScreenState
               fit: BoxFit.contain,
               cacheWidth: 1000,
               errorBuilder: (context, error, stackTrace) => const Center(
-                child: Icon(
-                  Icons.broken_image,
-                  size: 36,
-                  color: Colors.grey,
-                ),
+                child: Icon(Icons.broken_image, size: 36, color: Colors.grey),
               ),
             ),
           ),

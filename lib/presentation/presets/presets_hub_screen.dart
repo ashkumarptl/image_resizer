@@ -14,6 +14,7 @@ import '../document_filter/document_filter_screen.dart';
 import '../perspective_crop/perspective_crop_screen.dart';
 import '../photo_stamp/photo_stamp_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
+import '../signature/signature_cropper_helper.dart';
 import '../widgets/account_section.dart';
 import '../widgets/image_source_picker_sheet.dart';
 import '../widgets/login_gate_dialog.dart';
@@ -144,9 +145,13 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
+    final cropped = await SignatureCropperHelper.cropSignature(file);
+    if (cropped == null || !mounted) return;
+
+    if (!context.mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SignatureCleanerScreen(initialImage: file),
+        builder: (_) => SignatureCleanerScreen(initialImage: cropped),
       ),
     );
   }
@@ -701,7 +706,10 @@ class _PresetsHubScreenState extends ConsumerState<PresetsHubScreen> {
               onTap: () => GovernmentDisclaimerSheet.show(context),
               borderRadius: BorderRadius.circular(AppRadii.cardSmall),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF1E293B)

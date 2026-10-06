@@ -74,6 +74,10 @@ void main() {
       expect(find.byIcon(Icons.crop_rounded), findsNothing);
       expect(find.byTooltip('Rotate 90°'), findsNothing);
       expect(find.byTooltip('Crop Tightly'), findsNothing);
+
+      // Verify standard Crop Signature Area button is present in AppBar
+      expect(find.byIcon(Icons.crop_free_rounded), findsOneWidget);
+      expect(find.byTooltip('Crop Signature Area'), findsOneWidget);
     },
   );
 }

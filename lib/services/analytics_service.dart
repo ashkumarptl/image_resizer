@@ -1,4 +1,5 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
 /// Privacy-first Analytics Service for Image Resizer
@@ -7,12 +8,21 @@ import 'package:flutter/foundation.dart';
 class AnalyticsService {
   AnalyticsService._();
 
-  static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  static FirebaseAnalytics? get _analytics {
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        return FirebaseAnalytics.instance;
+      }
+    } catch (e) {
+      debugPrint('[Analytics] FirebaseAnalytics not ready: $e');
+    }
+    return null;
+  }
 
   /// Log App Open
   static Future<void> logAppOpen() async {
     try {
-      await _analytics.logAppOpen();
+      await _analytics?.logAppOpen();
       debugPrint('[Analytics] Event: app_open');
     } catch (e) {
       debugPrint('[Analytics] Error logging app_open: $e');
@@ -27,7 +37,7 @@ class AnalyticsService {
     required int sizeKb,
   }) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'image_selected',
         parameters: {
           'file_type': fileType.toLowerCase(),
@@ -52,7 +62,7 @@ class AnalyticsService {
     required String resizeMode,
   }) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'resize_started',
         parameters: {
           'output_format': outputFormat.toLowerCase(),
@@ -78,7 +88,7 @@ class AnalyticsService {
     required int durationMs,
   }) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'resize_completed',
         parameters: {
           'output_format': outputFormat.toLowerCase(),
@@ -102,7 +112,7 @@ class AnalyticsService {
     required int inputHeight,
   }) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'resize_failed',
         parameters: {
           'failure_reason': reason.length > 90
@@ -126,7 +136,7 @@ class AnalyticsService {
     required String destination,
   }) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'image_saved',
         parameters: {
           'output_format': outputFormat.toLowerCase(),
@@ -148,7 +158,7 @@ class AnalyticsService {
     required int sizeKb,
   }) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'image_shared',
         parameters: {
           'output_format': outputFormat.toLowerCase(),
@@ -164,7 +174,7 @@ class AnalyticsService {
   /// Output format selected
   static Future<void> logFormatSelected({required String format}) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'format_selected',
         parameters: {'format': format.toLowerCase()},
       );
@@ -185,7 +195,7 @@ class AnalyticsService {
         : 0;
 
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'compression_used',
         parameters: {
           'target_quality': targetQuality,
@@ -205,7 +215,7 @@ class AnalyticsService {
   /// Batch operations tracking
   static Future<void> logBatchResizeStarted({required int count}) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'batch_resize_started',
         parameters: {'batch_count': count},
       );
@@ -222,7 +232,7 @@ class AnalyticsService {
     required int durationMs,
   }) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'batch_resize_completed',
         parameters: {
           'total_images': totalImages,
@@ -241,7 +251,7 @@ class AnalyticsService {
 
   static Future<void> logSendToPcStarted({required int fileCount}) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'send_to_pc_started',
         parameters: {'file_count': fileCount},
       );
@@ -253,7 +263,7 @@ class AnalyticsService {
 
   static Future<void> logSendToPcDownloaded({required int fileCount}) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'send_to_pc_downloaded',
         parameters: {'file_count': fileCount},
       );
@@ -269,7 +279,7 @@ class AnalyticsService {
     required String action,
   }) async {
     try {
-      await _analytics.logEvent(
+      await _analytics?.logEvent(
         name: 'batch_export_pdf',
         parameters: {
           'page_count': pageCount,

@@ -16,6 +16,7 @@ import '../document_overlay/document_overlay_screen.dart';
 import '../photo_stamp/photo_stamp_screen.dart';
 import '../result/result_screen.dart';
 import '../signature/signature_cleaner_screen.dart';
+import '../signature/signature_cropper_helper.dart';
 import '../studio/image_studio_screen.dart';
 import '../widgets/account_section.dart';
 import '../widgets/bouncy_tap.dart';
@@ -71,9 +72,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final file = await _pickImage();
     if (file == null || !mounted) return;
 
+    final cropped = await SignatureCropperHelper.cropSignature(file);
+    if (cropped == null || !mounted) return;
+
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SignatureCleanerScreen(initialImage: file),
+        builder: (_) => SignatureCleanerScreen(initialImage: cropped),
       ),
     );
   }
