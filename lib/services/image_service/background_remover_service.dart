@@ -119,9 +119,9 @@ class BackgroundRemoverService {
     img.compositeImage(bg, fg);
 
     if (format == 'jpg' || format == 'jpeg') {
-      return Uint8List.fromList(img.encodeJpg(bg, quality: 95));
+      return img.encodeJpg(bg, quality: 95);
     } else {
-      return Uint8List.fromList(img.encodePng(bg));
+      return img.encodePng(bg);
     }
   }
 }

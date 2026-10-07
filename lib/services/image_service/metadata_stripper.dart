@@ -153,11 +153,11 @@ class MetadataStripper {
     final ext = p.extension(outPath).toLowerCase();
     Uint8List cleanBytes;
     if (ext == '.png') {
-      cleanBytes = Uint8List.fromList(img.encodePng(image));
+      cleanBytes = img.encodePng(image);
     } else if (ext == '.webp') {
-      cleanBytes = Uint8List.fromList(img.encodeWebP(image));
+      cleanBytes = img.encodeWebP(image);
     } else {
-      cleanBytes = Uint8List.fromList(img.encodeJpg(image, quality: 90));
+      cleanBytes = img.encodeJpg(image, quality: 90);
     }
 
     final outFile = File(outPath);

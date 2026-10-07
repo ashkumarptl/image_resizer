@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 
@@ -31,7 +32,7 @@ class TargetSizeCompressor {
     final isPng = format.toLowerCase() == 'png';
 
     if (isPng) {
-      final encoded = Uint8List.fromList(img.encodePng(working));
+      final encoded = img.encodePng(working);
       if (encoded.length <= targetMaxBytes) {
         return CompressedImageResult(
           bytes: encoded,
@@ -40,13 +41,13 @@ class TargetSizeCompressor {
         );
       }
       // Iterative dimension scale down for PNG to meet strict target
-      while (working.width > 100 && working.height > 100) {
+      while (working.width > 50 && working.height > 50) {
         working = img.copyResize(
           working,
           width: (working.width * 0.85).round(),
           interpolation: img.Interpolation.linear,
         );
-        final testBytes = Uint8List.fromList(img.encodePng(working));
+        final testBytes = img.encodePng(working);
         if (testBytes.length <= targetMaxBytes) {
           return CompressedImageResult(
             bytes: testBytes,
@@ -56,7 +57,7 @@ class TargetSizeCompressor {
         }
       }
       return CompressedImageResult(
-        bytes: Uint8List.fromList(img.encodePng(working)),
+        bytes: img.encodePng(working),
         quality: 100,
         image: working,
       );
@@ -70,7 +71,7 @@ class TargetSizeCompressor {
 
     while (low <= high) {
       final mid = (low + high) ~/ 2;
-      final encoded = Uint8List.fromList(img.encodeJpg(working, quality: mid));
+      final encoded = img.encodeJpg(working, quality: mid);
       if (encoded.length <= targetMaxBytes) {
         bestBytes = encoded;
         bestQuality = mid;
@@ -82,22 +83,45 @@ class TargetSizeCompressor {
 
     // If lowest quality is still over budget, downscale dimensions
     if (bestBytes == null || bestBytes.length > targetMaxBytes) {
+      final currentLen =
+          (bestBytes != null && bestBytes.isNotEmpty)
+              ? bestBytes.length
+              : targetMaxBytes * 2;
+      if (currentLen > targetMaxBytes) {
+        final scale = (math.sqrt(targetMaxBytes / currentLen) * 0.95).clamp(
+          0.10,
+          0.85,
+        );
+        final newW = (working.width * scale).round();
+        final newH = (working.height * scale).round();
+        if (newW > 50 && newH > 50) {
+          working = img.copyResize(
+            working,
+            width: newW,
+            height: newH,
+            interpolation: img.Interpolation.linear,
+          );
+          bestBytes = img.encodeJpg(working, quality: 65);
+          bestQuality = 65;
+        }
+      }
+
       while ((bestBytes == null || bestBytes.length > targetMaxBytes) &&
-          working.width > 100) {
+          working.width > 50 &&
+          working.height > 50) {
         working = img.copyResize(
           working,
           width: (working.width * 0.8).round(),
+          height: (working.height * 0.8).round(),
           interpolation: img.Interpolation.linear,
         );
-        bestBytes = Uint8List.fromList(img.encodeJpg(working, quality: 65));
+        bestBytes = img.encodeJpg(working, quality: 65);
         bestQuality = 65;
       }
     }
 
     return CompressedImageResult(
-      bytes:
-          bestBytes ??
-          Uint8List.fromList(img.encodeJpg(working, quality: minQuality)),
+      bytes: bestBytes ?? img.encodeJpg(working, quality: minQuality),
       quality: bestQuality,
       image: working,
     );

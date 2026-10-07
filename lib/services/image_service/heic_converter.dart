@@ -97,21 +97,23 @@ class HeicConverter {
       final codec = await ui.instantiateImageCodec(bytes);
       final frame = await codec.getNextFrame();
       final byteData = await frame.image.toByteData(
-        format: ui.ImageByteFormat.png,
+        format: ui.ImageByteFormat.rawRgba,
       );
 
       if (byteData != null) {
-        final pngBytes = byteData.buffer.asUint8List();
-        final decoded = img.decodePng(pngBytes);
-        if (decoded != null) {
-          final jpgBytes = img.encodeJpg(decoded, quality: 85);
-          await cachedFile.parent.create(recursive: true);
-          await cachedFile.writeAsBytes(jpgBytes);
-          debugPrint(
-            '[HeicConverter] Converted HEIC via engine fallback: $destPath',
-          );
-          return destPath;
-        }
+        final image = img.Image.fromBytes(
+          width: frame.image.width,
+          height: frame.image.height,
+          bytes: byteData.buffer,
+          order: img.ChannelOrder.rgba,
+        );
+        final jpgBytes = img.encodeJpg(image, quality: 85);
+        await cachedFile.parent.create(recursive: true);
+        await cachedFile.writeAsBytes(jpgBytes);
+        debugPrint(
+          '[HeicConverter] Converted HEIC via engine fallback: $destPath',
+        );
+        return destPath;
       }
     } catch (e) {
       debugPrint('[HeicConverter] Error converting HEIC: $e');

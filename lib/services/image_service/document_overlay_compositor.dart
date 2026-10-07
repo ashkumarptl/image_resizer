@@ -198,10 +198,11 @@ class DocumentOverlayCompositor {
     Uint8List outputBytes;
     final format = params.outputFormat.toLowerCase();
     if (format == 'png') {
-      outputBytes = Uint8List.fromList(img.encodePng(canvas));
+      outputBytes = img.encodePng(canvas);
     } else {
-      outputBytes = Uint8List.fromList(
-        img.encodeJpg(canvas, quality: params.outputQuality.clamp(50, 100)),
+      outputBytes = img.encodeJpg(
+        canvas,
+        quality: params.outputQuality.clamp(50, 100),
       );
     }
 

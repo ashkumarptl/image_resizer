@@ -147,13 +147,10 @@ class RecentFilesSection extends StatelessWidget {
       largeTabletSize: 28,
     );
 
-    Widget buildBrokenPlaceholder() => Container(
-      width: thumbSize,
-      height: thumbSize,
-      color: isDark
-          ? AppColors.surfaceVariantDark
-          : AppColors.surfaceVariantLight,
-      child: Icon(Icons.broken_image, size: brokenIconSize),
+    final placeholder = _BrokenPlaceholder(
+      size: thumbSize,
+      iconSize: brokenIconSize,
+      isDark: isDark,
     );
 
     Widget imageWidget;
@@ -172,8 +169,7 @@ class RecentFilesSection extends StatelessWidget {
           cacheWidth: 160,
           cacheHeight: 160,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) =>
-              buildBrokenPlaceholder(),
+          errorBuilder: (context, error, stackTrace) => placeholder,
         ),
       );
     } else {
@@ -184,7 +180,7 @@ class RecentFilesSection extends StatelessWidget {
         cacheWidth: 160,
         cacheHeight: 160,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => buildBrokenPlaceholder(),
+        errorBuilder: (context, error, stackTrace) => placeholder,
       );
     }
 
@@ -295,5 +291,29 @@ class RecentFilesSection extends StatelessWidget {
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
     return DateFormat.MMMd().format(dt);
+  }
+}
+
+class _BrokenPlaceholder extends StatelessWidget {
+  final double size;
+  final double iconSize;
+  final bool isDark;
+
+  const _BrokenPlaceholder({
+    required this.size,
+    required this.iconSize,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      color: isDark
+          ? AppColors.surfaceVariantDark
+          : AppColors.surfaceVariantLight,
+      child: Icon(Icons.broken_image, size: iconSize),
+    );
   }
 }

@@ -618,13 +618,13 @@ class ImageProcessor {
   }) {
     switch (format.toLowerCase()) {
       case 'png':
-        return Uint8List.fromList(img.encodePng(image, level: 6));
+        return img.encodePng(image, level: 6);
       case 'webp':
-        return Uint8List.fromList(img.encodeWebP(image));
+        return img.encodeWebP(image);
       case 'jpg':
       case 'jpeg':
       default:
-        return Uint8List.fromList(img.encodeJpg(image, quality: quality));
+        return img.encodeJpg(image, quality: quality);
     }
   }
 }

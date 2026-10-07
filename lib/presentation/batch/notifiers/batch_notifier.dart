@@ -179,14 +179,28 @@ class BatchNotifier extends StateNotifier<BatchState> {
   }
 
   Future<void> loadDimensionsForItems(List<BatchItemModel> itemsToLoad) async {
-    for (final item in itemsToLoad) {
-      final dims = await ImageProcessor.readImageDimensions(item.path);
-      final currentItems = List<BatchItemModel>.from(state.items);
-      final index = currentItems.indexWhere((it) => it.path == item.path);
-      if (index != -1) {
-        currentItems[index] = currentItems[index].copyWith(dimensions: dims);
-        state = state.copyWith(items: currentItems);
-      }
+    if (itemsToLoad.isEmpty) return;
+
+    final results = await Future.wait(
+      itemsToLoad.map((item) async {
+        final dims = await ImageProcessor.readImageDimensions(item.path);
+        return (item.path, dims);
+      }),
+    );
+
+    final dimMap = {
+      for (final r in results)
+        if (r.$2 != null) r.$1: r.$2!,
+    };
+
+    if (dimMap.isNotEmpty) {
+      final updatedItems = state.items.map((it) {
+        if (dimMap.containsKey(it.path)) {
+          return it.copyWith(dimensions: dimMap[it.path]);
+        }
+        return it;
+      }).toList();
+      state = state.copyWith(items: updatedItems);
     }
   }
 

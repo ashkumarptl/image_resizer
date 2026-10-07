@@ -46,9 +46,9 @@ class HistoryRepository {
   ) async {
     try {
       final sourceFile = File(param.sourcePath);
-      if (!sourceFile.existsSync()) return null;
+      if (!await sourceFile.exists()) return null;
 
-      final bytes = sourceFile.readAsBytesSync();
+      final bytes = await sourceFile.readAsBytes();
       // Fast downsampled decode for thumbnail to prevent massive heap spikes on large camera images
       final image = await SafeImageDecoder.decodeSafe(bytes, maxDimension: 360);
       if (image == null) return null;
@@ -57,8 +57,11 @@ class HistoryRepository {
       final thumbnail = img.copyResizeCropSquare(image, size: thumbnailSize);
 
       final targetFile = File(param.targetPath);
-      targetFile.parent.createSync(recursive: true);
-      targetFile.writeAsBytesSync(img.encodeJpg(thumbnail, quality: 80));
+      await targetFile.parent.create(recursive: true);
+      await targetFile.writeAsBytes(
+        img.encodeJpg(thumbnail, quality: 80),
+        flush: true,
+      );
       return targetFile.path;
     } catch (_) {
       return null;

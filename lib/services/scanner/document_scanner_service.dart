@@ -397,12 +397,13 @@ class DocumentScannerService {
 
     for (int i = 0; i < n; i++) {
       final file = File(imagePaths[i]);
-      List<int> rawBytes = file.existsSync() ? file.readAsBytesSync() : [];
+      if (!file.existsSync()) continue;
+      Uint8List rawBytes = file.readAsBytesSync();
       if (rawBytes.isEmpty) continue;
       int width = 800;
       int height = 1100;
 
-      final uint8 = Uint8List.fromList(rawBytes);
+      final uint8 = rawBytes;
       final isJpeg =
           rawBytes.length >= 2 && rawBytes[0] == 0xFF && rawBytes[1] == 0xD8;
       final header = SafeImageDecoder.readHeaderDimensions(uint8);

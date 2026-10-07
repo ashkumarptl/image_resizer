@@ -67,6 +67,30 @@ class StorageService {
     }
   }
 
+  static const List<String> _tempFilePrefixes = [
+    'img_tool_',
+    'sig_enhanced_',
+    'bg_removed_',
+    'bg_replaced_',
+    'mlkit_safe_',
+    'image_tools_batch_',
+    'doc_overlay_',
+    'perspective_crop_',
+    'heic_conv_',
+    '_clean_',
+    'studio_proxy_',
+    'Doc_',
+    'scan_',
+    'thumb_',
+  ];
+
+  static bool _isAppTempFile(String path) {
+    for (final prefix in _tempFilePrefixes) {
+      if (path.contains(prefix)) return true;
+    }
+    return false;
+  }
+
   /// Clean old temporary processed files to free device storage without blocking UI thread
   static Future<void> cleanOldCacheFiles({
     Duration maxAge = const Duration(days: 7),
@@ -77,7 +101,7 @@ class StorageService {
 
       if (await cacheDir.exists()) {
         await for (final entity in cacheDir.list(followLinks: false)) {
-          if (entity is File && entity.path.contains('img_tool_')) {
+          if (entity is File && _isAppTempFile(entity.path)) {
             try {
               final stat = await entity.stat();
               if (now.difference(stat.modified) > maxAge) {

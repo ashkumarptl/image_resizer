@@ -149,10 +149,10 @@ class SafeImageDecoder {
     File sourceFile, {
     int maxDimension = 2048,
   }) async {
-    if (!sourceFile.existsSync()) return sourceFile;
+    if (!await sourceFile.exists()) return sourceFile;
 
     try {
-      final bytes = sourceFile.readAsBytesSync();
+      final bytes = await sourceFile.readAsBytes();
       final header = readHeaderDimensions(bytes);
 
       if (header != null &&
