@@ -9,7 +9,7 @@ class DpiService {
   /// Default screen resolution DPI when none is specified in metadata
   static const int defaultDpi = 72;
 
-  /// Standard presets widely used across Indian Govt exam portals and passport standards
+  /// Standard DPI presets widely used for digital and print documents
   static const List<int> standardDpiPresets = [72, 150, 200, 300, 600];
 
   /// Reads current DPI from [bytes].

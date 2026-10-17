@@ -545,7 +545,7 @@ class _DocumentOverlayScreenState extends State<DocumentOverlayScreen> {
     const idRatio = 85.6 / 54.0;
     final canvasRatio = _currentCanvasRatio;
 
-    List<OverlayItemModel> newLayers = [];
+    final List<OverlayItemModel> newLayers = [];
 
     if (duoResult.isVertical) {
       final normW = 0.65;
@@ -866,7 +866,7 @@ class _DocumentOverlayScreenState extends State<DocumentOverlayScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 10, left: 4),
               child: _isProcessing
-                  ? Center(
+                  ? const Center(
                       child: SizedBox(
                         width: 20,
                         height: 20,

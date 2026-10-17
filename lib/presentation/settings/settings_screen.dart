@@ -775,7 +775,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Explore Edit Studio, Scan to PDF & Exam Tools',
+                                'Explore Edit Studio, Scan to PDF & Utilities',
                                 style: TextStyle(
                                   fontSize: context.adaptiveFontSize(
                                     11.5,

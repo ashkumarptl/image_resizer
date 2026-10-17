@@ -161,36 +161,28 @@ class OnboardingPageData {
       ],
     ),
 
-    // Page 3: Exam Tools & Presets
+    // Page 3: Photo & Document Utilities
     const OnboardingPageData(
       pageIndex: 2,
-      badge: 'GOVT & EXAM READY',
-      title: 'Exam Tools & Presets',
+      badge: 'POWERFUL UTILITIES',
+      title: 'Photo & Document Utilities',
       subtitle:
-          'Pre-configured dimension presets and specialized utilities tailored for competitive exam & ID portals.',
-      heroIcon: Icons.verified_outlined,
+          'Specialized offline tools to clean signatures, stamp photos, straighten documents, and optimize.',
+      heroIcon: Icons.auto_awesome_rounded,
       gradientColors: [Color(0xFF059669), Color(0xFF10B981)],
       features: [
         OnboardingFeatureItem(
-          title: '50+ Govt & Exam Presets',
-          description:
-              '1-tap exact dimensions (W × H) and strict KB limits for SSC, UPSC, IBPS, State PSC, Defence & IDs.',
-          icon: Icons.checklist_rounded,
-          badge: '50+ Presets',
-          accentColor: Color(0xFF059669),
-        ),
-        OnboardingFeatureItem(
           title: 'Signature B&W Cleaner',
           description:
-              'Converts paper signatures into pure monochrome ink. Removes paper shadows, texture & tint (<20 KB ready).',
+              'Converts paper signatures into pure monochrome ink. Removes paper shadows, texture & tint for crisp results.',
           icon: Icons.draw_rounded,
-          badge: 'Clean <20 KB',
+          badge: 'Monochrome',
           accentColor: Color(0xFF0D9488),
         ),
         OnboardingFeatureItem(
           title: 'Name & Date Photo Stamp',
           description:
-              'Imprints candidate name and Date of Photo (DOP) on passport photos with the mandatory white label.',
+              'Imprints customizable Name and Date labels directly onto photos with clean, high-contrast borders.',
           icon: Icons.badge_outlined,
           badge: 'Date Stamp',
           accentColor: Color(0xFFEA580C),
@@ -198,7 +190,7 @@ class OnboardingPageData {
         OnboardingFeatureItem(
           title: 'Perspective Crop & Deskew',
           description:
-              '4-corner keystone document straightener to flatten angled shots of marksheets, IDs & certificates.',
+              '4-corner keystone document straightener to flatten angled shots of notes, receipts & certificates.',
           icon: Icons.crop_rotate_rounded,
           badge: 'Auto-Deskew',
           accentColor: Color(0xFF2563EB),

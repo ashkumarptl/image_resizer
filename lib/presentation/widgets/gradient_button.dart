@@ -28,7 +28,7 @@ class GradientButton extends StatelessWidget {
     final pillRadius = BorderRadius.circular(height / 2);
     final isEnabled = onPressed != null && !isLoading;
 
-    Widget buttonContent = Container(
+    final Widget buttonContent = Container(
       width: width ?? double.infinity,
       height: height,
       decoration: BoxDecoration(

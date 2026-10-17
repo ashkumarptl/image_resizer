@@ -181,8 +181,8 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
         if (success) {
           HapticFeedback.mediumImpact();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Row(
+            const SnackBar(
+              content: Row(
                 children: [
                   Icon(
                     Icons.check_circle_rounded,
@@ -195,7 +195,7 @@ class _ScanPagePreviewScreenState extends ConsumerState<ScanPagePreviewScreen> {
               ),
               backgroundColor: AppColors.success,
               behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         } else {

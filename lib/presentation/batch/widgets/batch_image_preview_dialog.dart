@@ -52,9 +52,9 @@ class BatchImagePreviewDialog extends StatelessWidget {
                   item.file,
                   fit: BoxFit.contain,
                   cacheWidth: 1200,
-                  errorBuilder: (context, error, stackTrace) => Column(
+                  errorBuilder: (context, error, stackTrace) => const Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.broken_image_rounded,
                         color: Colors.white54,

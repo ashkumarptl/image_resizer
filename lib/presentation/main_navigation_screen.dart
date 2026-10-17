@@ -14,7 +14,6 @@ import '../services/system_integration_service.dart';
 import 'scan_to_pdf/scan_to_pdf_screen.dart';
 import 'home/home_screen.dart';
 import 'photo_stamp/photo_stamp_screen.dart';
-import 'presets/presets_hub_screen.dart';
 import 'settings/settings_screen.dart';
 import 'signature/signature_cleaner_screen.dart';
 import 'signature/signature_cropper_helper.dart';
@@ -200,7 +199,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
     final screens = [
       const HomeScreen(),
       const ScanToPdfScreen(isTab: true),
-      const PresetsHubScreen(isTab: true),
       const SettingsScreen(isTab: true),
     ];
 
@@ -214,11 +212,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
         icon: Icons.picture_as_pdf_outlined,
         activeIcon: Icons.picture_as_pdf_rounded,
         label: 'Scan to PDF',
-      ),
-      FloatingNavItem(
-        icon: Icons.draw_outlined,
-        activeIcon: Icons.draw_rounded,
-        label: 'Exam Tools',
       ),
       FloatingNavItem(
         icon: Icons.settings_outlined,
@@ -357,14 +350,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen>
                                 Icons.picture_as_pdf_rounded,
                               ),
                               label: const Text('Scan to PDF'),
-                              padding: EdgeInsets.symmetric(
-                                vertical: context.isLargeTablet ? 12 : 6,
-                              ),
-                            ),
-                            NavigationRailDestination(
-                              icon: const Icon(Icons.draw_outlined),
-                              selectedIcon: const Icon(Icons.draw_rounded),
-                              label: const Text('Exam Tools'),
                               padding: EdgeInsets.symmetric(
                                 vertical: context.isLargeTablet ? 12 : 6,
                               ),

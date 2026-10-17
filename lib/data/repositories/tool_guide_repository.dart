@@ -157,22 +157,22 @@ class ToolGuideData {
         return const ToolGuideData(
           type: ToolGuideType.photoStamp,
           title: 'Name & Date on Photo',
-          subtitle: 'Exam & Admit Card photo labeler',
+          subtitle: 'Photo & Name-Date labeler',
           toolIcon: Icons.badge_outlined,
           accentColor: Color(0xFFEA580C),
           steps: [
             ToolInstructionStep(
               stepNumber: 1,
-              title: 'Enter Candidate Full Name',
+              title: 'Enter Name',
               description:
-                  'Type your name exactly as registered in the examination application form.',
+                  'Type your name as needed for your application form or document.',
               icon: Icons.edit_note_rounded,
             ),
             ToolInstructionStep(
               stepNumber: 2,
               title: 'Select Date of Photo (DOP)',
               description:
-                  'Pick the photo date. Most portals require a date within 3 months of application submission.',
+                  'Pick the photo date or use today\'s date for your document.',
               icon: Icons.calendar_today_rounded,
             ),
             ToolInstructionStep(

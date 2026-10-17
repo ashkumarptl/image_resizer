@@ -1291,31 +1291,36 @@ class _ScanToPdfScreenState extends ConsumerState<ScanToPdfScreen> {
 
   Future<void> _handleRenameProject(ScanProject project) async {
     final controller = TextEditingController(text: project.name);
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Rename Document'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Document Name',
-            hintText: 'e.g. Aadhaar Card, Bill, Invoice',
+    String? newName;
+    try {
+      newName = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Rename Document'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Document Name',
+              hintText: 'e.g. Aadhaar Card, Bill, Invoice',
+            ),
+            textCapitalization: TextCapitalization.sentences,
           ),
-          textCapitalization: TextCapitalization.sentences,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+              child: const Text('Rename'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Rename'),
-          ),
-        ],
-      ),
-    );
+      );
+    } finally {
+      controller.dispose();
+    }
 
     if (newName != null && newName.isNotEmpty && newName != project.name) {
       await _projectService.renameProject(project.id, newName);

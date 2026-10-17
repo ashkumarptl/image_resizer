@@ -49,7 +49,7 @@ class _ScanProjectDetailScreenState
   bool get _isSelectionMode => _selectedPageIndices.isNotEmpty;
 
   void _clearSelection() {
-    setState(() => _selectedPageIndices.clear());
+    setState(_selectedPageIndices.clear);
   }
 
   void _toggleSelectAll() {
@@ -95,31 +95,36 @@ class _ScanProjectDetailScreenState
 
   Future<void> _handleRename() async {
     final controller = TextEditingController(text: _project.name);
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Rename Document'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Document Name',
-            hintText: 'e.g. Aadhaar Card, Bill, Invoice',
+    String? newName;
+    try {
+      newName = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Rename Document'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Document Name',
+              hintText: 'e.g. Aadhaar Card, Bill, Invoice',
+            ),
+            textCapitalization: TextCapitalization.sentences,
           ),
-          textCapitalization: TextCapitalization.sentences,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+              child: const Text('Rename'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: const Text('Rename'),
-          ),
-        ],
-      ),
-    );
+      );
+    } finally {
+      controller.dispose();
+    }
 
     if (newName != null && newName.isNotEmpty && newName != _project.name) {
       final updated = await _projectService.renameProject(_project.id, newName);
@@ -913,7 +918,7 @@ class _ScanProjectDetailScreenState
       if (pdfToPrint == null) {
         final quality = PdfQualityPreset.fromString(_project.pdfQuality);
         final files = _project.pagePaths
-            .map((p) => File(p))
+            .map(File.new)
             .where((f) => f.existsSync())
             .toList();
         if (files.isEmpty) return;
@@ -997,7 +1002,7 @@ class _ScanProjectDetailScreenState
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Set target size to match exam, job application, or email upload limits',
+                    'Set target size to match application or email upload limits',
                     style: TextStyle(
                       fontSize: 13,
                       color: isDark
@@ -1066,7 +1071,7 @@ class _ScanProjectDetailScreenState
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: const Text(
-                                    'EXAMS',
+                                    'RECOMMENDED',
                                     style: TextStyle(
                                       fontSize: 9,
                                       fontWeight: FontWeight.bold,
@@ -1896,12 +1901,8 @@ class _ScanProjectDetailScreenState
                   _handleOpenPreview(index);
                 }
               },
-              onLongPressSelect: (index) {
-                _selectSinglePage(index);
-              },
-              onGroupReorder: (newOrder) {
-                _handleGroupReorder(newOrder);
-              },
+              onLongPressSelect: _selectSinglePage,
+              onGroupReorder: _handleGroupReorder,
               itemBuilder: (context, index, isDragging) {
                 final isSelected = _selectedPageIndices.contains(index);
                 return _buildPageCard(
@@ -1946,12 +1947,8 @@ class _ScanProjectDetailScreenState
           _handleOpenPreview(index);
         }
       },
-      onLongPressSelect: (index) {
-        _selectSinglePage(index);
-      },
-      onGroupReorder: (newOrder) {
-        _handleGroupReorder(newOrder);
-      },
+      onLongPressSelect: _selectSinglePage,
+      onGroupReorder: _handleGroupReorder,
       itemBuilder: (context, index, isDragging) {
         final isSelected = _selectedPageIndices.contains(index);
         return _buildGridItem(

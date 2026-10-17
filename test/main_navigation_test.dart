@@ -33,7 +33,7 @@ void main() {
   });
 
   group('FloatingBottomNavBar Widget Tests', () {
-    testWidgets('renders all 4 nav items correctly', (
+    testWidgets('renders all 3 nav items correctly', (
       WidgetTester tester,
     ) async {
       int selectedIndex = 0;
@@ -56,11 +56,6 @@ void main() {
                   label: 'Scan to PDF',
                 ),
                 FloatingNavItem(
-                  icon: Icons.draw_outlined,
-                  activeIcon: Icons.draw_rounded,
-                  label: 'Exam Tools',
-                ),
-                FloatingNavItem(
                   icon: Icons.settings_outlined,
                   activeIcon: Icons.settings_rounded,
                   label: 'Settings',
@@ -73,14 +68,13 @@ void main() {
 
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Scan to PDF'), findsOneWidget);
-      expect(find.text('Exam Tools'), findsOneWidget);
       expect(find.text('Settings'), findsOneWidget);
 
       // Tap on Settings
       await tester.tap(find.text('Settings'));
       await tester.pumpAndSettle();
 
-      expect(selectedIndex, 3);
+      expect(selectedIndex, 2);
     });
 
     testWidgets('handles high text scaler (1.30x and 1.50x) without overflow', (
@@ -110,11 +104,6 @@ void main() {
                   label: 'Scan to PDF',
                 ),
                 FloatingNavItem(
-                  icon: Icons.draw_outlined,
-                  activeIcon: Icons.draw_rounded,
-                  label: 'Exam Tools',
-                ),
-                FloatingNavItem(
                   icon: Icons.settings_outlined,
                   activeIcon: Icons.settings_rounded,
                   label: 'Settings',
@@ -130,7 +119,6 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Scan to PDF'), findsOneWidget);
-      expect(find.text('Exam Tools'), findsOneWidget);
       expect(find.text('Settings'), findsOneWidget);
     });
 
@@ -269,30 +257,7 @@ void main() {
         expect(find.text('No Documents Yet'), findsOneWidget);
         expect(find.text('Scan Document'), findsOneWidget);
 
-        // 3. Tap on "Exam Tools" tab in the floating nav bar
-        await tester.tap(
-          find.descendant(
-            of: find.byType(FloatingBottomNavBar),
-            matching: find.text('Exam Tools'),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Verify Exam Tools content is shown by default
-        expect(find.text('Exam Document Tools'), findsWidgets);
-        expect(find.text('Signature B&W Cleaner'), findsWidgets);
-        expect(find.text('Name & Date Photo Stamp'), findsWidgets);
-
-        // Switch to Presets tab pill inside the combined screen
-        await tester.tap(find.text('Presets'));
-        await tester.pumpAndSettle();
-
-        // Verify Presets Hub content is shown
-        expect(find.text('Exam & Document Presets'), findsWidgets);
-        expect(find.text('SSC Signature'), findsOneWidget);
-        expect(find.text('UPSC Civil Services Photo'), findsOneWidget);
-
-        // 4. Tap on "Settings" tab in the floating nav bar
+        // 3. Tap on "Settings" tab in the floating nav bar
         await tester.tap(
           find.descendant(
             of: find.byType(FloatingBottomNavBar),
@@ -305,7 +270,7 @@ void main() {
         expect(find.text('APPEARANCE'), findsOneWidget);
         expect(find.text('ACCOUNT'), findsOneWidget);
 
-        // 5. Switch back to Home
+        // 4. Switch back to Home
         await tester.tap(
           find.descendant(
             of: find.byType(FloatingBottomNavBar),
@@ -349,16 +314,16 @@ void main() {
         // Verify Scan to PDF content is now shown
         expect(find.text('No Documents Yet'), findsOneWidget);
 
-        // Swipe left again to slide to "Exam Tools" (index 2)
+        // Swipe left again to slide to "Settings" (index 2)
         await tester.drag(find.text('No Documents Yet'), const Offset(-400, 0));
         await tester.pumpAndSettle();
 
-        // Verify Exam Tools content is now shown
-        expect(find.text('Exam Document Tools'), findsWidgets);
+        // Verify Settings content is now shown
+        expect(find.text('APPEARANCE'), findsOneWidget);
 
         // Swipe right to slide back to "Scan to PDF" (index 1)
         await tester.drag(
-          find.text('Exam Document Tools').first,
+          find.text('APPEARANCE'),
           const Offset(400, 0),
         );
         await tester.pumpAndSettle();

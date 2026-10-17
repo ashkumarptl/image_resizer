@@ -515,7 +515,7 @@ class ImageProcessor {
     }
 
     // Step B: If quality adjustment alone isn't enough (or for PNG), scale down dimensions iteratively.
-    // If strictDimensions is requested (e.g. for exam portal requirements), do not resize dimensions.
+    // If strictDimensions is requested, do not resize dimensions.
     if (!strictDimensions &&
         (bestBytes == null || bestBytes.length > targetMaxBytes)) {
       final int stepQuality = isLosslessPng ? 100 : 75;

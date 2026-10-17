@@ -136,11 +136,11 @@ class DocumentOverlayCompositor {
       if (layerDecoded == null) continue;
 
       // Calculate pixel dimensions
-      int targetW = (layer.normalizedWidth * canvasW).round().clamp(
+      final int targetW = (layer.normalizedWidth * canvasW).round().clamp(
         10,
         canvasW * 2,
       );
-      int targetH = (layer.normalizedHeight * canvasH).round().clamp(
+      final int targetH = (layer.normalizedHeight * canvasH).round().clamp(
         10,
         canvasH * 2,
       );

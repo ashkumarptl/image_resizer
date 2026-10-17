@@ -92,8 +92,11 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
     _sizeController.dispose();
     _transformationController.removeListener(_onTransformationChanged);
     _transformationController.dispose();
-    PaintingBinding.instance.imageCache.clear();
-    PaintingBinding.instance.imageCache.clearLiveImages();
+    PaintingBinding.instance.imageCache.evict(FileImage(_currentImage));
+    PaintingBinding.instance.imageCache.evict(FileImage(widget.initialImage));
+    if (_previewImageFile != null) {
+      PaintingBinding.instance.imageCache.evict(FileImage(_previewImageFile!));
+    }
     super.dispose();
   }
 
@@ -400,7 +403,7 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 10, left: 2),
               child: _isProcessing
-                  ? Center(
+                  ? const Center(
                       child: SizedBox(
                         width: 20,
                         height: 20,
@@ -441,7 +444,7 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                   width: _originalWidth > 0 ? _originalWidth : 400,
                   height: _originalHeight > 0 ? _originalHeight : 200,
                   fileSizeBytes: _originalSizeBytes,
-                  targetSummary: 'Gov Exam: < $_targetSizeKB KB',
+                  targetSummary: 'Target: < $_targetSizeKB KB',
                   estimatedSizeBytes: (!_showOriginal && _previewResult != null)
                       ? _previewResult!.outputSizeBytes
                       : null,
@@ -620,14 +623,14 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                         child: InkWell(
                           onTap: _resetZoom,
                           borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
                               horizontal: 10,
                               vertical: 5,
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
+                              children: [
                                 Icon(
                                   Icons.zoom_out_map_rounded,
                                   size: 14,
@@ -656,9 +659,9 @@ class _SignatureCleanerScreenState extends State<SignatureCleanerScreen> {
                           color: Colors.black.withValues(alpha: 0.55),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: const [
+                          children: [
                             Icon(
                               Icons.pinch_rounded,
                               size: 12,

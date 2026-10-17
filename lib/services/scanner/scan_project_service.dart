@@ -113,7 +113,7 @@ class ScanProjectService {
       final copiedPdf = await existingPdf.copy(targetPdfPath);
       pdfPath = copiedPdf.path;
     } else if (savedPagePaths.isNotEmpty) {
-      final pages = savedPagePaths.map((p) => File(p)).toList();
+      final pages = savedPagePaths.map(File.new).toList();
       final generatedPdf = await DocumentScannerService.createPdfFromImages(
         pages,
         qualityPreset: PdfQualityPreset.medium,
@@ -179,7 +179,7 @@ class ScanProjectService {
     // Re-compile PDF
     String? newPdfPath;
     if (updatedPaths.isNotEmpty) {
-      final pages = updatedPaths.map((p) => File(p)).toList();
+      final pages = updatedPaths.map(File.new).toList();
       final preset = PdfQualityPreset.fromString(project.pdfQuality);
       final generatedPdf = await DocumentScannerService.createPdfFromImages(
         pages,
@@ -249,7 +249,7 @@ class ScanProjectService {
     updatedFilters.remove(pageIndex.toString());
 
     // Re-compile PDF
-    final pages = updatedPaths.map((p) => File(p)).toList();
+    final pages = updatedPaths.map(File.new).toList();
     final preset = PdfQualityPreset.fromString(project.pdfQuality);
     final generatedPdf = await DocumentScannerService.createPdfFromImages(
       pages,
@@ -314,7 +314,7 @@ class ScanProjectService {
     // Re-compile PDF
     final baseDir = await _getBaseDirectory();
     final projectDir = Directory('${baseDir.path}/$projectId');
-    final pages = project.pagePaths.map((p) => File(p)).toList();
+    final pages = project.pagePaths.map(File.new).toList();
     final preset = PdfQualityPreset.fromString(project.pdfQuality);
     final generatedPdf = await DocumentScannerService.createPdfFromImages(
       pages,
@@ -374,7 +374,7 @@ class ScanProjectService {
 
     String? newPdfPath;
     if (updatedPaths.isNotEmpty) {
-      final pages = updatedPaths.map((p) => File(p)).toList();
+      final pages = updatedPaths.map(File.new).toList();
       final preset = PdfQualityPreset.fromString(project.pdfQuality);
       final generatedPdf = await DocumentScannerService.createPdfFromImages(
         pages,
@@ -446,7 +446,7 @@ class ScanProjectService {
 
     String? newPdfPath;
     if (updatedPaths.isNotEmpty) {
-      final pages = updatedPaths.map((p) => File(p)).toList();
+      final pages = updatedPaths.map(File.new).toList();
       final preset = PdfQualityPreset.fromString(project.pdfQuality);
       final generatedPdf = await DocumentScannerService.createPdfFromImages(
         pages,
@@ -508,7 +508,7 @@ class ScanProjectService {
       // Re-compile PDF with new order
       final baseDir = await _getBaseDirectory();
       final projectDir = Directory('${baseDir.path}/$projectId');
-      final pages = updatedPaths.map((p) => File(p)).toList();
+      final pages = updatedPaths.map(File.new).toList();
       final preset = PdfQualityPreset.fromString(project.pdfQuality);
       final generatedPdf = await DocumentScannerService.createPdfFromImages(
         pages,
@@ -589,7 +589,7 @@ class ScanProjectService {
       // Re-compile PDF with new order
       final baseDir = await _getBaseDirectory();
       final projectDir = Directory('${baseDir.path}/$projectId');
-      final pages = updatedPaths.map((p) => File(p)).toList();
+      final pages = updatedPaths.map(File.new).toList();
       final preset = PdfQualityPreset.fromString(project.pdfQuality);
       final generatedPdf = await DocumentScannerService.createPdfFromImages(
         pages,
@@ -636,7 +636,7 @@ class ScanProjectService {
     final baseDir = await _getBaseDirectory();
     final projectDir = Directory('${baseDir.path}/$projectId');
     final pages = project.pagePaths
-        .map((p) => File(p))
+        .map(File.new)
         .where((f) => f.existsSync())
         .toList();
     if (pages.isEmpty) return project;
@@ -697,7 +697,7 @@ class ScanProjectService {
     updatedFilters[pageIndex.toString()] = filter.name;
 
     // Re-compile PDF
-    final pages = updatedPaths.map((p) => File(p)).toList();
+    final pages = updatedPaths.map(File.new).toList();
     final preset = PdfQualityPreset.fromString(project.pdfQuality);
     final generatedPdf = await DocumentScannerService.createPdfFromImages(
       pages,
@@ -730,7 +730,7 @@ class ScanProjectService {
     final baseDir = await _getBaseDirectory();
     final projectDir = Directory('${baseDir.path}/$projectId');
 
-    final pages = project.pagePaths.map((p) => File(p)).toList();
+    final pages = project.pagePaths.map(File.new).toList();
     final generatedPdf = await DocumentScannerService.createPdfFromImages(
       pages,
       qualityPreset: preset,

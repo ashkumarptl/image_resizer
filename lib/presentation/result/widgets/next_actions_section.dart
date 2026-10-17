@@ -91,7 +91,7 @@ class NextActionsSection extends ConsumerWidget {
           icon: Icons.picture_as_pdf_rounded,
           iconColor: const Color(0xFFDC2626),
           title: 'Scan another document to PDF',
-          subtitle: 'Multi-page scanner with < 2MB preset & deskew',
+          subtitle: 'Multi-page scanner with compact PDF & deskew',
           badge: 'New',
           isDark: isDark,
           onTap: () => _navigateTo(context, const ScanToPdfScreen()),
@@ -103,8 +103,8 @@ class NextActionsSection extends ConsumerWidget {
           icon: Icons.badge_rounded,
           iconColor: const Color(0xFF0D9488),
           title: 'Name & Date Photo Stamp',
-          subtitle: 'Add mandatory Candidate Name & DOP stamp for SSC / NEET',
-          badge: 'Exam Mandatory',
+          subtitle: 'Add customizable Name & Date stamp onto photo',
+          badge: 'Utility',
           isDark: isDark,
           onTap: () async {
             final file = await _pickImage(

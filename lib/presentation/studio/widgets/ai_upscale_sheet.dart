@@ -395,10 +395,10 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                         ],
                       ),
                     ),
-                    child: Stack(
+                    child: const Stack(
                       alignment: Alignment.center,
                       children: [
-                        const SizedBox(
+                        SizedBox(
                           width: 42,
                           height: 42,
                           child: CircularProgressIndicator(
@@ -408,7 +408,7 @@ class _AiUpscaleSheetState extends State<AiUpscaleSheet> {
                             ),
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.auto_awesome_rounded,
                           size: 20,
                           color: Color(0xFFC084FC),

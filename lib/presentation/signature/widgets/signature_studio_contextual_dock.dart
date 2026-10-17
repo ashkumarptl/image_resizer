@@ -406,7 +406,7 @@ class SignatureStudioContextualDock extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Standardizes signature dimensions to match government exam portal upload boxes.',
+          'Standardizes signature dimensions to match standard upload boxes.',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(

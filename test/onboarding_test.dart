@@ -89,12 +89,11 @@ void main() {
       expect(titles, contains('In-Studio Page Refinement'));
     });
 
-    test('Page 3 features represent Exam Tools & Presets capabilities', () {
+    test('Page 3 features represent Photo & Document Utilities capabilities', () {
       final page3 = OnboardingPageData.pages[2];
-      expect(page3.badge, equals('GOVT & EXAM READY'));
-      expect(page3.title, equals('Exam Tools & Presets'));
+      expect(page3.badge, equals('POWERFUL UTILITIES'));
+      expect(page3.title, equals('Photo & Document Utilities'));
       final titles = page3.features.map((f) => f.title).toList();
-      expect(titles, contains('50+ Govt & Exam Presets'));
       expect(titles, contains('Signature B&W Cleaner'));
       expect(titles, contains('Name & Date Photo Stamp'));
       expect(titles, contains('Perspective Crop & Deskew'));
@@ -159,11 +158,10 @@ void main() {
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
 
-      // Verify Page 3 (Exam Tools & Presets)
+      // Verify Page 3 (Photo & Document Utilities)
       expect(find.text('Step 3 of 3'), findsOneWidget);
-      expect(find.text('GOVT & EXAM READY'), findsOneWidget);
-      expect(find.text('Exam Tools & Presets'), findsOneWidget);
-      expect(find.text('50+ Govt & Exam Presets'), findsOneWidget);
+      expect(find.text('POWERFUL UTILITIES'), findsOneWidget);
+      expect(find.text('Photo & Document Utilities'), findsOneWidget);
       expect(find.text('Signature B&W Cleaner'), findsOneWidget);
       expect(find.text('Name & Date Photo Stamp'), findsOneWidget);
 

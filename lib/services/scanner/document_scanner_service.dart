@@ -27,7 +27,7 @@ class ScannedPdfResult {
 
 enum PdfQualityPreset {
   low('Low (< 1 MB)', 'Compressed for email and job portals', 60, 1200),
-  medium('Medium (< 2 MB)', 'Optimal for exams & govt uploads', 78, 1600),
+  medium('Medium (< 2 MB)', 'Optimal for web & document uploads', 78, 1600),
   original(
     'Original (HQ)',
     'Full camera resolution and archival quality',

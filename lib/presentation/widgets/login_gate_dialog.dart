@@ -191,8 +191,8 @@ class _LoginGateBottomSheetState extends ConsumerState<LoginGateBottomSheet> {
                 ),
                 const SizedBox(height: 8),
                 _buildBenefitRow(
-                  Icons.account_balance_rounded,
-                  'All Exam & Document Presets',
+                  Icons.auto_awesome_rounded,
+                  'All Document & Image Studio Tools',
                   isDark,
                 ),
                 const SizedBox(height: 8),

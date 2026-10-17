@@ -50,8 +50,14 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
 
   @override
   void dispose() {
-    PaintingBinding.instance.imageCache.clear();
-    PaintingBinding.instance.imageCache.clearLiveImages();
+    if (_selectedFile != null) {
+      PaintingBinding.instance.imageCache.evict(FileImage(_selectedFile!));
+    }
+    if (_result != null) {
+      PaintingBinding.instance.imageCache.evict(
+        MemoryImage(_result!.imageBytes),
+      );
+    }
     super.dispose();
   }
 
@@ -374,10 +380,10 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
                             ],
                           ),
                         ),
-                        child: Stack(
+                        child: const Stack(
                           alignment: Alignment.center,
                           children: [
-                            const SizedBox(
+                            SizedBox(
                               width: 44,
                               height: 44,
                               child: CircularProgressIndicator(
@@ -387,7 +393,7 @@ class _AiUpscalerScreenState extends State<AiUpscalerScreen> {
                                 ),
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               Icons.auto_awesome_rounded,
                               size: 22,
                               color: Color(0xFFC084FC),

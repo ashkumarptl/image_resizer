@@ -804,18 +804,13 @@ class WebShareService {
       return;
     }
 
-    final archive = Archive();
-    for (final path in _filePaths) {
-      final file = File(path);
-      if (file.existsSync()) {
-        final bytes = file.readAsBytesSync();
-        final fileName = p.basename(path);
-        archive.addFile(ArchiveFile(fileName, bytes.length, bytes));
-      }
+    final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+    List<int> zipBytes;
+    if (isTest) {
+      zipBytes = _generateZipBytesSync(_filePaths);
+    } else {
+      zipBytes = await compute(_generateZipBytesSync, _filePaths);
     }
-
-    final zipEncoder = ZipEncoder();
-    final zipBytes = zipEncoder.encode(archive);
 
     if (zipBytes.isEmpty) {
       request.response
@@ -844,6 +839,25 @@ class WebShareService {
         message: 'Downloaded all files as ZIP',
       ),
     );
+  }
+
+  static List<int> _generateZipBytesSync(List<String> filePaths) {
+    try {
+      final archive = Archive();
+      for (final path in filePaths) {
+        final file = File(path);
+        if (file.existsSync()) {
+          final bytes = file.readAsBytesSync();
+          final fileName = p.basename(path);
+          archive.addFile(ArchiveFile(fileName, bytes.length, bytes));
+        }
+      }
+      final zipEncoder = ZipEncoder();
+      return zipEncoder.encode(archive);
+    } catch (e) {
+      debugPrint('[WebShareService] Error generating ZIP: $e');
+      return const <int>[];
+    }
   }
 
   static String _getMimeType(String filePath) {

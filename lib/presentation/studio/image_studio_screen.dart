@@ -155,12 +155,18 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
     _previewDebounceTimer?.cancel();
     _transformationController.removeListener(_onTransformationChanged);
     _transformationController.dispose();
-    PaintingBinding.instance.imageCache.clear();
-    PaintingBinding.instance.imageCache.clearLiveImages();
-    if (_previewProxyFile != null && _previewProxyFile!.existsSync()) {
-      try {
-        _previewProxyFile!.deleteSync();
-      } catch (_) {}
+    PaintingBinding.instance.imageCache.evict(FileImage(_currentImage));
+    PaintingBinding.instance.imageCache.evict(FileImage(widget.initialImage));
+    if (_previewImageFile != null) {
+      PaintingBinding.instance.imageCache.evict(FileImage(_previewImageFile!));
+    }
+    if (_previewProxyFile != null) {
+      PaintingBinding.instance.imageCache.evict(FileImage(_previewProxyFile!));
+      if (_previewProxyFile!.existsSync()) {
+        try {
+          _previewProxyFile!.deleteSync();
+        } catch (_) {}
+      }
     }
     super.dispose();
   }
@@ -168,9 +174,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
   void _triggerPreviewUpdate({bool debounce = true}) {
     _previewDebounceTimer?.cancel();
     if (debounce) {
-      _previewDebounceTimer = Timer(const Duration(milliseconds: 250), () {
-        _generatePreview();
-      });
+      _previewDebounceTimer = Timer(const Duration(milliseconds: 250), _generatePreview);
     } else {
       _generatePreview();
     }
@@ -1424,7 +1428,7 @@ class _ImageStudioScreenState extends State<ImageStudioScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 10, left: 4),
               child: _isProcessing
-                  ? Center(
+                  ? const Center(
                       child: SizedBox(
                         width: 20,
                         height: 20,

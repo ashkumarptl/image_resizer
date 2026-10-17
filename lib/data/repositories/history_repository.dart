@@ -106,8 +106,8 @@ class HistoryRepository {
         try {
           final map = jsonDecode(jsonStr) as Map<String, dynamic>;
           final item = HistoryItem.fromJson(map);
-          // Only include if file still exists
-          if (File(item.filePath).existsSync()) {
+          // Only include if file still exists (non-blocking async check)
+          if (await File(item.filePath).exists()) {
             items.add(item);
           } else {
             needsUpdate = true;
@@ -138,7 +138,7 @@ class HistoryRepository {
 
         for (final item in items) {
           if (item.thumbnailPath == null ||
-              !File(item.thumbnailPath!).existsSync()) {
+              !await File(item.thumbnailPath!).exists()) {
             final thumbPath = await generateThumbnail(item.filePath, item.id);
             if (thumbPath != null) {
               updatedItems.add(item.copyWith(thumbnailPath: thumbPath));
@@ -168,7 +168,7 @@ class HistoryRepository {
       // Generate thumbnail if not already present or existing
       HistoryItem itemToAdd = item;
       if (item.thumbnailPath == null ||
-          !File(item.thumbnailPath!).existsSync()) {
+          !await File(item.thumbnailPath!).exists()) {
         final thumbPath = await generateThumbnail(item.filePath, item.id);
         if (thumbPath != null) {
           itemToAdd = item.copyWith(thumbnailPath: thumbPath);
@@ -220,7 +220,7 @@ class HistoryRepository {
 
       // Delete the thumbnail directory contents
       final dir = await _getThumbnailDirectory();
-      if (dir.existsSync()) {
+      if (await dir.exists()) {
         await dir.delete(recursive: true);
       }
     } catch (_) {}
@@ -230,9 +230,11 @@ class HistoryRepository {
     if (path == null || path.isEmpty) return;
     try {
       final file = File(path);
-      if (file.existsSync()) {
-        file.deleteSync();
-      }
+      file.exists().then((exists) {
+        if (exists) {
+          file.delete().catchError((_) => file);
+        }
+      }).catchError((_) {});
     } catch (_) {}
   }
 }

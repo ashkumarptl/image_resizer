@@ -173,7 +173,7 @@ class BatchNotifier extends StateNotifier<BatchState> {
   }
 
   void setInitialFiles(List<File> files) {
-    final newItems = files.map((f) => BatchItemModel.fromFile(f)).toList();
+    final newItems = files.map(BatchItemModel.fromFile).toList();
     state = state.copyWith(items: newItems, clearBatchResult: true);
     loadDimensionsForItems(newItems);
   }
@@ -205,7 +205,7 @@ class BatchNotifier extends StateNotifier<BatchState> {
   }
 
   void addFiles(List<File> files, {bool append = false}) {
-    final newItems = files.map((f) => BatchItemModel.fromFile(f)).toList();
+    final newItems = files.map(BatchItemModel.fromFile).toList();
     final updatedList = append ? [...state.items, ...newItems] : newItems;
     state = state.copyWith(items: updatedList, clearBatchResult: true);
     loadDimensionsForItems(newItems);
@@ -621,5 +621,5 @@ class BatchNotifier extends StateNotifier<BatchState> {
 
 final batchNotifierProvider = StateNotifierProvider.autoDispose
     .family<BatchNotifier, BatchState, List<File>?>(
-      (ref, initialFiles) => BatchNotifier(ref, initialFiles),
+      BatchNotifier.new,
     );

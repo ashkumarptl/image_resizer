@@ -351,12 +351,12 @@ class _CompressOptionsSheetState extends State<CompressOptionsSheet> {
               controller: _customSizeController,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Exact Target File Size (KB)',
                 hintText: 'Enter size e.g. 50',
                 suffixText: 'KB',
-                prefixIcon: const Icon(Icons.data_usage_rounded),
-                border: const OutlineInputBorder(
+                prefixIcon: Icon(Icons.data_usage_rounded),
+                border: OutlineInputBorder(
                   borderRadius: AppRadii.cardSmallRadius,
                 ),
               ),

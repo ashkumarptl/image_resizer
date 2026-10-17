@@ -181,8 +181,8 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
             onPressed: _handlePrint,
           ),
           IconButton(
-            icon: Badge(
-              label: const Text(
+            icon: const Badge(
+              label: Text(
                 'PC',
                 style: TextStyle(
                   fontSize: 9,
@@ -191,7 +191,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                 ),
               ),
               backgroundColor: AppColors.secondary,
-              child: const Icon(Icons.laptop_chromebook_rounded),
+              child: Icon(Icons.laptop_chromebook_rounded),
             ),
             tooltip: 'Send to PC (Cyber Cafe)',
             onPressed: _handleSendToPc,

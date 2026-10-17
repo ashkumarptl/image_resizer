@@ -48,7 +48,7 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
   // Selected background color (null = transparent)
   Color? _selectedBgColor;
 
-  // Preset options for quick passport / exam / transparent cutouts
+  // Color options for quick photo and transparent cutouts
   static const List<_BgColorOption> _colorOptions = [
     _BgColorOption(name: 'Transparent', color: null, isTransparent: true),
     _BgColorOption(name: 'White', color: Color(0xFFFFFFFF)),
@@ -447,7 +447,7 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                               const _BgColorOption(name: 'Custom', color: null),
                         )
                         .name),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
@@ -587,7 +587,7 @@ class _BgRemoverSheetState extends State<BgRemoverSheet> {
                 child: Text(
                   _selectedBgColor == null
                       ? 'Tip: Transparent photos are exported as PNG to preserve transparent pixels.'
-                      : 'Tip: White and Blue backgrounds are widely used for Passport and Govt Exam forms.',
+                      : 'Tip: White and Blue backgrounds are widely used for IDs and official profile photos.',
                   style: TextStyle(
                     fontSize: 11.5,
                     color: isDark ? Colors.white70 : Colors.black87,

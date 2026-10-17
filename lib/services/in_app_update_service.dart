@@ -67,10 +67,10 @@ class InAppUpdateService {
       debugPrint('[InAppUpdateService] Update check skipped/failed: $e');
       if (isManualCheck && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Unable to check for updates right now.'),
             behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
+            duration: Duration(seconds: 2),
           ),
         );
       }

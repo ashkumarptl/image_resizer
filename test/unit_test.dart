@@ -3,12 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
-import 'package:image_resizer/core/constants/preset_constants.dart';
 import 'package:image_resizer/core/extensions/file_size_extension.dart';
 import 'package:image_resizer/core/theme/app_theme.dart';
 import 'package:image_resizer/core/theme/theme_provider.dart';
 import 'package:image_resizer/data/models/history_item.dart';
-import 'package:image_resizer/data/models/image_preset.dart';
 import 'package:image_resizer/data/models/process_options.dart';
 import 'package:image_resizer/data/models/process_result.dart';
 import 'package:image_resizer/data/repositories/history_repository.dart';
@@ -30,30 +28,9 @@ void main() {
     });
   });
 
-  group('PresetConstants Tests', () {
-    test('Indian Govt presets are non-empty and valid', () {
-      final presets = PresetConstants.indianGovtPresets;
-      expect(presets.isNotEmpty, true);
-      expect(presets.any((p) => p.id == 'ssc_signature'), true);
-      expect(presets.any((p) => p.id == 'cg_vyapam_photo'), true);
-      expect(presets.any((p) => p.id == 'upsc_photo'), true);
-    });
-
-    test('ImagePreset toJson and fromJson match', () {
-      final preset = PresetConstants.indianGovtPresets.first;
-      final json = preset.toJson();
-      final restored = ImagePreset.fromJson(json);
-
-      expect(restored.id, preset.id);
-      expect(restored.name, preset.name);
-      expect(restored.targetSizeKB, preset.targetSizeKB);
-      expect(restored.category, preset.category);
-    });
-  });
-
   group('ProcessResult Tests', () {
     test('Calculates saved percentage accurately', () {
-      final result = ProcessResult(
+      final result = const ProcessResult(
         originalPath: '/test/orig.png',
         outputPath: '/test/out.jpg',
         originalSizeBytes: 1000,
@@ -64,7 +41,7 @@ void main() {
         outputHeight: 500,
         outputFormat: 'jpg',
         finalQuality: 80,
-        processingTime: const Duration(milliseconds: 120),
+        processingTime: Duration(milliseconds: 120),
       );
 
       expect(result.savedPercentage, 80.0);
